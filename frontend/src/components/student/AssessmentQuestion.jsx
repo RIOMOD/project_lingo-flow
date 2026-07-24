@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 
 function selectedIds(answer) {
-  if (!answer?.selectedOptionIds) return [];
-  try { return JSON.parse(answer.selectedOptionIds); } catch { return []; }
+  if (!answer) return [];
+  if (Array.isArray(answer.selectedOptionIds)) return answer.selectedOptionIds;
+  if (typeof answer.selectedOptionIds === "string" && answer.selectedOptionIds.trim()) {
+    try { return JSON.parse(answer.selectedOptionIds); } catch { /* ignore */ }
+  }
+  if (answer.selectedOptionId) return [answer.selectedOptionId];
+  return [];
 }
 
 export default function AssessmentQuestion({ question, answer, disabled, onAnswer, saving }) {
   const [text, setText] = useState(answer?.answerText || "");
   const multiple = selectedIds(answer);
-  
+
   useEffect(() => {
     setText(answer?.answerText || "");
   }, [answer?.answerText, question?.id]);
@@ -23,9 +28,16 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
   const isMultiple = qType === "MULTIPLE_CHOICE";
   const choiceType = isMultiple || ["SINGLE_CHOICE", "TRUE_FALSE", "LISTENING_MULTIPLE_CHOICE"].includes(qType);
 
-  function toggleMultiple(optionId) {
-    const next = multiple.includes(optionId) ? multiple.filter((id) => id !== optionId) : [...multiple, optionId];
-    onAnswer({ selectedOptionIds: next });
+  function handleSelectOption(optionId) {
+    if (disabled) return;
+    if (isMultiple) {
+      const next = multiple.includes(optionId)
+        ? multiple.filter((id) => id !== optionId)
+        : [...multiple, optionId];
+      onAnswer({ selectedOptionId: optionId, selectedOptionIds: next });
+    } else {
+      onAnswer({ selectedOptionId: optionId, selectedOptionIds: [optionId] });
+    }
   }
 
   return (
@@ -46,25 +58,27 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
           {options.map((option) => {
             const optionId = option.id;
             const optionLabel = option.optionText || option.content || option.text;
-            const checked = isMultiple 
-              ? multiple.includes(optionId) 
-              : answer?.selectedOptionId === optionId || answer?.selectedOptionId === String(optionId);
+            const checked = multiple.includes(optionId) || 
+                            answer?.selectedOptionId === optionId || 
+                            answer?.selectedOptionId === String(optionId);
 
             return (
               <label 
                 className={`assessment-option ${checked ? "is-selected" : ""} ${disabled && (option.correct || option.isCorrect) ? "is-correct" : ""}`} 
                 key={optionId}
+                onClick={() => handleSelectOption(optionId)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "0.8rem",
                   padding: "1rem 1.25rem",
                   borderRadius: "12px",
-                  border: checked ? "2px solid #0d9488" : "1px solid #e2e8f0",
+                  border: checked ? "2px solid #0d9488" : "1px solid #cbd5e1",
                   background: checked ? "#f0fdfa" : "#ffffff",
                   cursor: disabled ? "default" : "pointer",
                   fontWeight: checked ? "700" : "500",
-                  transition: "all 0.2s ease"
+                  boxShadow: checked ? "0 4px 12px rgba(13, 148, 136, 0.12)" : "none",
+                  transition: "all 0.15s ease-in-out"
                 }}
               >
                 <input 
@@ -72,10 +86,10 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
                   name={`question-${question.id}`} 
                   checked={checked} 
                   disabled={disabled} 
-                  onChange={() => isMultiple ? toggleMultiple(optionId) : onAnswer({ selectedOptionId: optionId })} 
+                  onChange={() => handleSelectOption(optionId)} 
                   style={{ width: "18px", height: "18px", accentColor: "#0d9488", cursor: "pointer" }}
                 />
-                <span style={{ fontSize: "0.98rem", color: "#1e293b" }}>{optionLabel}</span>
+                <span style={{ fontSize: "0.98rem", color: checked ? "#0f766e" : "#1e293b" }}>{optionLabel}</span>
               </label>
             );
           })}
