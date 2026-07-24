@@ -74,6 +74,16 @@ public class ProgressController {
                 authentication.getName(), lessonId, request == null ? new LessonProgressRequest() : request));
     }
 
+    @PostMapping("/progress/vocabulary/complete")
+    public ApiResponse<String> recordVocabularyComplete(
+            Authentication authentication,
+            @RequestBody(required = false) java.util.Map<String, Object> payload
+    ) {
+        int count = payload != null && payload.containsKey("masteredCount") ? ((Number) payload.get("masteredCount")).intValue() : 5;
+        progressService.recordVocabularyProgress(authentication.getName(), count);
+        return ApiResponse.success("Đã ghi nhận tiến độ từ vựng thành công");
+    }
+
     @GetMapping("/teacher/progress/dashboard")
     public ApiResponse<ProgressDashboardResponse> getTeacherDashboard(Authentication authentication) {
         return ApiResponse.success(progressService.getTeacherDashboard(authentication.getName()));

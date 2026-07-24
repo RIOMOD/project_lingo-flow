@@ -1,45 +1,63 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingState } from "../../components/common/UiState";
+import { getProgressDashboard } from "../../services/progressService";
 import "../../styles/VocabularyDashboard.css";
-// import { getVocabularyDashboard, getVocabularyTopics } from "../../services/vocabularyLearningService"; // To be created
+
+const DEFAULT_TOPICS = [
+  { name: "Daily Conversation", totalWords: 50, masteredWords: 0, status: "NOT_STARTED" },
+  { name: "Technology & Science", totalWords: 40, masteredWords: 0, status: "NOT_STARTED" },
+  { name: "Travel & Culture", totalWords: 35, masteredWords: 0, status: "NOT_STARTED" },
+  { name: "Business English", totalWords: 60, masteredWords: 0, status: "NOT_STARTED" }
+];
 
 export default function VocabularyPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   
-  // Mock data since API is mocked
   const [dashboard, setDashboard] = useState({
-    reviewDueCount: 15,
-    totalMastered: 120,
-    recommendedSession: {
-      topicName: "Technology & Science"
-    }
+    reviewDueCount: 0,
+    totalMastered: 0,
+    learnedWords: 0
   });
 
-  const [topics, setTopics] = useState([
-    { name: "Daily Conversation", totalWords: 50, masteredWords: 50, status: "COMPLETED" },
-    { name: "Technology & Science", totalWords: 40, masteredWords: 10, status: "IN_PROGRESS" },
-    { name: "Travel & Culture", totalWords: 35, masteredWords: 0, status: "NOT_STARTED" },
-    { name: "Business English", totalWords: 60, masteredWords: 0, status: "NOT_STARTED" }
-  ]);
+  const [topics, setTopics] = useState(DEFAULT_TOPICS);
 
-  // useEffect(() => {
-  //   async function fetch() {
-  //     setLoading(true);
-  //     try {
-  //        const dash = await getVocabularyDashboard();
-  //        const tops = await getVocabularyTopics();
-  //        setDashboard(dash);
-  //        setTopics(tops);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  //   fetch();
-  // }, []);
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProgress() {
+      try {
+        const data = await getProgressDashboard();
+        if (isMounted && data) {
+          setDashboard({
+            reviewDueCount: data.dueReviewWords || 0,
+            totalMastered: data.rememberedWords || 0,
+            learnedWords: data.learnedWords || 0
+          });
+          
+          // If student has mastered words, reflect in topic list
+          if (data.learnedWords > 0) {
+            setTopics(prev => prev.map(t => {
+              const mastered = Math.min(t.totalWords, Math.floor((data.learnedWords / 4)));
+              return {
+                ...t,
+                masteredWords: mastered,
+                status: mastered >= t.totalWords ? "COMPLETED" : mastered > 0 ? "IN_PROGRESS" : "NOT_STARTED"
+              };
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load vocabulary progress metrics:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadProgress();
+    return () => { isMounted = false; };
+  }, []);
 
-  if (loading) return <LoadingState title="Loading dashboard..." />;
+  if (loading) return <LoadingState title="Đang tải dữ liệu từ vựng..." />;
 
   return (
     <div className="vocab-dashboard-page">
@@ -47,10 +65,14 @@ export default function VocabularyPage() {
         <div className="vocab-hero-content">
           <h1>Vocabulary Center</h1>
           <p>Học từ vựng qua ngữ cảnh, tăng khả năng phản xạ và ghi nhớ sâu.</p>
-          {dashboard.reviewDueCount > 0 && (
-            <button className="vocab-start-btn" style={{ width: 'auto', marginTop: '2rem', padding: '16px 32px', fontSize: '1.2rem' }} onClick={() => navigate('/student/vocabulary/session?type=review')}>
+          {dashboard.reviewDueCount > 0 ? (
+            <button className="vocab-start-btn" style={{ width: 'auto', marginTop: '1.5rem', padding: '12px 24px' }} onClick={() => navigate('/student/vocabulary/session?type=review')}>
               🔥 Ôn tập {dashboard.reviewDueCount} từ đến hạn
             </button>
+          ) : (
+            <div style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.95rem' }}>
+              💡 Bạn chưa có từ vựng nào cần ôn tập. Hãy chọn một chủ đề bên dưới để bắt đầu học!
+            </div>
           )}
         </div>
         <div className="vocab-stats">
@@ -59,7 +81,7 @@ export default function VocabularyPage() {
             <p>Từ Đã Nhớ</p>
           </div>
           <div className="vocab-stat-card">
-            <h3 style={{color: '#FF6B6B'}}>{dashboard.reviewDueCount}</h3>
+            <h3 style={{ color: dashboard.reviewDueCount > 0 ? '#ef4444' : '#64748b' }}>{dashboard.reviewDueCount}</h3>
             <p>Cần Ôn Tập</p>
           </div>
         </div>
@@ -86,7 +108,7 @@ export default function VocabularyPage() {
                   className="vocab-start-btn"
                   onClick={() => navigate(`/student/vocabulary/session?topic=${encodeURIComponent(topic.name)}`)}
                 >
-                  {topic.status === 'COMPLETED' ? 'Ôn tập Chủ đề' : 'Học Tiếp'}
+                  {topic.status === 'COMPLETED' ? 'Ôn tập Chủ đề' : topic.masteredWords > 0 ? 'Học Tiếp' : 'Bắt Đầu Học'}
                 </button>
               </article>
             );

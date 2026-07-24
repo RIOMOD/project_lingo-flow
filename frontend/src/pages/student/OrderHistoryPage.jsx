@@ -11,15 +11,15 @@ export default function OrderHistoryPage() {
   useEffect(() => {
     getOrders({ size: 20 })
       .then((data) => setOrders(data?.items ?? []))
-      .catch((err) => setError(err.message || "Khong tai duoc don hang"));
+      .catch((err) => setError(err.message || "Không tải được đơn hàng"));
   }, []);
 
   return (
     <div className="course-page">
       <section className="page-hero">
         <span className="page-badge">Orders</span>
-        <h2 className="page-title">Lich su mua hang</h2>
-        <p className="page-description">Theo doi don hang, hoa don va trang thai thanh toan.</p>
+        <h2 className="page-title">Lịch sử mua hàng</h2>
+        <p className="page-description">Theo dõi đơn hàng, hóa đơn và trạng thái thanh toán.</p>
       </section>
       {error && <p className="auth-error">{error}</p>}
       <section className="course-table page-panel-card">
@@ -29,10 +29,10 @@ export default function OrderHistoryPage() {
               <strong>{order.orderCode}</strong>
               <p>{order.status} - {money.format(order.totalAmount || 0)}</p>
             </div>
-            <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}`}>Chi tiet</Link>
+            <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}`}>Chi tiết</Link>
           </div>
         ))}
-        {orders.length === 0 && <p className="page-description">Chua co don hang nao.</p>}
+        {orders.length === 0 && <p className="page-description">Chưa có đơn hàng nào.</p>}
       </section>
     </div>
   );

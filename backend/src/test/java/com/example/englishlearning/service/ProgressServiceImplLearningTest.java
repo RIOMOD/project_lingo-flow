@@ -60,6 +60,7 @@ class ProgressServiceImplLearningTest {
                 lessonRepository,
                 mock(TestAttemptRepository.class),
                 mock(VocabularyProgressRepository.class),
+                mock(com.example.englishlearning.repository.VocabularyRepository.class),
                 userRepository,
                 mock(UserProfileRepository.class)
         );

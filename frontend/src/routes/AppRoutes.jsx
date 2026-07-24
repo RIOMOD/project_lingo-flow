@@ -42,6 +42,7 @@ import OrderDetailPage from "../pages/student/OrderDetailPage";
 import InvoicePage from "../pages/student/InvoicePage";
 import PaymentStatusPage from "../pages/student/PaymentStatusPage";
 import StudentProfilePage from "../pages/student/ProfilePage";
+import SettingsPage from "../pages/student/SettingsPage";
 import ProgressPage from "../pages/student/ProgressPage";
 import TestPage from "../pages/student/TestPage";
 import VocabularyPage from "../pages/student/VocabularyPage";
@@ -96,8 +97,12 @@ export default function AppRoutes() {
             <Route path="vocabulary" element={<VocabularyPage />} />
             <Route path="vocabulary/session" element={<VocabularySessionPage />} />
             <Route path="grammar" element={<GrammarPage />} />
+            <Route path="chatbot" element={<ChatbotPage />} />
+            <Route path="writing" element={<WritingCorrectionPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="path" element={<ProgressPage />} />
+            <Route path="profile" element={<StudentProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
 

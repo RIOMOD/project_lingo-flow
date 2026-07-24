@@ -9,22 +9,22 @@ export function createConfiguredPage(pageKey) {
       return (
         <PageTemplate
           roleKey="guest"
-          title="Missing page config"
-          description={`Khong tim thay cau hinh cho key: ${pageKey}.`}
+          title="Không tìm thấy cấu hình trang"
+          description={`Không tìm thấy cấu hình cho khóa: ${pageKey}.`}
           actions={[
-            { label: "Ve trang chu", to: demoPaths.home, tone: "primary" },
+            { label: "Về trang chủ", to: demoPaths.home, tone: "primary" },
             {
-              label: "Mo dashboard student",
+              label: "Mở trang Học viên",
               to: demoPaths.studentDashboard,
               tone: "secondary",
             },
           ]}
           panels={[
             {
-              title: "Huong xu ly",
+              title: "Hướng xử lý",
               items: [
-                "Kiem tra pageKey duoc truyen vao file page.",
-                "Doi chieu key trong pageConfigs cua navigation.js.",
+                "Kiểm tra pageKey được truyền vào file page.",
+                "Đối chiếu key trong pageConfigs của navigation.js.",
               ],
             },
           ]}

@@ -13,5 +13,6 @@ public interface ProgressService {
     CourseProgressResponse startLesson(String email, Long lessonId, LessonProgressRequest request);
     CourseProgressResponse trackLesson(String email, Long lessonId, LessonProgressRequest request);
     CourseProgressResponse completeLesson(String email, Long lessonId, LessonProgressRequest request);
+    void recordVocabularyProgress(String email, int masteredCount);
     ProgressDashboardResponse getTeacherDashboard(String email);
 }

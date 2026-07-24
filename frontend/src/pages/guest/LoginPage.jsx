@@ -43,7 +43,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
           <label className="auth-field">
             <span>Email</span>
             <input
@@ -51,7 +51,8 @@ export default function LoginPage() {
               type="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="student@example.com"
+              placeholder="Nhập email của bạn..."
+              autoComplete="off"
               required
             />
           </label>
@@ -63,7 +64,8 @@ export default function LoginPage() {
               type="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="password"
+              placeholder="Nhập mật khẩu..."
+              autoComplete="current-password"
               required
             />
           </label>

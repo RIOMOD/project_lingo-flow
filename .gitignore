@@ -17,3 +17,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Maven Wrapper cache
+.mvn/wrapper/dists/
+backend/.mvn/wrapper/dists/
+*.zip
+

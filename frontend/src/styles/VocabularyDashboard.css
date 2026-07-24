@@ -1,106 +1,106 @@
+/* VocabularyDashboard.css - Refactored for clean modern theme integration */
+
 .vocab-dashboard-page {
-  padding: 2rem;
-  max-width: 100%;
-  min-height: calc(100vh - 80px);
+  padding: 1.5rem;
+  max-width: 1200px;
   margin: 0 auto;
-  font-family: 'Inter', sans-serif;
-  color: #fff;
-  background-color: #0f172a;
+  font-family: inherit;
+  color: #1e293b;
 }
 
 .vocab-hero {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 3rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
+  padding: 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  animation: slideUp 0.8s ease-out;
-  max-width: 1200px;
-  margin: 0 auto 3rem auto;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  animation: slideUp 0.6s ease-out;
 }
 
 .vocab-hero-content h1 {
-  font-size: 3rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  margin-bottom: 1rem;
-  background: -webkit-linear-gradient(45deg, #FF6B6B, #4ECDC4);
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #0d9488, #2563eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .vocab-hero-content p {
-  font-size: 1.2rem;
-  color: #c7d2fe;
-  max-width: 500px;
+  font-size: 1.05rem;
+  color: #64748b;
+  max-width: 520px;
+  line-height: 1.6;
 }
 
 .vocab-stats {
   display: flex;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .vocab-stat-card {
-  background: rgba(0, 0, 0, 0.4);
-  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.25rem 1.5rem;
   border-radius: 16px;
   text-align: center;
-  min-width: 120px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 130px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .vocab-stat-card h3 {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2.2rem;
+  font-weight: 800;
   margin: 0;
-  color: #4ECDC4;
+  color: #0d9488;
 }
 
 .vocab-stat-card p {
-  font-size: 0.9rem;
-  color: #9ca3af;
-  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .vocab-topics-section {
-  animation: slideUp 1s ease-out;
-  max-width: 1200px;
-  margin: 0 auto;
+  animation: slideUp 0.8s ease-out;
 }
 
 .vocab-topics-section h2 {
-  font-size: 2rem;
-  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #0f172a;
 }
 
 .vocab-topic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
 }
 
 .vocab-topic-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .vocab-topic-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(78, 205, 196, 0.2);
-  border-color: rgba(78, 205, 196, 0.5);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(13, 148, 136, 0.12);
+  border-color: #0d9488;
 }
 
 .vocab-topic-card::before {
@@ -110,9 +110,9 @@
   left: 0;
   width: 4px;
   height: 100%;
-  background: #4ECDC4;
+  background: #0d9488;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .vocab-topic-card:hover::before {
@@ -120,58 +120,60 @@
 }
 
 .vocab-topic-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #0f172a;
 }
 
 .vocab-topic-progress {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .vocab-progress-bar {
   flex: 1;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .vocab-progress-fill {
   height: 100%;
-  background: #4ECDC4;
-  border-radius: 3px;
+  background: linear-gradient(90deg, #0d9488, #2563eb);
+  border-radius: 4px;
   transition: width 0.5s ease;
 }
 
 .vocab-topic-meta {
-  color: #9ca3af;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .vocab-start-btn {
-  background: linear-gradient(45deg, #4ECDC4, #556270);
+  background: linear-gradient(135deg, #0d9488, #0f766e);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 30px;
+  padding: 10px 20px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 .vocab-start-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.3);
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }

@@ -84,6 +84,14 @@ public class CommerceServiceImpl implements CommerceService {
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.payment.webhook-secret:}")
+    private String webhookSecret;
+
+    @org.springframework.beans.factory.annotation.Value("${app.payment.webhook-max-age-seconds:300}")
+    private long webhookMaxAgeSeconds = 300;
+
+    private final com.example.englishlearning.util.TokenHashUtil tokenHashUtil = new com.example.englishlearning.util.TokenHashUtil();
+
     public CommerceServiceImpl(
             CartRepository cartRepository,
             CartItemRepository cartItemRepository,
@@ -299,12 +307,27 @@ public class CommerceServiceImpl implements CommerceService {
 
     @Override
     public PaymentResponse handlePaymentWebhook(PaymentWebhookRequest request) {
-        if (webhookLogRepository.existsByWebhookCode(request.getWebhookCode())) {
-            throw new BadRequestException("Duplicated webhook");
+        var existingLog = webhookLogRepository.findByWebhookCode(request.getWebhookCode());
+        if (existingLog.isPresent()) {
+            return toPaymentResponse(existingLog.get().getPayment());
         }
-        verifyMockWebhookSignature(request);
+
         Payment payment = paymentRepository.findByPaymentCode(request.getPaymentCode())
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+
+        if (request.getTimestamp() != null && webhookMaxAgeSeconds > 0) {
+            long currentTimestamp = java.time.Instant.now().getEpochSecond();
+            if (Math.abs(currentTimestamp - request.getTimestamp()) > webhookMaxAgeSeconds) {
+                throw new BadRequestException("Webhook timestamp expired");
+            }
+        }
+
+        if (request.getAmount() == null || payment.getAmount() == null || payment.getAmount().compareTo(request.getAmount()) != 0) {
+            throw new BadRequestException("Payment amount mismatch");
+        }
+
+        verifyMockWebhookSignature(request);
+
         PaymentWebhookLog log = new PaymentWebhookLog();
         log.setPayment(payment);
         log.setProvider(payment.getProvider());
@@ -314,6 +337,7 @@ public class CommerceServiceImpl implements CommerceService {
         log.setStatus(PaymentWebhookLog.WebhookStatus.PROCESSED);
         log.setProcessedAt(LocalDateTime.now());
         webhookLogRepository.save(log);
+
         return completePayment(
                 request.getPaymentCode(),
                 request.getGatewayTransactionCode() == null ? request.getWebhookCode() : request.getGatewayTransactionCode(),
@@ -323,8 +347,25 @@ public class CommerceServiceImpl implements CommerceService {
     }
 
     private void verifyMockWebhookSignature(PaymentWebhookRequest request) {
-        String expectedSignature = "MOCK-" + request.getPaymentCode() + "-" + request.getWebhookCode();
-        if (request.getSignature() == null || !expectedSignature.equals(request.getSignature())) {
+        if (webhookSecret == null || webhookSecret.isBlank()) {
+            String expectedMock = "MOCK-" + request.getPaymentCode() + "-" + request.getWebhookCode();
+            if (request.getSignature() == null || !expectedMock.equals(request.getSignature())) {
+                throw new BadRequestException("Invalid webhook signature");
+            }
+            return;
+        }
+
+        String payload = String.join("|",
+                request.getPaymentCode() != null ? request.getPaymentCode() : "",
+                request.getWebhookCode() != null ? request.getWebhookCode() : "",
+                request.getOrderCode() != null ? request.getOrderCode() : "",
+                request.getAmount() != null ? request.getAmount().stripTrailingZeros().toPlainString() : "",
+                request.getGatewayTransactionCode() != null ? request.getGatewayTransactionCode() : "",
+                request.getStatus() != null ? request.getStatus().toUpperCase(Locale.ROOT) : "",
+                request.getTimestamp() != null ? String.valueOf(request.getTimestamp()) : ""
+        );
+        String expectedSignature = tokenHashUtil.hmacSha256(payload, webhookSecret);
+        if (request.getSignature() == null || !expectedSignature.equalsIgnoreCase(request.getSignature())) {
             throw new BadRequestException("Invalid webhook signature");
         }
     }

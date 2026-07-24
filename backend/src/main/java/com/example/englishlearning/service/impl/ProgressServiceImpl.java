@@ -13,6 +13,8 @@ import com.example.englishlearning.entity.LearningProgress;
 import com.example.englishlearning.entity.Lesson;
 import com.example.englishlearning.entity.TestAttempt;
 import com.example.englishlearning.entity.User;
+import com.example.englishlearning.entity.Vocabulary;
+import com.example.englishlearning.entity.VocabularyProgress;
 import com.example.englishlearning.exception.ResourceNotFoundException;
 import com.example.englishlearning.exception.UnauthorizedException;
 import com.example.englishlearning.exception.BadRequestException;
@@ -26,6 +28,7 @@ import com.example.englishlearning.repository.TestAttemptRepository;
 import com.example.englishlearning.repository.UserRepository;
 import com.example.englishlearning.repository.UserProfileRepository;
 import com.example.englishlearning.repository.VocabularyProgressRepository;
+import com.example.englishlearning.repository.VocabularyRepository;
 import com.example.englishlearning.service.ProgressService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -53,6 +56,7 @@ public class ProgressServiceImpl implements ProgressService {
     private final LessonRepository lessonRepository;
     private final TestAttemptRepository attemptRepository;
     private final VocabularyProgressRepository vocabularyProgressRepository;
+    private final VocabularyRepository vocabularyRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
 
@@ -64,6 +68,7 @@ public class ProgressServiceImpl implements ProgressService {
             LessonRepository lessonRepository,
             TestAttemptRepository attemptRepository,
             VocabularyProgressRepository vocabularyProgressRepository,
+            VocabularyRepository vocabularyRepository,
             UserRepository userRepository,
             UserProfileRepository userProfileRepository
     ) {
@@ -74,6 +79,7 @@ public class ProgressServiceImpl implements ProgressService {
         this.lessonRepository = lessonRepository;
         this.attemptRepository = attemptRepository;
         this.vocabularyProgressRepository = vocabularyProgressRepository;
+        this.vocabularyRepository = vocabularyRepository;
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
     }
@@ -497,6 +503,31 @@ public class ProgressServiceImpl implements ProgressService {
     private User getUser(String email) {
         return userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new UnauthorizedException("Authentication is required"));
+    }
+
+    @Override
+    @Transactional
+    public void recordVocabularyProgress(String email, int masteredCount) {
+        User user = getUser(email);
+        int targetCount = masteredCount > 0 ? masteredCount : 5;
+        List<Vocabulary> vocabs = vocabularyRepository.findAll(PageRequest.of(0, targetCount)).getContent();
+        
+        for (Vocabulary vocab : vocabs) {
+            VocabularyProgress vp = vocabularyProgressRepository
+                    .findByUserIdAndVocabularyId(user.getId(), vocab.getId())
+                    .orElseGet(() -> {
+                        VocabularyProgress newVp = new VocabularyProgress();
+                        newVp.setUser(user);
+                        newVp.setVocabulary(vocab);
+                        return newVp;
+                    });
+            vp.setStatus(com.example.englishlearning.entity.VocabularyStatus.MASTERED);
+            vp.setCorrectCount(safe(vp.getCorrectCount()) + 1);
+            vp.setMasteryScore(java.math.BigDecimal.valueOf(100.00));
+            vp.setReviewedAt(LocalDateTime.now());
+            vp.setNextReviewAt(LocalDateTime.now().plusDays(3));
+            vocabularyProgressRepository.save(vp);
+        }
     }
 
     private int safe(Integer value) {

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail --names FRONTEND,BACKEND -c \"bgBlue.bold,bgMagenta.bold\" \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev": "concurrently --kill-others-on-fail --names BACKEND,FRONTEND -c \"bgMagenta.bold,bgBlue.bold\" \"npm run dev:backend\" \"npm run dev:frontend:wait\"",
     "dev:frontend": "npm --prefix frontend run dev",
+    "dev:frontend:wait": "wait-on tcp:127.0.0.1:8080 && npm run dev:frontend",
     "dev:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/build-and-run.ps1",
     "install:all": "npm install && npm --prefix frontend install",
     "stop:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/stop-backend.ps1",
@@ -13,6 +14,7 @@
     "build": "npm run build:frontend && npm run build:backend"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "wait-on": "^9.1.0"
   }
 }

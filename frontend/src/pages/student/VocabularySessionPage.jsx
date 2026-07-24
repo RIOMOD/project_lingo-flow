@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { recordVocabularyProgress } from "../../services/progressService";
 import "../../styles/VocabularySession.css";
 
 // Mock activity sets for each topic. In a real app these would be fetched from the backend.
@@ -181,6 +182,7 @@ export default function VocabularySessionPage() {
       setCurrentIndex(curr => curr + 1);
     } else {
       setSessionCompleted(true);
+      recordVocabularyProgress(5).catch(err => console.warn("Failed to record vocab progress:", err));
     }
   };
 
