@@ -145,7 +145,7 @@ export default function StudentDashboardPage() {
                       <strong>{lesson.title}</strong>
                       <small>{state === "completed" ? "Đã hoàn thành" : state === "locked" ? lesson.lockReason : state === "current" ? "Đang học" : "Sẵn sàng học"}</small>
                     </div>
-                    {!lesson.locked && lesson.progressStatus !== "COMPLETED" && <Link className="stu-path-action" to={`/student/learn/${current.courseId}/${lesson.id}`}>Học</Link>}
+                    {!lesson.locked && lesson.progressStatus !== "COMPLETED" && <Link className="stu-path-action" to={`/student/learn/${current?.courseId || lesson.courseId || 1}/${lesson.id}`}>Học</Link>}
                   </div>
                 ); 
               })}
