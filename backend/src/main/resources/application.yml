@@ -1,0 +1,81 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+
+spring:
+  config:
+    import: "optional:file:.env[.properties],optional:file:backend/.env[.properties]"
+  application:
+    name: english-learning-backend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/english_learning?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    show-sql: ${JPA_SHOW_SQL:false}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    repair-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
+
+app:
+  jwt:
+    access-token-secret: ${JWT_ACCESS_SECRET:change-this-access-secret-key-to-at-least-32-characters}
+    refresh-token-secret: ${JWT_REFRESH_SECRET:change-this-refresh-secret-key-to-at-least-32-characters}
+    access-token-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:30}
+    refresh-token-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:14}
+    reset-password-token-expiration-minutes: ${RESET_PASSWORD_EXPIRATION_MINUTES:15}
+  cors:
+    allowed-origins:
+      - ${FRONTEND_URL:http://localhost:5173}
+      - ${FRONTEND_ALT_URL:http://localhost:5174}
+      - ${FRONTEND_IP_URL:http://127.0.0.1:5173}
+      - ${FRONTEND_IP_ALT_URL:http://127.0.0.1:5174}
+      - http://localhost:3000
+  ai:
+    provider: ${AI_PROVIDER:openai}
+    model: ${AI_MODEL:gpt-5.6-sol}
+    api-key: ${OPENAI_API_KEY:}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:20}
+    max-retries: ${AI_MAX_RETRIES:2}
+    daily-usage-limit: ${AI_DAILY_USAGE_LIMIT:50}
+    fallback-enabled: ${AI_FALLBACK_ENABLED:true}
+  payment:
+    webhook-secret: ${PAYMENT_WEBHOOK_SECRET:}
+    webhook-max-age-seconds: ${PAYMENT_WEBHOOK_MAX_AGE_SECONDS:300}
+  frontend:
+    reset-password-url: ${RESET_PASSWORD_URL:http://localhost:5173/reset-password}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO

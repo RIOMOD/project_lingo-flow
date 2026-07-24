@@ -1,0 +1,74 @@
+import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./tokenStorage";
+
+// In development Vite proxies /api to the backend. This keeps guest requests
+// same-origin and avoids CORS failures when the UI is opened via 127.0.0.1.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+
+async function parseResponse(response) {
+  const contentType = response.headers.get("content-type") ?? "";
+  const body = contentType.includes("application/json") ? await response.json() : null;
+
+  if (!response.ok) {
+    const message = body?.message || body?.error?.message || "Request failed";
+    const error = new Error(message);
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+
+  return body;
+}
+
+async function refreshAccessToken() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    throw new Error("Missing refresh token");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  const body = await parseResponse(response);
+  saveTokens(body.data);
+  return body.data.accessToken;
+}
+
+export async function apiRequest(path, options = {}) {
+  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  const { skipAuth = false, skipRefresh = false, ...fetchOptions } = options;
+  const headers = new Headers(fetchOptions.headers ?? {});
+  const accessToken = getAccessToken();
+
+  if (!headers.has("Content-Type") && options.body) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (accessToken && !skipAuth) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  let response;
+  try {
+    response = await fetch(url, { ...fetchOptions, headers });
+  } catch (error) {
+    throw new Error("Không thể kết nối máy chủ. Hãy kiểm tra backend đang chạy ở cổng 8080.", { cause: error });
+  }
+
+  if (response.status === 401 && accessToken && !skipAuth && !skipRefresh) {
+    try {
+      const newAccessToken = await refreshAccessToken();
+      headers.set("Authorization", `Bearer ${newAccessToken}`);
+      const retryResponse = await fetch(url, { ...fetchOptions, headers });
+      return parseResponse(retryResponse);
+    } catch (error) {
+      clearTokens();
+      throw error;
+    }
+  }
+
+  return parseResponse(response);
+}
+
+export { API_BASE_URL };
+

@@ -1,0 +1,18 @@
+{
+  "name": "project-lingo-flow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names FRONTEND,BACKEND -c \"bgBlue.bold,bgMagenta.bold\" \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/build-and-run.ps1",
+    "install:all": "npm install && npm --prefix frontend install",
+    "stop:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/stop-backend.ps1",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "cd backend && mvnw.cmd clean package -DskipTests",
+    "build": "npm run build:frontend && npm run build:backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
