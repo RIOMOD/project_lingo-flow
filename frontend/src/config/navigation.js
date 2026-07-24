@@ -494,23 +494,23 @@ export const pageConfigs = {
   },
   studentTest: {
     roleKey: "student",
-    title: "Bai kiem tra",
-    description: "Kiem tra tong hop theo chu de hoac cuoi khóa, co quy dinh thoi gian va cach cham.",
-    stats: [stat("Timed", "Có the ap dung"), stat("Final", "Tong hop"), stat("Recorded", "Luu diem")],
+    title: "Bài kiểm tra",
+    description: "Kiểm tra tổng hợp theo chủ đề hoặc cuối khóa, có quy định thời gian và cách chấm.",
+    stats: [stat("Timed", "Có thể áp dụng"), stat("Final", "Tổng hợp"), stat("Recorded", "Lưu điểm")],
     actions: [
-      action("Ve bài học", demoPaths.studentLearning),
-      action("Xem tiến do", demoPaths.studentProgress, "secondary"),
-      action("Mo chatbot AI", demoPaths.studentChatbot, "ghost"),
+      action("Về bài học", demoPaths.studentLearning),
+      action("Xem tiến độ", demoPaths.studentProgress, "secondary"),
+      action("Mở chatbot AI", demoPaths.studentChatbot, "ghost"),
     ],
     panels: [
-      panel("Cần hiển thị", ["Danh sach cau hoi", "Dong ho dem nguoc", "Nut nop bài", "Tong hop ket qua"]),
-      panel("Luu y nghiep vu", ["Không sua sau khi nop neu policy không cho", "Luu lich su lam bài de teacher xem"]),
+      panel("Cần hiển thị", ["Danh sách câu hỏi", "Đồng hồ đếm ngược", "Nút nộp bài", "Tổng hợp kết quả"]),
+      panel("Lưu ý nghiệp vụ", ["Không sửa sau khi nộp nếu policy không cho", "Lưu lịch sử làm bài để teacher xem"]),
     ],
   },
   studentVocabulary: {
     roleKey: "student",
-    title: "Hoc tu vung",
-    description: "Trang học tu vung co the theo bài học, theo chu de va theo muc do nho.",
+    title: "Học từ vựng",
+    description: "Trang học từ vựng có thể theo bài học, theo chủ đề và theo mức độ nhớ.",
     stats: [stat("Flashcard", "Cach hiển thị"), stat("Topic", "Nhom tu"), stat("Review", "Lap lai")],
     actions: [
       action("Ve bài học", demoPaths.studentLearning),
