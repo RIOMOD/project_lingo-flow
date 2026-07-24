@@ -1,0 +1,261 @@
+/* Navbar.css - Modern AppShell Overrides */
+
+/* Shell Base */
+.app-shell.is-modern {
+  background: var(--surface-soft, #f4f7fb); /* Fallback */
+}
+
+/* Sidebar Overrides */
+.app-shell.is-modern .app-sidebar {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell.is-modern .app-sidebar-head {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.app-shell.is-modern .app-brand-title {
+  color: #0f172a;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-shell.is-modern .app-brand-mark {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.app-shell.is-modern .app-nav-section {
+  margin-bottom: 1.5rem;
+}
+
+.app-shell.is-modern .app-nav-group {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.8rem 1rem;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.app-shell.is-modern .app-nav-group:hover {
+  color: #0f172a;
+}
+
+.app-shell.is-modern .app-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  margin: 0.2rem 0.5rem;
+  border-radius: 12px;
+  color: #475569;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.app-shell.is-modern .app-nav-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #2563eb;
+  transform: translateX(4px);
+}
+
+.app-shell.is-modern .app-nav-item.is-active {
+  background: white;
+  color: #2563eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.app-shell.is-modern .app-nav-icon {
+  font-size: 1.2rem;
+  filter: grayscale(0.2);
+}
+
+/* Sidebar Footer */
+.app-shell.is-modern .app-sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.app-shell.is-modern .app-account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.app-shell.is-modern .app-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #f43f5e, #fb923c);
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.app-shell.is-modern .app-logout {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.2s;
+}
+
+.app-shell.is-modern .app-logout:hover {
+  background: #ef4444;
+  color: white;
+}
+
+
+/* Topbar Overrides */
+.app-shell.is-modern .app-topbar {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 1rem 2rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 1rem;
+  z-index: 10;
+}
+
+.app-shell.is-modern .app-topbar-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell.is-modern .app-eyebrow {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.app-shell.is-modern .app-topbar-title {
+  color: #0f172a;
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.app-shell.is-modern .app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Search Bar */
+.app-shell.is-modern .app-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.app-shell.is-modern .app-search input {
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border-radius: 99px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  width: 250px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.app-shell.is-modern .app-search input:focus {
+  outline: none;
+  width: 280px;
+  background: white;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.app-shell.is-modern .app-search button {
+  position: absolute;
+  left: 10px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+/* Icon Buttons */
+.app-shell.is-modern .app-icon-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  text-decoration: none;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s;
+}
+
+.app-shell.is-modern .app-icon-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  color: #2563eb;
+}
+
+.app-shell.is-modern .app-account-menu summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.app-shell.is-modern .app-account-menu summary::-webkit-details-marker {
+  display: none;
+}

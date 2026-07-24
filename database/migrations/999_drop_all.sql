@@ -1,0 +1,50 @@
+USE english_learning;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS refund_requests;
+DROP TABLE IF EXISTS invoices;
+DROP TABLE IF EXISTS coupon_usages;
+DROP TABLE IF EXISTS course_ownerships;
+DROP TABLE IF EXISTS payment_webhook_logs;
+DROP TABLE IF EXISTS payment_transactions;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS coupons;
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS carts;
+DROP TABLE IF EXISTS ai_usage_logs;
+DROP TABLE IF EXISTS writing_submissions;
+DROP TABLE IF EXISTS ai_messages;
+DROP TABLE IF EXISTS ai_conversations;
+DROP TABLE IF EXISTS study_schedules;
+DROP TABLE IF EXISTS vocabulary_progress;
+DROP TABLE IF EXISTS learning_progress;
+DROP TABLE IF EXISTS user_answers;
+DROP TABLE IF EXISTS test_attempts;
+DROP TABLE IF EXISTS test_questions;
+DROP TABLE IF EXISTS tests;
+DROP TABLE IF EXISTS answer_options;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS exercises;
+DROP TABLE IF EXISTS grammar_topics;
+DROP TABLE IF EXISTS vocabularies;
+DROP TABLE IF EXISTS course_reviews;
+DROP TABLE IF EXISTS course_enrollments;
+DROP TABLE IF EXISTS lesson_contents;
+DROP TABLE IF EXISTS lessons;
+DROP TABLE IF EXISTS chapters;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS course_categories;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS password_reset_tokens;
+DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+DROP DATABASE IF EXISTS english_learning;

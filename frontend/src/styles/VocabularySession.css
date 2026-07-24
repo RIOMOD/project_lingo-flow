@@ -1,0 +1,208 @@
+.vocab-session-page {
+  height: calc(100vh - 120px);
+  width: 100vw;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background-color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  padding: 2rem;
+  z-index: 100;
+}
+
+.vocab-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.vocab-session-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.vocab-session-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.vocab-session-progress {
+  flex: 1;
+  margin: 0 2rem;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vocab-session-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FF6B6B, #4ECDC4);
+  transition: width 0.3s ease;
+}
+
+.vocab-session-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.vocab-activity-container {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+.vocab-activity-type {
+  font-size: 0.9rem;
+  color: #4ECDC4;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.vocab-question {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.vocab-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vocab-option-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.vocab-option-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #4ECDC4;
+}
+
+.vocab-option-btn.correct {
+  background: rgba(78, 205, 196, 0.2);
+  border-color: #4ECDC4;
+}
+
+.vocab-option-btn.incorrect {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: #FF6B6B;
+}
+
+.vocab-input-box {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.vocab-input-box:focus {
+  outline: none;
+  border-color: #4ECDC4;
+}
+
+.vocab-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vocab-next-btn {
+  background: #4ECDC4;
+  color: #000;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.vocab-next-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);
+}
+
+.vocab-feedback {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 500;
+  animation: slideUp 0.3s ease;
+}
+
+.vocab-feedback.success {
+  background: rgba(78, 205, 196, 0.1);
+  color: #4ECDC4;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.vocab-feedback.error {
+  background: rgba(255, 107, 107, 0.1);
+  color: #FF6B6B;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.vocab-complete-screen {
+  text-align: center;
+  animation: slideUp 0.6s ease;
+}
+
+.vocab-complete-screen h2 {
+  font-size: 3rem;
+  color: #4ECDC4;
+  margin-bottom: 1rem;
+}
+
+.vocab-complete-screen p {
+  font-size: 1.2rem;
+  color: #c7d2fe;
+  margin-bottom: 3rem;
+}

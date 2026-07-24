@@ -1,0 +1,26 @@
+import { useEffect, useMemo, useState } from "react";
+import AssessmentQuestion from "../../components/student/AssessmentQuestion";
+import { getExercises, saveAnswer, startExercise, submitAttempt } from "../../services/assessmentService";
+
+function answered(answer) { return Boolean(answer && (answer.selectedOptionId || answer.selectedOptionIds && answer.selectedOptionIds !== "[]" || answer.answerText?.trim() || answer.answerJson)); }
+
+export default function ExercisePage() {
+  const [items, setItems] = useState([]); const [attempt, setAttempt] = useState(null); const [current, setCurrent] = useState(0);
+  const [savingId, setSavingId] = useState(null); const [error, setError] = useState("");
+  useEffect(() => { getExercises({ size: 20 }).then((data) => setItems(data?.items ?? [])).catch((err) => setError(err.message || "Không tải được bài tập")); }, []);
+  useEffect(() => { const warn = (event) => { if (attempt?.status === "IN_PROGRESS") { event.preventDefault(); event.returnValue = ""; } }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, [attempt?.status]);
+  const answers = useMemo(() => new Map((attempt?.answers ?? []).map((answer) => [answer.questionId, answer])), [attempt]);
+  const questions = attempt?.questions ?? []; const question = questions[current]; const answeredCount = questions.filter((item) => answered(answers.get(item.id))).length;
+
+  async function begin(id) { try { setError(""); setCurrent(0); setAttempt(await startExercise(id)); } catch (err) { setError(err.message || "Không bắt đầu được bài tập"); } }
+  async function answer(payload) { if (!question) return; try { setSavingId(question.id); setAttempt(await saveAnswer(attempt.id, question.id, payload)); } catch (err) { setError(err.message || "Không lưu được đáp án"); } finally { setSavingId(null); } }
+  async function submit() { const missing = questions.length - answeredCount; if (!window.confirm(missing ? `Bạn còn ${missing} câu chưa trả lời. Vẫn nộp bài?` : "Bạn muốn nộp bài ngay?")) return; try { setAttempt(await submitAttempt(attempt.id)); setCurrent(0); } catch (err) { setError(err.message || "Không nộp được bài"); } }
+
+  if (!attempt) return <div className="assessment-page"><section className="assessment-hero"><span className="page-badge">Luyện tập</span><h2>Bài tập theo kỹ năng</h2><p>Luyện từng phần ngắn, câu trả lời được tự động lưu để bạn không mất tiến độ.</p></section>{error && <p className="auth-error">{error}</p>}<section className="assessment-library">{items.length ? items.map((item) => <article key={item.id}><span>{item.type || "EXERCISE"}</span><h3>{item.title}</h3><p>{item.description}</p><small>{item.durationMinutes || "Không giới hạn"} phút · Tối đa {item.maxAttempts} lượt</small><button type="button" onClick={() => begin(item.id)}>Bắt đầu luyện tập</button></article>) : <div className="student-empty-state"><strong>Chưa có bài tập</strong><p>Bài tập phù hợp sẽ xuất hiện tại đây.</p></div>}</section></div>;
+
+  const submitted = attempt.status !== "IN_PROGRESS"; const percent = Number(attempt.scorePercent || 0);
+  return <div className="assessment-page focused-assessment"><header className="assessment-run-header"><div><span className="page-badge">Bài tập</span><h2>{attempt.title}</h2><p>{attempt.description}</p></div><div className="assessment-run-progress"><strong>{submitted ? `${percent.toFixed(0)}%` : `${answeredCount}/${questions.length}`}</strong><span><i style={{ width: `${submitted ? percent : questions.length ? answeredCount / questions.length * 100 : 0}%` }} /></span><small>{submitted ? "Kết quả" : "Đã trả lời"}</small></div></header>{error && <p className="auth-error">{error}</p>}
+    {submitted && <section className={`assessment-result-banner ${attempt.passed ? "is-pass" : "is-fail"}`}><span aria-hidden="true">{attempt.passed ? "✓" : "↻"}</span><div><h3>{attempt.passed ? "Hoàn thành tốt!" : "Cùng ôn lại nhé"}</h3><p>Điểm {attempt.score}/{attempt.totalPoints} ({percent.toFixed(0)}%) · Đúng {attempt.correctAnswers} · Sai {attempt.incorrectAnswers}</p></div><button type="button" onClick={() => begin(attempt.targetId)}>Làm lại</button></section>}
+    <div className="assessment-workspace"><main><div className="assessment-counter">Câu {current + 1} / {questions.length}</div>{question && <AssessmentQuestion question={question} answer={answers.get(question.id)} disabled={submitted} onAnswer={answer} saving={savingId === question.id} />}<div className="assessment-nav"><button type="button" disabled={current === 0} onClick={() => setCurrent((value) => value - 1)}>Câu trước</button>{current < questions.length - 1 ? <button type="button" onClick={() => setCurrent((value) => value + 1)}>Câu tiếp theo</button> : !submitted && <button className="primary" type="button" onClick={submit}>Nộp bài</button>}</div></main><aside className="assessment-question-map"><h3>Danh sách câu</h3><div>{questions.map((item, index) => <button type="button" className={`${index === current ? "is-current" : ""} ${answered(answers.get(item.id)) ? "is-answered" : ""}`} onClick={() => setCurrent(index)} key={item.id}>{index + 1}</button>)}</div>{!submitted && <button className="assessment-submit" type="button" onClick={submit}>Nộp bài</button>}</aside></div>
+  </div>;
+}
