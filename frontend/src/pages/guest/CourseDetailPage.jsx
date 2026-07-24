@@ -13,12 +13,12 @@ import {
 function priceText(course) {
   if (!course) return "";
   if (course.courseType === "FREE") return "Miễn phí";
-  const value = course.salePrice || course.originalPrice || 0;
+  const value = course.currentPrice ?? course.originalPrice ?? 0;
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 }
 
 function hasSale(course) {
-  return course?.courseType === "PAID" && course?.salePrice && course?.originalPrice && course.salePrice < course.originalPrice;
+  return course?.courseType === "PAID" && course?.saleStatus === "ACTIVE" && course?.salePrice < course?.originalPrice;
 }
 
 function isPreviewLesson(lesson) {
@@ -207,4 +207,3 @@ export default function CourseDetailPage() {
     </div>
   );
 }
-

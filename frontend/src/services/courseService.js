@@ -35,11 +35,17 @@ export async function enrollFree(courseId) {
   return unwrap(await apiRequest(`/courses/${courseId}/enroll-free`, { method: "POST" }));
 }
 
-// ─── Teacher APIs ───────────────────────────────────────────────────────────
-
 export async function getTeacherCourses(params = {}) {
   const query = new URLSearchParams(params).toString();
   return unwrap(await apiRequest(`/teacher/courses${query ? `?${query}` : ""}`));
+}
+
+export async function getTeacherCourseDetail(id) {
+  return unwrap(await apiRequest(`/teacher/courses/${id}`));
+}
+
+export async function getTeacherCourseById(courseId) {
+  return getTeacherCourseDetail(courseId);
 }
 
 export async function createCourse(payload) {
@@ -104,32 +110,58 @@ export async function deleteLesson(lessonId) {
   return unwrap(await apiRequest(`/teacher/lessons/${lessonId}`, { method: "DELETE" }));
 }
 
-// ─── Admin APIs ──────────────────────────────────────────────────────────────
-
 export async function getAdminCourses(params = {}) {
   const query = new URLSearchParams(params).toString();
   return unwrap(await apiRequest(`/admin/courses${query ? `?${query}` : ""}`));
 }
 
+export async function getAdminCourseDetail(id) {
+  return unwrap(await apiRequest(`/admin/courses/${id}`));
+}
+
+export async function getAdminCourseChapters(courseId) {
+  return unwrap(await apiRequest(`/admin/courses/${courseId}/chapters`));
+}
+
+export async function getAdminCourseReviewHistory(courseId) {
+  return unwrap(await apiRequest(`/admin/courses/${courseId}/review-history`));
+}
+
 export async function approveCourse(id) {
-  return unwrap(await apiRequest(`/admin/courses/${id}/approve`, { method: "POST" }));
+  return unwrap(await apiRequest(`/admin/courses/${id}/approve`, { method: "POST", skipRefresh: true }));
 }
 
 export async function rejectCourse(id, reason = "") {
   return unwrap(await apiRequest(`/admin/courses/${id}/reject`, {
     method: "POST",
+    skipRefresh: true,
     body: JSON.stringify({ reason }),
   }));
 }
 
 export async function publishCourse(id) {
-  return unwrap(await apiRequest(`/admin/courses/${id}/publish`, { method: "POST" }));
+  return unwrap(await apiRequest(`/admin/courses/${id}/publish`, { method: "POST", skipRefresh: true }));
 }
 
 export async function hideCourse(id) {
-  return unwrap(await apiRequest(`/admin/courses/${id}/hide`, { method: "POST" }));
+  return unwrap(await apiRequest(`/admin/courses/${id}/hide`, { method: "POST", skipRefresh: true }));
 }
 
 export async function archiveCourse(id) {
-  return unwrap(await apiRequest(`/admin/courses/${id}/archive`, { method: "POST" }));
+  return unwrap(await apiRequest(`/admin/courses/${id}/archive`, { method: "POST", skipRefresh: true }));
+}
+
+export async function updateCourseSale(id, payload) {
+  return unwrap(await apiRequest(`/admin/courses/${id}/sale`, {
+    method: "PUT",
+    skipRefresh: true,
+    body: JSON.stringify(payload),
+  }));
+}
+
+export async function clearCourseSale(id) {
+  return unwrap(await apiRequest(`/admin/courses/${id}/sale`, {
+    method: "DELETE",
+    skipRefresh: true,
+  }));
 }

@@ -6,7 +6,7 @@ set "WRAPPER_DIR=%BASE_DIR%.mvn\wrapper"
 set "DIST_DIR=%WRAPPER_DIR%\dists\apache-maven-3.9.9"
 set "MAVEN_CMD=%DIST_DIR%\bin\mvn.cmd"
 set "MAVEN_ZIP=%WRAPPER_DIR%\apache-maven-3.9.9-bin.zip"
-set "MAVEN_URL=https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip"
+set "MAVEN_URL=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.9/apache-maven-3.9.9-bin.zip"
 set "IDEA_MAVEN=C:\Program Files\JetBrains\IntelliJ IDEA 2026.1.2\plugins\maven\lib\maven3\bin\mvn.cmd"
 
 if exist "%IDEA_MAVEN%" (

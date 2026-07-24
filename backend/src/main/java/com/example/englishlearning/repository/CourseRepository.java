@@ -17,6 +17,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     Page<Course> findByTeacherIdAndDeletedAtIsNullOrderByUpdatedAtDesc(Long teacherId, Pageable pageable);
 
+    Page<Course> findByDeletedAtIsNullOrderByUpdatedAtDesc(Pageable pageable);
+
     Page<Course> findByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(Course.CourseStatus status, Pageable pageable);
 
     @Query("""

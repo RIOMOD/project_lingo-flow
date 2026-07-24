@@ -74,7 +74,7 @@ export default function SystemActivityPage() {
                 <span>#{log.targetId || "—"}</span>
                 <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>{formatDate(log.createdAt)}</span>
                 <div style={{ textAlign: "right" }}>
-                  <button className="page-action page-action-secondary" style={{ padding: "4px 10px", fontSize: "0.78rem" }} onClick={() => setSelectedLog(log)}>
+                  <button type="button" className="page-action page-action-secondary" style={{ padding: "4px 10px", fontSize: "0.78rem" }} onClick={() => setSelectedLog(log)}>
                     Xem
                   </button>
                 </div>
@@ -94,7 +94,7 @@ export default function SystemActivityPage() {
           <div className="lb-modal lb-modal-sm" onClick={(e) => e.stopPropagation()}>
             <div className="lb-modal-header">
               <h3>Chi tiết hoạt động #{selectedLog.id}</h3>
-              <button className="lb-modal-close" onClick={() => setSelectedLog(null)}>✕</button>
+              <button type="button" className="lb-modal-close" onClick={() => setSelectedLog(null)}>✕</button>
             </div>
             <div className="lb-modal-body">
               <div>

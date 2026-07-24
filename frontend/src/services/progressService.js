@@ -15,6 +15,7 @@ export async function getCourseProgress() {
 export async function startLessonProgress(lessonId, payload = {}) {
   return unwrap(await apiRequest(`/progress/lessons/${lessonId}/start`, {
     method: "POST",
+    skipRefresh: true,
     body: JSON.stringify(payload),
   }));
 }
@@ -22,6 +23,7 @@ export async function startLessonProgress(lessonId, payload = {}) {
 export async function completeLessonProgress(lessonId, payload = {}) {
   return unwrap(await apiRequest(`/progress/lessons/${lessonId}/complete`, {
     method: "POST",
+    skipRefresh: true,
     body: JSON.stringify(payload),
   }));
 }
@@ -29,6 +31,7 @@ export async function completeLessonProgress(lessonId, payload = {}) {
 export async function trackLessonProgress(lessonId, payload = {}) {
   return unwrap(await apiRequest(`/progress/lessons/${lessonId}`, {
     method: "PUT",
+    skipRefresh: true,
     body: JSON.stringify(payload),
   }));
 }

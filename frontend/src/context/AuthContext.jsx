@@ -27,8 +27,10 @@ export function AuthProvider({ children }) {
       setAuthError(null);
       return currentUser;
     } catch (error) {
-      clearTokens();
-      setUser(null);
+      if (error?.status === 401) {
+        clearTokens();
+        setUser(null);
+      }
       setAuthError(error.message);
       return null;
     } finally {
@@ -76,4 +78,3 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-

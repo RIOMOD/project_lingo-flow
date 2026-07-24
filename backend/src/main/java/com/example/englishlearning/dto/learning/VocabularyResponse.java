@@ -5,6 +5,8 @@ import com.example.englishlearning.entity.Vocabulary;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class VocabularyResponse {
@@ -25,4 +27,10 @@ public class VocabularyResponse {
     private java.math.BigDecimal masteryScore;
     private com.example.englishlearning.entity.VocabularyStatus status;
     private Boolean favorite;
+    private Integer correctCount;
+    private Integer incorrectCount;
+    private Integer reviewCount;
+    private LocalDateTime reviewedAt;
+    private LocalDateTime nextReviewAt;
+    private Boolean reviewDue;
 }

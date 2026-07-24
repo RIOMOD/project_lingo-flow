@@ -13,6 +13,7 @@ import com.example.englishlearning.service.CourseService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/teacher")
+@PreAuthorize("hasRole('TEACHER')")
 public class TeacherCourseController {
 
     private final CourseService courseService;
@@ -39,6 +41,14 @@ public class TeacherCourseController {
             @PageableDefault(size = 12) Pageable pageable
     ) {
         return ApiResponse.success(courseService.getTeacherCourses(authentication.getName(), pageable));
+    }
+
+    @GetMapping("/courses/{id}")
+    public ApiResponse<CourseDetailResponse> getMyCourseDetail(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return ApiResponse.success(courseService.getTeacherCourseDetail(id, authentication.getName()));
     }
 
     @PostMapping("/courses")

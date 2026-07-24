@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -96,6 +97,7 @@ public class LearningContentServiceImpl implements LearningContentService {
         Course course = getEditableCourse(teacher, request.getCourseId());
         Vocabulary vocabulary = new Vocabulary();
         applyVocabulary(vocabulary, course, request);
+        ensureVocabularyNotDuplicate(vocabulary, null);
         return toVocabularyResponse(vocabularyRepository.save(vocabulary), null);
     }
 
@@ -106,6 +108,7 @@ public class LearningContentServiceImpl implements LearningContentService {
         getEditableCourse(teacher, vocabulary.getCourse().getId());
         Course course = getEditableCourse(teacher, request.getCourseId());
         applyVocabulary(vocabulary, course, request);
+        ensureVocabularyNotDuplicate(vocabulary, vocabulary.getId());
         return toVocabularyResponse(vocabularyRepository.save(vocabulary), null);
     }
 
@@ -122,6 +125,7 @@ public class LearningContentServiceImpl implements LearningContentService {
     public VocabularyResponse updateVocabularyProgress(String email, Long vocabularyId, VocabularyProgressRequest request) {
         User user = getUser(email);
         Vocabulary vocabulary = getVocabulary(vocabularyId);
+        ensureVocabularyAccess(user, vocabulary);
         VocabularyProgress progress = progressRepository.findByUserIdAndVocabularyId(user.getId(), vocabularyId)
                 .orElseGet(() -> {
                     VocabularyProgress created = new VocabularyProgress();
@@ -131,6 +135,9 @@ public class LearningContentServiceImpl implements LearningContentService {
                 });
         if (request.getFavorite() != null) {
             progress.setFavorite(request.getFavorite());
+        }
+        if (request.getAnsweredCorrect() != null) {
+            applyAnswerProgress(progress, request.getAnsweredCorrect(), request.getResponseTimeMillis());
         }
         progress.setReviewedAt(LocalDateTime.now());
         progress.setNextReviewAt(nextReviewAt(progress));
@@ -197,7 +204,25 @@ public class LearningContentServiceImpl implements LearningContentService {
         vocabulary.setAudioUrl(blankToNull(request.getAudioUrl()));
         vocabulary.setImageUrl(blankToNull(request.getImageUrl()));
         vocabulary.setLevel(request.getLevel() == null ? Course.CourseLevel.BEGINNER : request.getLevel());
-        vocabulary.setTopic(blankToNull(request.getTopic()));
+        String topic = blankToNull(request.getTopic());
+        if (topic == null) {
+            throw new BadRequestException("Chủ đề là bắt buộc.");
+        }
+        validateUrl(vocabulary.getImageUrl(), "URL hình ảnh minh họa");
+        validateUrl(vocabulary.getAudioUrl(), "URL âm thanh phát âm");
+        vocabulary.setTopic(topic);
+    }
+
+    private void ensureVocabularyNotDuplicate(Vocabulary vocabulary, Long excludeId) {
+        boolean duplicated = vocabularyRepository.existsDuplicateWord(
+                vocabulary.getCourse().getId(),
+                vocabulary.getTopic(),
+                vocabulary.getWord().trim(),
+                excludeId
+        );
+        if (duplicated) {
+            throw new BadRequestException("Từ vựng đã tồn tại trong cùng khóa học và chủ đề.");
+        }
     }
 
     private void applyGrammar(GrammarTopic grammar, Course course, UpsertGrammarRequest request) {
@@ -218,7 +243,7 @@ public class LearningContentServiceImpl implements LearningContentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
         boolean isAdmin = "ADMIN".equals(user.getRole().getCode());
         if (!isAdmin && !course.getTeacher().getId().equals(user.getId())) {
-            throw new UnauthorizedException("You can only manage your own course content");
+            throw new UnauthorizedException("Bạn chỉ có thể quản lý nội dung khóa học của chính mình.");
         }
         return course;
     }
@@ -228,7 +253,7 @@ public class LearningContentServiceImpl implements LearningContentService {
             return null;
         }
         return lessonRepository.findByIdAndChapterCourseIdAndDeletedAtIsNull(lessonId, courseId)
-                .orElseThrow(() -> new BadRequestException("Lesson does not belong to selected course"));
+                .orElseThrow(() -> new BadRequestException("Bài học không thuộc khóa học đã chọn."));
     }
 
     private Vocabulary getVocabulary(Long id) {
@@ -249,6 +274,78 @@ public class LearningContentServiceImpl implements LearningContentService {
         }
         return userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new UnauthorizedException("Authentication is required"));
+    }
+
+    private void ensureVocabularyAccess(User user, Vocabulary vocabulary) {
+        if ("ADMIN".equals(user.getRole().getCode())) {
+            return;
+        }
+        if ("TEACHER".equals(user.getRole().getCode()) && vocabulary.getCourse().getTeacher().getId().equals(user.getId())) {
+            return;
+        }
+        boolean accessible = vocabularyRepository.existsAccessibleVocabulary(
+                user.getId(),
+                vocabulary.getId(),
+                CourseOwnership.OwnershipStatus.ACTIVE
+        );
+        if (!accessible) {
+            throw new UnauthorizedException("Bạn không có quyền học từ vựng của khóa học này.");
+        }
+    }
+
+    private void applyAnswerProgress(VocabularyProgress progress, boolean answeredCorrect, Long responseTimeMillis) {
+        progress.setReviewCount(safe(progress.getReviewCount()) + 1);
+        if (answeredCorrect) {
+            progress.setCorrectCount(safe(progress.getCorrectCount()) + 1);
+            progress.setConsecutiveCorrect(safe(progress.getConsecutiveCorrect()) + 1);
+        } else {
+            progress.setIncorrectCount(safe(progress.getIncorrectCount()) + 1);
+            progress.setConsecutiveCorrect(0);
+        }
+
+        BigDecimal current = progress.getMasteryScore() == null ? BigDecimal.ZERO : progress.getMasteryScore();
+        BigDecimal next = answeredCorrect ? current.add(new BigDecimal("20")) : current.subtract(new BigDecimal("15"));
+        if (next.compareTo(BigDecimal.ZERO) < 0) {
+            next = BigDecimal.ZERO;
+        }
+        if (next.compareTo(new BigDecimal("100")) > 0) {
+            next = new BigDecimal("100");
+        }
+        progress.setMasteryScore(next);
+
+        if (!answeredCorrect || safe(progress.getIncorrectCount()) > safe(progress.getCorrectCount())) {
+            progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.WEAK);
+        } else if (next.compareTo(new BigDecimal("80")) >= 0 && safe(progress.getConsecutiveCorrect()) >= 2) {
+            progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.MASTERED);
+        } else if (next.compareTo(new BigDecimal("40")) >= 0) {
+            progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.FAMILIAR);
+        } else {
+            progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.LEARNING);
+        }
+
+        if (responseTimeMillis != null && responseTimeMillis > 0) {
+            long previousAverage = progress.getAverageResponseTime() == null ? 0L : progress.getAverageResponseTime();
+            progress.setAverageResponseTime(previousAverage <= 0 ? responseTimeMillis : (previousAverage + responseTimeMillis) / 2);
+        }
+    }
+
+    private int safe(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private void validateUrl(String value, String fieldName) {
+        if (value == null) {
+            return;
+        }
+        try {
+            java.net.URI uri = java.net.URI.create(value);
+            String scheme = uri.getScheme();
+            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+                throw new IllegalArgumentException();
+            }
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestException(fieldName + " không hợp lệ.");
+        }
     }
 
     private VocabularyProgress findProgress(Long userId, Long vocabularyId) {
@@ -281,6 +378,13 @@ public class LearningContentServiceImpl implements LearningContentService {
                 .masteryScore(progress == null ? java.math.BigDecimal.ZERO : progress.getMasteryScore())
                 .status(progress == null ? com.example.englishlearning.entity.VocabularyStatus.NEW : progress.getStatus())
                 .favorite(progress != null && Boolean.TRUE.equals(progress.getFavorite()))
+                .correctCount(progress == null ? 0 : safe(progress.getCorrectCount()))
+                .incorrectCount(progress == null ? 0 : safe(progress.getIncorrectCount()))
+                .reviewCount(progress == null ? 0 : safe(progress.getReviewCount()))
+                .reviewedAt(progress == null ? null : progress.getReviewedAt())
+                .nextReviewAt(progress == null ? null : progress.getNextReviewAt())
+                .reviewDue(progress != null && (progress.getNextReviewAt() == null || !progress.getNextReviewAt().isAfter(LocalDateTime.now())
+                        || com.example.englishlearning.entity.VocabularyStatus.WEAK.equals(progress.getStatus())))
                 .build();
     }
 

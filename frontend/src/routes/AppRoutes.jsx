@@ -50,6 +50,7 @@ import WritingCorrectionPage from "../pages/student/WritingCorrectionPage";
 import CourseCreatePage from "../pages/teacher/CourseCreatePage";
 import CourseEditPage from "../pages/teacher/CourseEditPage";
 import CourseManagementPage from "../pages/teacher/CourseManagementPage";
+import CoursePreviewPage from "../pages/teacher/CoursePreviewPage";
 import CourseSubmissionPage from "../pages/teacher/CourseSubmissionPage";
 import TeacherDashboardPage from "../pages/teacher/DashboardPage";
 import LessonBuilderPage from "../pages/teacher/LessonBuilderPage";
@@ -59,6 +60,7 @@ import TeacherProfilePage from "../pages/teacher/ProfilePage";
 import QuestionBankPage from "../pages/teacher/QuestionBankPage";
 import RevenuePage from "../pages/teacher/RevenuePage";
 import StudentTrackingPage from "../pages/teacher/StudentTrackingPage";
+import AdminCourseReviewPage from "../pages/admin/AdminCourseReviewPage";
 
 export default function AppRoutes() {
   return (
@@ -107,6 +109,8 @@ export default function AppRoutes() {
             <Route path="courses" element={<CourseManagementPage />} />
             <Route path="courses/create" element={<CourseCreatePage />} />
             <Route path="courses/:courseId/edit" element={<CourseEditPage />} />
+            <Route path="courses/:courseId/content" element={<LessonBuilderPage />} />
+            <Route path="courses/:courseId/preview" element={<CoursePreviewPage />} />
             <Route path="lessons" element={<LessonBuilderPage />} />
             <Route path="vocabulary" element={<VocabularyManagementPage />} />
             <Route path="grammar" element={<GrammarManagementPage />} />
@@ -124,6 +128,7 @@ export default function AppRoutes() {
             <Route path="users" element={<UserManagementPage />} />
             <Route path="teachers" element={<TeacherManagementPage />} />
             <Route path="course-approval" element={<CourseApprovalPage />} />
+            <Route path="courses/:courseId/review" element={<AdminCourseReviewPage />} />
             <Route path="course-publish" element={<CoursePublishPage />} />
             <Route path="orders" element={<OrderManagementPage />} />
             <Route path="transactions" element={<TransactionManagementPage />} />

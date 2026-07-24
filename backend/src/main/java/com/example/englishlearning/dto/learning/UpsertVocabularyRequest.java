@@ -44,6 +44,7 @@ public class UpsertVocabularyRequest {
 
     private Course.CourseLevel level = Course.CourseLevel.BEGINNER;
 
+    @NotBlank
     @Size(max = 120)
     private String topic;
 }

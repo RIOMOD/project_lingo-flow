@@ -180,17 +180,24 @@ public class ProgressServiceImpl implements ProgressService {
             return buildCourseProgress(user.getId(), lesson.getChapter().getCourse());
         }
         recordActivity(progress, lesson, request);
-        if (safeDecimal(progress.getContentProgressPercent()).compareTo(new BigDecimal("85.00")) < 0) {
+        BigDecimal requiredPercent = hasVideo(lesson) ? new BigDecimal("90.00") : new BigDecimal("85.00");
+        if (safeDecimal(progress.getContentProgressPercent()).compareTo(requiredPercent) < 0) {
+            progressRepository.save(progress);
+            throw new BadRequestException("Bạn cần học ít nhất " + requiredPercent.stripTrailingZeros().toPlainString() + "% nội dung trước khi hoàn thành.");
+        }
+        if (false && safeDecimal(progress.getContentProgressPercent()).compareTo(requiredPercent) < 0) {
             progressRepository.save(progress);
             throw new BadRequestException("Bạn cần học ít nhất 85% nội dung trước khi hoàn thành.");
         }
-        progress.setCheckpointAttempts(safe(progress.getCheckpointAttempts()) + 1);
+        if (hasCheckpoint(lesson)) {
+            progress.setCheckpointAttempts(safe(progress.getCheckpointAttempts()) + 1);
         if (!answersMatch(request.getCheckpointAnswer(), lesson.getCheckpointAnswer())) {
             progress.setCheckpointPassed(false);
             progress.setCheckpointScore(BigDecimal.ZERO);
             progressRepository.save(progress);
             throw new BadRequestException("Câu trả lời chưa đúng. " + (lesson.getCheckpointExplanation() == null
                     ? "Hãy xem lại nội dung và thử lại." : lesson.getCheckpointExplanation()));
+        }
         }
         progress.setCheckpointPassed(true);
         progress.setCheckpointScore(new BigDecimal("100.00"));
@@ -345,6 +352,18 @@ public class ProgressServiceImpl implements ProgressService {
             return submitted != null && !submitted.isBlank();
         }
         return normalizeAnswer(submitted).equals(normalizeAnswer(expected));
+    }
+
+    private boolean hasCheckpoint(Lesson lesson) {
+        return hasText(lesson.getCheckpointQuestion()) || hasText(lesson.getCheckpointAnswer());
+    }
+
+    private boolean hasVideo(Lesson lesson) {
+        return hasText(lesson.getVideoUrl());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private String normalizeAnswer(String value) {

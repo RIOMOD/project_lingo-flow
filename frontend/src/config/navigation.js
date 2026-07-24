@@ -203,15 +203,15 @@ export const navigationByRole = {
     {
       title: "Nội dung",
       items: [
-        { label: "Dashboard", to: demoPaths.teacherDashboard },
+        { label: "Tổng quan", to: demoPaths.teacherDashboard },
         { label: "Quản lý khóa học", to: demoPaths.teacherCourses },
         { label: "Tạo khóa học", to: demoPaths.teacherCourseCreate },
-        { label: "Sửa khóa học", to: demoPaths.teacherCourseEdit },
-        { label: "Lesson builder", to: demoPaths.teacherLessonBuilder },
+        { label: "Chỉnh sửa khóa học", to: demoPaths.teacherCourseEdit },
+        { label: "Xây dựng nội dung", to: demoPaths.teacherLessonBuilder },
         { label: "Từ vựng", to: demoPaths.teacherVocabulary },
         { label: "Ngữ pháp", to: demoPaths.teacherGrammar },
-        { label: "Question bank", to: demoPaths.teacherQuestionBank },
-        { label: "Gửi duyệt", to: demoPaths.teacherSubmission },
+        { label: "Ngân hàng câu hỏi", to: demoPaths.teacherQuestionBank },
+        { label: "Xem trước và gửi duyệt", to: demoPaths.teacherSubmission },
       ],
     },
     {
@@ -227,10 +227,10 @@ export const navigationByRole = {
     {
       title: "Quản trị",
       items: [
-        { label: "Dashboard", to: demoPaths.adminDashboard },
+        { label: "Tổng quan", to: demoPaths.adminDashboard },
         { label: "Người dùng", to: demoPaths.adminUsers },
-        { label: "Teacher", to: demoPaths.adminTeachers },
-        { label: "Role", to: demoPaths.adminRoles },
+        { label: "Giáo viên", to: demoPaths.adminTeachers },
+        { label: "Vai trò", to: demoPaths.adminRoles },
         { label: "Hoạt động hệ thống", to: demoPaths.adminSystemActivity },
       ],
     },
@@ -238,17 +238,17 @@ export const navigationByRole = {
       title: "Khóa học",
       items: [
         { label: "Duyệt khóa học", to: demoPaths.adminCourseApproval },
-        { label: "Xuất bản khóa học", to: demoPaths.adminCoursePublish },
+        { label: "Xuất bản và giá sale", to: demoPaths.adminCoursePublish },
       ],
     },
     {
       title: "Thương mại",
       items: [
-        { label: "Don hang", to: demoPaths.adminOrders },
-        { label: "Giao dich", to: demoPaths.adminTransactions },
-        { label: "Coupon", to: demoPaths.adminCoupons },
-        { label: "Refund", to: demoPaths.adminRefunds },
-        { label: "Bao cao", to: demoPaths.adminReports },
+        { label: "Đơn hàng", to: demoPaths.adminOrders },
+        { label: "Giao dịch", to: demoPaths.adminTransactions },
+        { label: "Mã giảm giá", to: demoPaths.adminCoupons },
+        { label: "Hoàn tiền", to: demoPaths.adminRefunds },
+        { label: "Báo cáo", to: demoPaths.adminReports },
       ],
     },
   ],
@@ -920,5 +920,3 @@ export const pageConfigs = {
     ],
   },
 };
-
-

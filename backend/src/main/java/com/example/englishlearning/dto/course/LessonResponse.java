@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -30,4 +32,6 @@ public class LessonResponse {
     private Boolean checkpointPassed;
     private String checkpointQuestion;
     private String checkpointExplanation;
+    private Boolean completed;
+    private List<String> completionErrors;
 }

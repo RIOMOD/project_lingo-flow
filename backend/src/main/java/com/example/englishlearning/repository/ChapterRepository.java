@@ -8,4 +8,6 @@ import java.util.List;
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
     List<Chapter> findByCourseIdAndDeletedAtIsNullOrderByPositionAsc(Long courseId);
+
+    long countByCourseIdAndDeletedAtIsNull(Long courseId);
 }

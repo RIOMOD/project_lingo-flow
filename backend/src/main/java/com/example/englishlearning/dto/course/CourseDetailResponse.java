@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,8 +24,14 @@ public class CourseDetailResponse {
     private Course.CourseType courseType;
     private BigDecimal originalPrice;
     private BigDecimal salePrice;
+    private BigDecimal currentPrice;
     private LocalDateTime saleStartAt;
     private LocalDateTime saleEndAt;
+    private String saleStatus;
+    private Integer completionPercent;
+    private Boolean readyForReview;
+    private List<String> validationErrors;
+    private String lastRejectedReason;
     private Course.CourseStatus status;
     private LocalDateTime publishedAt;
     private Long teacherId;

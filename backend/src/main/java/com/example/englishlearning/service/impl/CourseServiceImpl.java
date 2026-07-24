@@ -1,11 +1,13 @@
 package com.example.englishlearning.service.impl;
 
 import com.example.englishlearning.dto.common.PageResponse;
+import com.example.englishlearning.dto.course.AdminCourseSaleRequest;
 import com.example.englishlearning.dto.course.ChapterRequest;
 import com.example.englishlearning.dto.course.ChapterResponse;
 import com.example.englishlearning.dto.course.CourseAccessResponse;
 import com.example.englishlearning.dto.course.CourseDetailResponse;
 import com.example.englishlearning.dto.course.CourseRequest;
+import com.example.englishlearning.dto.course.CourseReviewHistoryResponse;
 import com.example.englishlearning.dto.course.CourseSummaryResponse;
 import com.example.englishlearning.dto.course.LessonRequest;
 import com.example.englishlearning.dto.course.LessonResponse;
@@ -32,6 +34,8 @@ import com.example.englishlearning.repository.LessonRepository;
 import com.example.englishlearning.repository.UserRepository;
 import com.example.englishlearning.service.AuditLogService;
 import com.example.englishlearning.service.CourseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,6 +54,7 @@ import java.util.Map;
 @Service
 @Transactional
 public class CourseServiceImpl implements CourseService {
+    private static final Logger log = LoggerFactory.getLogger(CourseServiceImpl.class);
 
     private final CourseRepository courseRepository;
     private final ChapterRepository chapterRepository;
@@ -188,11 +193,17 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public CourseDetailResponse getTeacherCourseDetail(Long courseId, String teacherEmail) {
+        return toDetail(getTeacherCourse(courseId, teacherEmail));
+    }
+
+    @Override
     public CourseDetailResponse createCourse(CourseRequest request, String teacherEmail) {
         User teacher = getUserByEmail(teacherEmail);
         Course course = new Course();
         course.setTeacher(teacher);
-        applyCourseRequest(course, request);
+        applyTeacherCourseRequest(course, request);
         course.setSlug(resolveUniqueSlug(request.getSlug(), request.getTitle(), null));
         course.setStatus(Course.CourseStatus.DRAFT);
         return toDetail(courseRepository.save(course));
@@ -202,9 +213,9 @@ public class CourseServiceImpl implements CourseService {
     public CourseDetailResponse updateCourse(Long courseId, CourseRequest request, String teacherEmail) {
         Course course = getTeacherCourse(courseId, teacherEmail);
         if (course.getStatus() == Course.CourseStatus.PUBLISHED || course.getStatus() == Course.CourseStatus.ARCHIVED) {
-            throw new BadRequestException("Published or archived course cannot be edited here");
+            throw new BadRequestException("Chỉ có thể cập nhật khóa học ở trạng thái DRAFT hoặc REJECTED.");
         }
-        applyCourseRequest(course, request);
+        applyTeacherCourseRequest(course, request);
         course.setSlug(resolveUniqueSlug(request.getSlug(), request.getTitle(), course.getId()));
         return toDetail(courseRepository.save(course));
     }
@@ -212,9 +223,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void deleteTeacherCourse(Long courseId, String teacherEmail) {
         Course course = getTeacherCourse(courseId, teacherEmail);
-        if (course.getStatus() == Course.CourseStatus.PUBLISHED) {
-            throw new BadRequestException("Published course cannot be deleted by teacher");
-        }
+        ensureTeacherCanModifyCourse(course);
         course.setDeletedAt(LocalDateTime.now());
         courseRepository.save(course);
     }
@@ -223,8 +232,9 @@ public class CourseServiceImpl implements CourseService {
     public CourseDetailResponse submitReview(Long courseId, String teacherEmail) {
         Course course = getTeacherCourse(courseId, teacherEmail);
         if (course.getStatus() != Course.CourseStatus.DRAFT && course.getStatus() != Course.CourseStatus.REJECTED) {
-            throw new BadRequestException("Only draft or rejected courses can be submitted");
+            throw new BadRequestException("Chỉ có thể gửi duyệt khóa học ở trạng thái DRAFT hoặc REJECTED.");
         }
+        ensureCourseReadyForReview(course);
         course.setStatus(Course.CourseStatus.SUBMITTED);
         return toDetail(courseRepository.save(course));
     }
@@ -269,6 +279,7 @@ public class CourseServiceImpl implements CourseService {
     public void deleteChapter(Long chapterId, String teacherEmail) {
         Chapter chapter = getChapter(chapterId);
         ensureTeacherOwner(chapter.getCourse(), teacherEmail);
+        ensureTeacherCanModifyCourse(chapter.getCourse());
         chapter.setDeletedAt(LocalDateTime.now());
         chapterRepository.save(chapter);
     }
@@ -281,6 +292,7 @@ public class CourseServiceImpl implements CourseService {
             throw new ResourceNotFoundException("Lesson not found");
         }
         ensureTeacherOwner(lesson.getChapter().getCourse(), teacherEmail);
+        ensureTeacherCanModifyCourse(lesson.getChapter().getCourse());
         lesson.setDeletedAt(LocalDateTime.now());
         lessonRepository.save(lesson);
     }
@@ -300,23 +312,50 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<CourseSummaryResponse> getAdminCourses(Course.CourseStatus status, Pageable pageable) {
-        Course.CourseStatus targetStatus = status == null ? Course.CourseStatus.SUBMITTED : status;
-        return PageResponse.from(courseRepository
-                .findByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(targetStatus, pageable)
-                .map(this::toSummary));
+        Page<Course> page = status == null
+                ? courseRepository.findByDeletedAtIsNullOrderByUpdatedAtDesc(pageable)
+                : courseRepository.findByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(status, pageable);
+        return PageResponse.from(page.map(this::toSummary));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CourseDetailResponse getAdminCourseDetail(Long courseId) {
+        return toDetail(getActiveCourse(courseId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChapterResponse> getAdminCourseChapters(Long courseId) {
+        getActiveCourse(courseId);
+        return chapterRepository.findByCourseIdAndDeletedAtIsNullOrderByPositionAsc(courseId)
+                .stream()
+                .map(chapter -> toChapter(chapter, false))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseReviewHistoryResponse> getAdminCourseReviewHistory(Long courseId) {
+        getActiveCourse(courseId);
+        return courseReviewHistoryRepository.findByCourse_IdOrderByCreatedAtDesc(courseId)
+                .stream()
+                .map(this::toReviewHistory)
+                .toList();
     }
 
     @Override
     public CourseDetailResponse approveCourse(Long courseId) {
         Course course = getActiveCourse(courseId);
         if (course.getStatus() != Course.CourseStatus.SUBMITTED) {
-            throw new BadRequestException("Only submitted courses can be approved");
+            throw new BadRequestException("Chỉ có thể duyệt khóa học đang ở trạng thái SUBMITTED.");
         }
+        ensureCourseReadyForReview(course);
         course.setStatus(Course.CourseStatus.APPROVED);
         course = courseRepository.save(course);
 
         saveReviewHistory(course, CourseReviewHistory.ReviewAction.APPROVE, null);
-        auditLogService.logAction("APPROVE_COURSE", "COURSE", course.getId(), "SUBMITTED", "APPROVED", "Admin approved course");
+        logAuditSafely("APPROVE_COURSE", "COURSE", course.getId(), "SUBMITTED", "APPROVED", "Admin approved course");
 
         return toDetail(course);
     }
@@ -325,15 +364,19 @@ public class CourseServiceImpl implements CourseService {
     public CourseDetailResponse rejectCourse(Long courseId, RejectCourseRequest request) {
         Course course = getActiveCourse(courseId);
         if (course.getStatus() != Course.CourseStatus.SUBMITTED && course.getStatus() != Course.CourseStatus.APPROVED) {
-            throw new BadRequestException("Only submitted or approved courses can be rejected");
+            throw new BadRequestException("Chỉ có thể từ chối khóa học ở trạng thái SUBMITTED hoặc APPROVED.");
         }
+        String reason = request == null ? null : request.getReason().trim();
+        if (!StringUtils.hasText(reason) || reason.length() < 10 || reason.length() > 500) {
+            throw new BadRequestException("Lý do từ chối phải từ 10 đến 500 ký tự.");
+        }
+
         String oldStatus = course.getStatus().name();
         course.setStatus(Course.CourseStatus.REJECTED);
         course = courseRepository.save(course);
 
-        String reason = request != null ? request.getReason() : null;
         saveReviewHistory(course, CourseReviewHistory.ReviewAction.REJECT, reason);
-        auditLogService.logAction("REJECT_COURSE", "COURSE", course.getId(), oldStatus, "REJECTED", reason);
+        logAuditSafely("REJECT_COURSE", "COURSE", course.getId(), oldStatus, "REJECTED", reason);
 
         return toDetail(course);
     }
@@ -342,14 +385,14 @@ public class CourseServiceImpl implements CourseService {
     public CourseDetailResponse publishCourse(Long courseId) {
         Course course = getActiveCourse(courseId);
         if (course.getStatus() != Course.CourseStatus.APPROVED && course.getStatus() != Course.CourseStatus.HIDDEN) {
-            throw new BadRequestException("Only approved or hidden courses can be published");
+            throw new BadRequestException("Chỉ có thể xuất bản khóa học ở trạng thái APPROVED hoặc HIDDEN.");
         }
         String oldStatus = course.getStatus().name();
         course.setStatus(Course.CourseStatus.PUBLISHED);
         course.setPublishedAt(LocalDateTime.now());
         course = courseRepository.save(course);
 
-        auditLogService.logAction("PUBLISH_COURSE", "COURSE", course.getId(), oldStatus, "PUBLISHED", "Admin published course");
+        logAuditSafely("PUBLISH_COURSE", "COURSE", course.getId(), oldStatus, "PUBLISHED", "Admin published course");
 
         return toDetail(course);
     }
@@ -358,12 +401,12 @@ public class CourseServiceImpl implements CourseService {
     public CourseDetailResponse hideCourse(Long courseId) {
         Course course = getActiveCourse(courseId);
         if (course.getStatus() != Course.CourseStatus.PUBLISHED) {
-            throw new BadRequestException("Only published courses can be hidden");
+            throw new BadRequestException("Chỉ có thể ẩn khóa học đang ở trạng thái PUBLISHED.");
         }
         course.setStatus(Course.CourseStatus.HIDDEN);
         course = courseRepository.save(course);
 
-        auditLogService.logAction("HIDE_COURSE", "COURSE", course.getId(), "PUBLISHED", "HIDDEN", "Admin hidden course");
+        logAuditSafely("HIDE_COURSE", "COURSE", course.getId(), "PUBLISHED", "HIDDEN", "Admin hidden course");
 
         return toDetail(course);
     }
@@ -371,11 +414,55 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDetailResponse archiveCourse(Long courseId) {
         Course course = getActiveCourse(courseId);
+        if (course.getStatus() != Course.CourseStatus.HIDDEN) {
+            throw new BadRequestException("Chỉ có thể lưu trữ khóa học đang ở trạng thái HIDDEN.");
+        }
         String oldStatus = course.getStatus().name();
         course.setStatus(Course.CourseStatus.ARCHIVED);
         course = courseRepository.save(course);
 
-        auditLogService.logAction("ARCHIVE_COURSE", "COURSE", course.getId(), oldStatus, "ARCHIVED", "Admin archived course");
+        logAuditSafely("ARCHIVE_COURSE", "COURSE", course.getId(), oldStatus, "ARCHIVED", "Admin archived course");
+
+        return toDetail(course);
+    }
+
+    @Override
+    public CourseDetailResponse upsertCourseSale(Long courseId, AdminCourseSaleRequest request) {
+        Course course = getActiveCourse(courseId);
+        String previousSaleStatus = getSaleStatus(course);
+        validateAdminSale(course, request);
+        course.setSalePrice(normalizeNullablePrice(request.getSalePrice()));
+        course.setSaleStartAt(request.getSaleStartAt());
+        course.setSaleEndAt(request.getSaleEndAt());
+        course = courseRepository.save(course);
+
+        logAuditSafely(
+                "UPSERT_COURSE_SALE",
+                "COURSE",
+                course.getId(),
+                previousSaleStatus,
+                getSaleStatus(course),
+                "Admin updated course sale"
+        );
+
+        return toDetail(course);
+    }
+
+    @Override
+    public CourseDetailResponse clearCourseSale(Long courseId) {
+        Course course = getActiveCourse(courseId);
+        String previousSaleStatus = getSaleStatus(course);
+        clearSaleFields(course);
+        course = courseRepository.save(course);
+
+        logAuditSafely(
+                "CLEAR_COURSE_SALE",
+                "COURSE",
+                course.getId(),
+                previousSaleStatus,
+                "NONE",
+                "Admin removed course sale"
+        );
 
         return toDetail(course);
     }
@@ -399,27 +486,35 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
-    private void applyCourseRequest(Course course, CourseRequest request) {
-        validatePrice(request);
+    private void logAuditSafely(String action, String targetType, Long targetId, String valueBefore, String valueAfter, String notes) {
+        try {
+            auditLogService.logAction(action, targetType, targetId, valueBefore, valueAfter, notes);
+        } catch (Exception exception) {
+            log.error("Audit log failed for action {} on {} {}", action, targetType, targetId, exception);
+        }
+    }
+
+    private void applyTeacherCourseRequest(Course course, CourseRequest request) {
+        ensureTeacherCanModifyCourse(course);
+        BigDecimal previousOriginalPrice = zero(course.getOriginalPrice());
         course.setTitle(request.getTitle().trim());
         course.setShortDescription(request.getShortDescription());
         course.setDescription(request.getDescription());
         course.setThumbnailUrl(request.getThumbnailUrl());
         course.setLevel(request.getLevel());
         course.setCourseType(request.getCourseType());
-        course.setOriginalPrice(normalizePrice(request.getOriginalPrice()));
-        course.setSalePrice(normalizePrice(request.getSalePrice()));
-        course.setSaleStartAt(request.getSaleStartAt());
-        course.setSaleEndAt(request.getSaleEndAt());
+        applyTeacherPrice(course, request, previousOriginalPrice);
     }
 
     private void applyChapterRequest(Chapter chapter, ChapterRequest request) {
+        ensureTeacherCanModifyCourse(chapter.getCourse());
         chapter.setTitle(request.getTitle().trim());
         chapter.setDescription(request.getDescription());
         chapter.setPosition(request.getPosition());
     }
 
     private void applyLessonRequest(Lesson lesson, LessonRequest request) {
+        ensureTeacherCanModifyCourse(lesson.getChapter().getCourse());
         lesson.setTitle(request.getTitle().trim());
         lesson.setLessonType(request.getLessonType());
         lesson.setContent(request.getContent());
@@ -431,17 +526,22 @@ public class CourseServiceImpl implements CourseService {
         lesson.setStatus(request.getStatus() == null ? Lesson.LessonStatus.DRAFT : request.getStatus());
     }
 
-    private void validatePrice(CourseRequest request) {
+    private void applyTeacherPrice(Course course, CourseRequest request, BigDecimal previousOriginalPrice) {
         if (request.getCourseType() == Course.CourseType.FREE) {
+            course.setOriginalPrice(BigDecimal.ZERO);
+            clearSaleFields(course);
             return;
         }
+
         BigDecimal originalPrice = normalizePrice(request.getOriginalPrice());
         if (originalPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Paid course must have original price greater than zero");
+            throw new BadRequestException("Khóa học trả phí phải có giá lớn hơn 0.");
         }
-        if (request.getSaleStartAt() != null && request.getSaleEndAt() != null
-                && request.getSaleEndAt().isBefore(request.getSaleStartAt())) {
-            throw new BadRequestException("Sale end time must be after sale start time");
+        course.setOriginalPrice(originalPrice);
+
+        if (course.getSalePrice() != null && previousOriginalPrice.compareTo(originalPrice) != 0
+                && course.getSalePrice().compareTo(originalPrice) >= 0) {
+            clearSaleFields(course);
         }
     }
 
@@ -467,10 +567,19 @@ public class CourseServiceImpl implements CourseService {
         return course;
     }
 
+    private void ensureTeacherCanModifyCourse(Course course) {
+        if (course.getId() == null) {
+            return;
+        }
+        if (course.getStatus() != Course.CourseStatus.DRAFT && course.getStatus() != Course.CourseStatus.REJECTED) {
+            throw new BadRequestException("Chỉ có thể chỉnh sửa khóa học ở trạng thái DRAFT hoặc REJECTED");
+        }
+    }
+
     private void ensureTeacherOwner(Course course, String teacherEmail) {
         User teacher = getUserByEmail(teacherEmail);
         if (!course.getTeacher().getId().equals(teacher.getId())) {
-            throw new UnauthorizedException("You can only manage your own courses");
+            throw new ForbiddenException("Bạn chỉ có thể quản lý khóa học của chính mình.");
         }
     }
 
@@ -525,6 +634,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private CourseSummaryResponse toSummary(Course course) {
+        CourseValidationResult validation = validateCourseForReview(course);
         return CourseSummaryResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
@@ -533,14 +643,23 @@ public class CourseServiceImpl implements CourseService {
                 .thumbnailUrl(course.getThumbnailUrl())
                 .level(course.getLevel())
                 .courseType(course.getCourseType())
-                .originalPrice(course.getOriginalPrice())
+                .originalPrice(zero(course.getOriginalPrice()))
                 .salePrice(course.getSalePrice())
+                .currentPrice(currentPrice(course))
+                .saleStartAt(course.getSaleStartAt())
+                .saleEndAt(course.getSaleEndAt())
+                .saleStatus(getSaleStatus(course))
+                .completionPercent(validation.completionPercent())
+                .readyForReview(validation.readyForReview())
+                .validationErrors(validation.errors())
+                .lastRejectedReason(getLastRejectedReason(course.getId()))
                 .status(course.getStatus())
                 .teacherName(course.getTeacher().getFullName())
                 .build();
     }
 
     private CourseDetailResponse toDetail(Course course) {
+        CourseValidationResult validation = validateCourseForReview(course);
         return CourseDetailResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
@@ -550,14 +669,31 @@ public class CourseServiceImpl implements CourseService {
                 .thumbnailUrl(course.getThumbnailUrl())
                 .level(course.getLevel())
                 .courseType(course.getCourseType())
-                .originalPrice(course.getOriginalPrice())
+                .originalPrice(zero(course.getOriginalPrice()))
                 .salePrice(course.getSalePrice())
+                .currentPrice(currentPrice(course))
                 .saleStartAt(course.getSaleStartAt())
                 .saleEndAt(course.getSaleEndAt())
+                .saleStatus(getSaleStatus(course))
+                .completionPercent(validation.completionPercent())
+                .readyForReview(validation.readyForReview())
+                .validationErrors(validation.errors())
+                .lastRejectedReason(getLastRejectedReason(course.getId()))
                 .status(course.getStatus())
                 .publishedAt(course.getPublishedAt())
                 .teacherId(course.getTeacher().getId())
                 .teacherName(course.getTeacher().getFullName())
+                .build();
+    }
+
+    private CourseReviewHistoryResponse toReviewHistory(CourseReviewHistory history) {
+        return CourseReviewHistoryResponse.builder()
+                .id(history.getId())
+                .action(history.getAction())
+                .reason(history.getReason())
+                .adminId(history.getAdmin().getId())
+                .adminName(history.getAdmin().getFullName())
+                .createdAt(history.getCreatedAt())
                 .build();
     }
 
@@ -593,6 +729,7 @@ public class CourseServiceImpl implements CourseService {
     private LessonResponse toLesson(Lesson lesson, LessonAccessState access) {
         boolean locked = access.locked();
         LearningProgress progress = access.progress();
+        List<String> completionErrors = validateLessonContent(lesson);
         return LessonResponse.builder()
                 .id(lesson.getId())
                 .chapterId(lesson.getChapter().getId())
@@ -615,6 +752,8 @@ public class CourseServiceImpl implements CourseService {
                 .checkpointQuestion(locked ? null : lesson.getCheckpointQuestion())
                 .checkpointExplanation(progress != null && Boolean.TRUE.equals(progress.getCheckpointPassed())
                         ? lesson.getCheckpointExplanation() : null)
+                .completed(completionErrors.isEmpty())
+                .completionErrors(completionErrors)
                 .build();
     }
 
@@ -681,11 +820,198 @@ public class CourseServiceImpl implements CourseService {
         return StringUtils.hasText(normalized) ? normalized : "course";
     }
 
+    private BigDecimal zero(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
     private BigDecimal normalizePrice(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private BigDecimal normalizeNullablePrice(BigDecimal value) {
+        return value == null ? null : value;
+    }
+
+    private void ensureCourseReadyForReview(Course course) {
+        CourseValidationResult validation = validateCourseForReview(course);
+        if (!validation.readyForReview()) {
+            throw new BadRequestException(buildReviewFailureMessage(validation.errors()));
+        }
+    }
+
+    private CourseValidationResult validateCourseForReview(Course course) {
+        List<String> errors = new java.util.ArrayList<>();
+
+        boolean basicReady = true;
+        if (!StringUtils.hasText(course.getTitle())) {
+            errors.add("Khóa học chưa có tên.");
+            basicReady = false;
+        }
+        if (!StringUtils.hasText(course.getDescription())) {
+            errors.add("Khóa học chưa có mô tả.");
+            basicReady = false;
+        }
+        if (!StringUtils.hasText(course.getThumbnailUrl())) {
+            errors.add("Khóa học chưa có ảnh đại diện.");
+            basicReady = false;
+        }
+
+        if (course.getCourseType() == Course.CourseType.FREE) {
+            if (zero(course.getOriginalPrice()).compareTo(BigDecimal.ZERO) != 0) {
+                errors.add("Khóa học miễn phí phải có giá bằng 0.");
+            }
+        } else {
+            if (zero(course.getOriginalPrice()).compareTo(BigDecimal.ZERO) <= 0) {
+                errors.add("Khóa học trả phí phải có giá lớn hơn 0.");
+            }
+        }
+
+        List<Chapter> chapters = chapterRepository.findByCourseIdAndDeletedAtIsNullOrderByPositionAsc(course.getId());
+        if (chapters.isEmpty()) {
+            errors.add("Khóa học phải có ít nhất một chương.");
+        }
+
+        boolean hasChapter = !chapters.isEmpty();
+        boolean hasStructuredLessons = hasChapter;
+        boolean lessonsComplete = true;
+
+        for (Chapter chapter : chapters) {
+            List<Lesson> lessons = lessonRepository.findByChapterIdAndDeletedAtIsNullOrderByPositionAsc(chapter.getId());
+            if (lessons.isEmpty()) {
+                errors.add("Chương '" + chapter.getTitle() + "' chưa có bài học.");
+                hasStructuredLessons = false;
+                lessonsComplete = false;
+                continue;
+            }
+
+            for (Lesson lesson : lessons) {
+                List<String> lessonErrors = validateLessonContent(lesson);
+                if (!lessonErrors.isEmpty()) {
+                    lessonsComplete = false;
+                    for (String lessonError : lessonErrors) {
+                        errors.add("Bài '" + lesson.getTitle() + "' " + lessonError);
+                    }
+                }
+            }
+        }
+
+        boolean readyForReview = errors.isEmpty();
+        int completionPercent;
+        if (readyForReview) {
+            completionPercent = 100;
+        } else if (basicReady && hasChapter) {
+            completionPercent = hasStructuredLessons && !lessonsComplete ? 60 : 60;
+        } else if (basicReady) {
+            completionPercent = 30;
+        } else {
+            completionPercent = 0;
+        }
+
+        return new CourseValidationResult(readyForReview, completionPercent, List.copyOf(errors));
+    }
+
+    private List<String> validateLessonContent(Lesson lesson) {
+        List<String> errors = new java.util.ArrayList<>();
+        if (!StringUtils.hasText(lesson.getTitle())) {
+            errors.add("chưa có tên bài học.");
+        }
+        if (lesson.getStatus() == null || lesson.getStatus() == Lesson.LessonStatus.DRAFT) {
+            errors.add("chưa được đánh dấu là hoàn thiện.");
+        }
+        if (lesson.getDurationMinutes() == null || lesson.getDurationMinutes() <= 0) {
+            errors.add("chưa có thời lượng hợp lệ.");
+        }
+
+        switch (lesson.getLessonType()) {
+            case TEXT -> {
+                if (!StringUtils.hasText(lesson.getContent())) {
+                    errors.add("chưa có nội dung.");
+                }
+            }
+            case VIDEO -> {
+                if (!StringUtils.hasText(lesson.getVideoUrl()) && !StringUtils.hasText(lesson.getContent())) {
+                    errors.add("chưa có video hoặc nội dung mô tả.");
+                }
+            }
+            case AUDIO -> {
+                if (!StringUtils.hasText(lesson.getAudioUrl()) && !StringUtils.hasText(lesson.getContent())) {
+                    errors.add("chưa có âm thanh hoặc nội dung mô tả.");
+                }
+            }
+            case MIXED -> {
+                if (!StringUtils.hasText(lesson.getContent())
+                        && !StringUtils.hasText(lesson.getVideoUrl())
+                        && !StringUtils.hasText(lesson.getAudioUrl())) {
+                    errors.add("chưa có nội dung học hợp lệ.");
+                }
+            }
+        }
+
+        return errors;
+    }
+
+    private String buildReviewFailureMessage(List<String> errors) {
+        StringBuilder builder = new StringBuilder("Không thể gửi khóa học để duyệt:");
+        for (String error : errors) {
+            builder.append(System.lineSeparator()).append("* ").append(error);
+        }
+        return builder.toString();
+    }
+
+    private String getLastRejectedReason(Long courseId) {
+        return courseReviewHistoryRepository
+                .findFirstByCourse_IdAndActionOrderByCreatedAtDesc(courseId, CourseReviewHistory.ReviewAction.REJECT)
+                .map(CourseReviewHistory::getReason)
+                .orElse(null);
+    }
+
+    private void validateAdminSale(Course course, AdminCourseSaleRequest request) {
+        if (course.getCourseType() != Course.CourseType.PAID) {
+            throw new BadRequestException("Chỉ được tạo giá sale cho khóa học trả phí.");
+        }
+
+        BigDecimal originalPrice = zero(course.getOriginalPrice());
+        if (originalPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Khóa học trả phí phải có giá gốc lớn hơn 0.");
+        }
+        if (!request.getSaleEndAt().isAfter(request.getSaleStartAt())) {
+            throw new BadRequestException("Thời gian kết thúc khuyến mãi phải sau thời gian bắt đầu.");
+        }
+
+        BigDecimal salePrice = normalizePrice(request.getSalePrice());
+        if (salePrice.compareTo(originalPrice) >= 0) {
+            throw new BadRequestException("Giá sale phải nhỏ hơn giá gốc của khóa học.");
+        }
+    }
+
+    private void clearSaleFields(Course course) {
+        course.setSalePrice(null);
+        course.setSaleStartAt(null);
+        course.setSaleEndAt(null);
+    }
+
+    private BigDecimal currentPrice(Course course) {
+        return "ACTIVE".equals(getSaleStatus(course)) ? normalizePrice(course.getSalePrice()) : zero(course.getOriginalPrice());
+    }
+
+    private String getSaleStatus(Course course) {
+        if (course.getCourseType() != Course.CourseType.PAID || course.getSalePrice() == null) {
+            return "NONE";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (course.getSaleStartAt() != null && course.getSaleStartAt().isAfter(now)) {
+            return "SCHEDULED";
+        }
+        if (course.getSaleEndAt() != null && course.getSaleEndAt().isBefore(now)) {
+            return "EXPIRED";
+        }
+        return "ACTIVE";
     }
 
     private String blankToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
+
+    private record CourseValidationResult(boolean readyForReview, int completionPercent, List<String> errors) {}
 }

@@ -1,7 +1,5 @@
 package com.example.englishlearning.dto.learning;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,4 +8,8 @@ import lombok.Setter;
 public class VocabularyProgressRequest {
 
     private Boolean favorite;
+
+    private Boolean answeredCorrect;
+
+    private Long responseTimeMillis;
 }

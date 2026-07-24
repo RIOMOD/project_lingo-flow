@@ -11,7 +11,7 @@ const fallbackImages = [
 
 function formatPrice(course) {
   if (course.courseType === "FREE") return "Miễn phí";
-  const price = course.salePrice || course.originalPrice || 0;
+  const price = course.currentPrice ?? course.originalPrice ?? 0;
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 }
 
@@ -21,7 +21,7 @@ function CourseThumb({ course, index }) {
 }
 
 function hasSale(course) {
-  return course.courseType === "PAID" && course.salePrice && course.originalPrice && course.salePrice < course.originalPrice;
+  return course.courseType === "PAID" && course.saleStatus === "ACTIVE" && course.salePrice < course.originalPrice;
 }
 
 export default function CourseListPage() {
@@ -60,7 +60,7 @@ export default function CourseListPage() {
           <span className="page-badge">Course catalog</span>
           <h2 className="page-title">Khóa học tiếng Anh</h2>
           <p className="page-description">
-            Chọn khóa FREE để đăng ký ngay, hoặc xem trước bài học của khóa PAID trước khi mua.
+            Chọn khóa miễn phí để đăng ký ngay, hoặc xem trước bài học của khóa trả phí trước khi mua.
           </p>
         </div>
 
@@ -68,15 +68,15 @@ export default function CourseListPage() {
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm khóa học" />
           <select value={level} onChange={(event) => setLevel(event.target.value)}>
             <option value="">Mọi trình độ</option>
-            <option value="BEGINNER">Beginner</option>
-            <option value="ELEMENTARY">Elementary</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="ADVANCED">Advanced</option>
+            <option value="BEGINNER">Sơ cấp</option>
+            <option value="ELEMENTARY">Căn bản</option>
+            <option value="INTERMEDIATE">Trung cấp</option>
+            <option value="ADVANCED">Nâng cao</option>
           </select>
           <select value={courseType} onChange={(event) => setCourseType(event.target.value)}>
             <option value="">Tất cả</option>
-            <option value="FREE">Free</option>
-            <option value="PAID">Paid</option>
+            <option value="FREE">Miễn phí</option>
+            <option value="PAID">Trả phí</option>
           </select>
         </div>
       </section>
@@ -125,4 +125,3 @@ export default function CourseListPage() {
     </div>
   );
 }
-

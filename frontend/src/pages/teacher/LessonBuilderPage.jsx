@@ -1,740 +1,707 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import CourseWorkflowStepper from "../../components/teacher/CourseWorkflowStepper";
+import { useToast } from "../../context/ToastContext";
 import {
   createChapter,
   createLesson,
   deleteChapter,
   deleteLesson,
+  getTeacherCourseById,
   getTeacherCourseChapters,
   getTeacherCourses,
-  submitCourseReview,
   updateChapter,
   updateLesson,
 } from "../../services/courseService";
+import {
+  canTeacherEditCourse,
+  courseStatusLabel,
+  courseTypeLabel,
+  formatMoney,
+  lessonStatusLabel,
+  lessonTypeLabel,
+  levelLabel,
+} from "../../utils/courseWorkflow";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+const emptyLesson = {
+  title: "",
+  lessonType: "TEXT",
+  content: "",
+  audioUrl: "",
+  videoUrl: "",
+  position: 1,
+  durationMinutes: 10,
+  preview: false,
+  status: "DRAFT",
+};
 
-const LESSON_TYPES = [
-  { value: "TEXT", label: "Văn bản" },
-  { value: "VIDEO", label: "Video" },
-  { value: "AUDIO", label: "Âm thanh" },
-  { value: "MIXED", label: "Kết hợp" },
-];
-
-const LESSON_STATUS = [
-  { value: "DRAFT", label: "Bản nháp" },
-  { value: "PUBLISHED", label: "Đã đăng" },
-];
-
-function emptyLesson() {
-  return {
-    title: "",
-    lessonType: "TEXT",
-    content: "",
-    videoUrl: "",
-    audioUrl: "",
-    position: 1,
-    durationMinutes: 10,
-    preview: false,
-    status: "DRAFT",
-  };
+function getCourseLoadErrorMessage(error) {
+  if (error?.status === 404) {
+    return "Không tìm thấy khóa học.";
+  }
+  if (error?.status === 403) {
+    return "Bạn không có quyền quản lý khóa học này.";
+  }
+  if (error?.status === 401) {
+    return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+  }
+  return "Không tải được nội dung khóa học. Vui lòng thử lại sau.";
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
-
-function Toast({ toasts }) {
+function StepHint({ course }) {
   return (
-    <div className="lb-toast-container">
-      {toasts.map((t) => (
-        <div key={t.id} className={`lb-toast lb-toast--${t.type}`}>
-          {t.type === "success" ? "✓ " : "✕ "}
-          {t.message}
-        </div>
-      ))}
+    <div className="page-panel-card" style={{ marginBottom: "1rem" }}>
+      <p className="page-description" style={{ margin: 0 }}>
+        Tiến độ hoàn thiện hiện tại: <strong>{course.completionPercent ?? 0}%</strong>. Trạng thái khóa học:{" "}
+        <strong>{courseStatusLabel(course.status)}</strong>.
+      </p>
+      {course.lastRejectedReason && (
+        <p className="auth-error" style={{ marginTop: "0.75rem" }}>
+          Lý do từ chối gần nhất: {course.lastRejectedReason}
+        </p>
+      )}
     </div>
   );
 }
 
-// ─── Confirm Dialog ───────────────────────────────────────────────────────────
-
-function ConfirmDialog({ message, onConfirm, onCancel }) {
+function CourseSelector({ courses }) {
   return (
-    <div className="lb-overlay">
-      <div className="lb-dialog">
-        <p className="lb-dialog-msg">{message}</p>
-        <div className="lb-dialog-actions">
-          <button className="lb-btn lb-btn-ghost" onClick={onCancel}>
-            Hủy
-          </button>
-          <button className="lb-btn lb-btn-danger" onClick={onConfirm}>
-            Xác nhận xóa
-          </button>
-        </div>
+    <div className="page-panel-card">
+      <h3 style={{ marginTop: 0 }}>Chọn khóa học để quản lý nội dung</h3>
+      <div style={{ display: "grid", gap: "0.75rem" }}>
+        {courses.map((course) => (
+          <div
+            key={course.id}
+            style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}
+          >
+            <div>
+              <strong>{course.title}</strong>
+              <p style={{ margin: "0.25rem 0 0", color: "#475569" }}>
+                {levelLabel(course.level)} · {courseTypeLabel(course.courseType)} · {courseStatusLabel(course.status)}
+              </p>
+            </div>
+            <Link className="page-action page-action-primary" to={`/teacher/courses/${course.id}/content`}>
+              Quản lý nội dung
+            </Link>
+          </div>
+        ))}
+        {courses.length === 0 && <p className="page-description">Bạn chưa có khóa học nào để xây dựng nội dung.</p>}
       </div>
     </div>
   );
 }
 
-// ─── Skeleton ────────────────────────────────────────────────────────────────
+function ChapterEditor({ chapter, onSave, onCancel, saving }) {
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    title: chapter?.title || "",
+    description: chapter?.description || "",
+    position: chapter?.position || 1,
+  });
 
-function Skeleton({ lines = 3 }) {
-  return (
-    <div className="lb-skeleton-wrap">
-      {Array.from({ length: lines }).map((_, i) => (
-        <div key={i} className="lb-skeleton" style={{ width: `${70 + (i % 3) * 10}%` }} />
-      ))}
-    </div>
-  );
-}
-
-// ─── Lesson Form Modal ────────────────────────────────────────────────────────
-
-function LessonFormModal({ chapterTitle, lesson, onSave, onClose, saving }) {
-  const [form, setForm] = useState(lesson || emptyLesson());
-  const isEdit = !!lesson?.id;
-
-  function set(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!form.title.trim()) return;
-    onSave(form);
-  }
-
-  return (
-    <div className="lb-overlay" onClick={onClose}>
-      <div className="lb-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="lb-modal-header">
-          <h3>{isEdit ? "Chỉnh sửa bài học" : "Thêm bài học"}</h3>
-          <p className="lb-modal-sub">Chương: {chapterTitle}</p>
-          <button className="lb-modal-close" onClick={onClose} aria-label="Đóng">✕</button>
-        </div>
-        <form className="lb-modal-body" onSubmit={handleSubmit}>
-          <div className="lb-field">
-            <label className="lb-label">Tên bài học *</label>
-            <input
-              className="lb-input"
-              value={form.title}
-              onChange={(e) => set("title", e.target.value)}
-              placeholder="Ví dụ: Giới thiệu chủ đề"
-              required
-            />
-          </div>
-
-          <div className="lb-row">
-            <div className="lb-field">
-              <label className="lb-label">Loại bài học</label>
-              <select className="lb-select" value={form.lessonType} onChange={(e) => set("lessonType", e.target.value)}>
-                {LESSON_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="lb-field">
-              <label className="lb-label">Trạng thái</label>
-              <select className="lb-select" value={form.status} onChange={(e) => set("status", e.target.value)}>
-                {LESSON_STATUS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {form.lessonType === "VIDEO" && (
-            <div className="lb-field">
-              <label className="lb-label">Đường dẫn video (URL)</label>
-              <input
-                className="lb-input"
-                type="url"
-                value={form.videoUrl}
-                onChange={(e) => set("videoUrl", e.target.value)}
-                placeholder="https://youtube.com/..."
-              />
-            </div>
-          )}
-
-          {form.lessonType === "AUDIO" && (
-            <div className="lb-field">
-              <label className="lb-label">Đường dẫn âm thanh (URL)</label>
-              <input
-                className="lb-input"
-                type="url"
-                value={form.audioUrl}
-                onChange={(e) => set("audioUrl", e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-          )}
-
-          <div className="lb-field">
-            <label className="lb-label">Nội dung</label>
-            <textarea
-              className="lb-textarea"
-              rows={5}
-              value={form.content}
-              onChange={(e) => set("content", e.target.value)}
-              placeholder="Nhập nội dung bài học..."
-            />
-          </div>
-
-          <div className="lb-row">
-            <div className="lb-field">
-              <label className="lb-label">Thứ tự</label>
-              <input
-                className="lb-input"
-                type="number"
-                min={1}
-                value={form.position}
-                onChange={(e) => set("position", parseInt(e.target.value) || 1)}
-              />
-            </div>
-            <div className="lb-field">
-              <label className="lb-label">Thời lượng (phút)</label>
-              <input
-                className="lb-input"
-                type="number"
-                min={1}
-                value={form.durationMinutes}
-                onChange={(e) => set("durationMinutes", parseInt(e.target.value) || 1)}
-              />
-            </div>
-          </div>
-
-          <label className="lb-checkbox-row">
-            <input
-              type="checkbox"
-              checked={form.preview}
-              onChange={(e) => set("preview", e.target.checked)}
-            />
-            <span>Cho phép xem trước miễn phí</span>
-          </label>
-
-          <div className="lb-modal-footer">
-            <button type="button" className="lb-btn lb-btn-ghost" onClick={onClose}>
-              Hủy
-            </button>
-            <button type="submit" className="lb-btn lb-btn-primary" disabled={saving}>
-              {saving ? "Đang lưu..." : isEdit ? "Cập nhật bài học" : "Thêm bài học"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ─── Chapter Form ─────────────────────────────────────────────────────────────
-
-function ChapterForm({ courseId, totalChapters, onCreated }) {
-  const [title, setTitle] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!title.trim()) return;
-    setSaving(true);
-    try {
-      const chapter = await createChapter(courseId, {
-        title: title.trim(),
-        description: "",
-        position: totalChapters + 1,
-      });
-      setTitle("");
-      onCreated(chapter);
-    } finally {
-      setSaving(false);
+  function handleSubmit(event) {
+    event.preventDefault();
+    if (!form.title.trim()) {
+      setError("Vui lòng nhập tên chương.");
+      return;
     }
+    if (Number(form.position || 0) <= 0) {
+      setError("Thứ tự hiển thị phải lớn hơn 0.");
+      return;
+    }
+    onSave({
+      title: form.title.trim(),
+      description: form.description,
+      position: Number(form.position || 1),
+    });
   }
 
   return (
-    <form className="lb-add-chapter-form" onSubmit={handleSubmit}>
-      <input
-        className="lb-input"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Tên chương mới..."
-        required
-      />
-      <button className="lb-btn lb-btn-secondary" disabled={saving}>
-        {saving ? "Đang tạo..." : "+ Thêm chương"}
-      </button>
+    <form className="page-panel-card teacher-content-form teacher-content-form-chapter" onSubmit={handleSubmit}>
+      <h3>{chapter?.id ? "Cập nhật chương" : "Thêm chương mới"}</h3>
+      {error && <p className="auth-error teacher-content-form-error">{error}</p>}
+      <label className="teacher-content-field">
+        Tên chương
+        <input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} required />
+      </label>
+      <label className="teacher-content-field">
+        Thứ tự hiển thị
+        <input
+          type="number"
+          min="1"
+          value={form.position}
+          onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))}
+        />
+      </label>
+      <label className="teacher-content-field teacher-content-field-full">
+        Mô tả chương
+        <textarea rows="3" value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} />
+      </label>
+      <div className="teacher-content-form-actions">
+        <button className="page-action page-action-primary" disabled={saving}>
+          {saving ? "Đang lưu..." : chapter?.id ? "Lưu chương" : "Thêm chương"}
+        </button>
+        <button type="button" className="page-action page-action-secondary" onClick={onCancel}>
+          Hủy
+        </button>
+      </div>
     </form>
   );
 }
 
-// ─── Lesson Row ───────────────────────────────────────────────────────────────
+function LessonEditor({ chapterTitle, lesson, onSave, onCancel, saving }) {
+  const [error, setError] = useState("");
+  const [form, setForm] = useState(lesson || emptyLesson);
+  const lessonType = form.lessonType || "TEXT";
+  const showVideoUrl = lessonType === "VIDEO" || lessonType === "MIXED";
+  const showAudioUrl = lessonType === "AUDIO" || lessonType === "MIXED";
 
-function LessonRow({ lesson, onEdit, onDelete }) {
-  const typeLabel = LESSON_TYPES.find((t) => t.value === lesson.lessonType)?.label ?? lesson.lessonType;
+  function updateField(field, value) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function updateLessonType(value) {
+    setForm((current) => ({
+      ...current,
+      lessonType: value,
+      videoUrl: value === "VIDEO" || value === "MIXED" ? current.videoUrl : "",
+      audioUrl: value === "AUDIO" || value === "MIXED" ? current.audioUrl : "",
+    }));
+    setError("");
+  }
+
+  function validateLessonForm() {
+    const content = form.content?.trim() || "";
+    const videoUrl = form.videoUrl?.trim() || "";
+    const audioUrl = form.audioUrl?.trim() || "";
+
+    if (!form.title?.trim()) {
+      return "Vui lòng nhập tên bài học.";
+    }
+    if (Number(form.durationMinutes || 0) <= 0) {
+      return "Thời lượng phải lớn hơn 0.";
+    }
+    if (Number(form.position || 0) <= 0) {
+      return "Thứ tự hiển thị phải lớn hơn 0.";
+    }
+    if (lessonType === "TEXT" && !content) {
+      return "Bài học văn bản bắt buộc có nội dung.";
+    }
+    if (lessonType === "VIDEO" && !videoUrl && !content) {
+      return "Bài học video cần URL video hoặc nội dung mô tả.";
+    }
+    if (lessonType === "AUDIO" && !audioUrl && !content) {
+      return "Bài học âm thanh cần URL âm thanh hoặc transcript/nội dung.";
+    }
+    if (lessonType === "MIXED" && !content && !videoUrl && !audioUrl) {
+      return "Bài học kết hợp cần ít nhất một nội dung, URL video hoặc URL âm thanh.";
+    }
+    return "";
+  }
+
+  function buildLessonPayload() {
+    const payload = {
+      title: form.title.trim(),
+      lessonType,
+      content: form.content?.trim() || "",
+      position: Number(form.position || 1),
+      durationMinutes: Number(form.durationMinutes || 0),
+      preview: Boolean(form.preview),
+      status: form.status,
+    };
+
+    if (showVideoUrl) {
+      payload.videoUrl = form.videoUrl?.trim() || "";
+    }
+    if (showAudioUrl) {
+      payload.audioUrl = form.audioUrl?.trim() || "";
+    }
+
+    return payload;
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    const validationError = validateLessonForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    onSave(buildLessonPayload());
+  }
+
   return (
-    <div className="lb-lesson-row" draggable>
-      <span className="lb-drag-handle" aria-label="Kéo thả">⠿</span>
-      <div className="lb-lesson-info">
-        <span className="lb-lesson-title">{lesson.title}</span>
-        <div className="lb-lesson-meta">
-          <span className="lb-badge lb-badge-type">{typeLabel}</span>
-          <span className="lb-badge lb-badge-status">{lesson.status === "PUBLISHED" ? "Đã đăng" : "Nháp"}</span>
-          {lesson.durationMinutes && (
-            <span className="lb-badge lb-badge-duration">{lesson.durationMinutes} phút</span>
-          )}
-          {lesson.preview && <span className="lb-badge lb-badge-preview">Xem trước</span>}
-        </div>
+    <form className="page-panel-card teacher-content-form teacher-content-form-lesson" onSubmit={handleSubmit}>
+      <h3>{lesson?.id ? "Cập nhật bài học" : "Thêm bài học mới"}</h3>
+      <p className="page-description teacher-content-form-subtitle">Chương: {chapterTitle}</p>
+      {error && <p className="auth-error teacher-content-form-error">{error}</p>}
+      <label className="teacher-content-field teacher-content-field-full">
+        Tên bài học
+        <input value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
+      </label>
+      <label className="teacher-content-field">
+        Loại bài học
+        <select value={lessonType} onChange={(event) => updateLessonType(event.target.value)}>
+          <option value="TEXT">Văn bản</option>
+          <option value="VIDEO">Video</option>
+          <option value="AUDIO">Âm thanh</option>
+          <option value="MIXED">Kết hợp</option>
+        </select>
+      </label>
+      <label className="teacher-content-field">
+        Trạng thái hoàn thiện
+        <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
+          <option value="DRAFT">Bản nháp</option>
+          <option value="PUBLISHED">Hoàn thiện</option>
+          <option value="HIDDEN">Đang ẩn</option>
+        </select>
+      </label>
+      <label className="teacher-content-field teacher-content-field-full">
+        {lessonType === "AUDIO" ? "Transcript hoặc nội dung" : lessonType === "VIDEO" ? "Nội dung mô tả" : "Nội dung bài học"}
+        <textarea rows="5" value={form.content} onChange={(event) => updateField("content", event.target.value)} />
+      </label>
+      {showVideoUrl && (
+        <label className="teacher-content-field">
+          URL video
+          <input value={form.videoUrl} onChange={(event) => updateField("videoUrl", event.target.value)} placeholder="https://..." />
+        </label>
+      )}
+      {showAudioUrl && (
+        <label className="teacher-content-field">
+          URL âm thanh hoặc tài liệu
+          <input value={form.audioUrl} onChange={(event) => updateField("audioUrl", event.target.value)} placeholder="https://..." />
+        </label>
+      )}
+      <label className="teacher-content-field">
+        Thời lượng (phút)
+        <input
+          type="number"
+          min="1"
+          value={form.durationMinutes}
+          onChange={(event) => updateField("durationMinutes", event.target.value)}
+        />
+      </label>
+      <label className="teacher-content-field">
+        Thứ tự hiển thị
+        <input type="number" min="1" value={form.position} onChange={(event) => updateField("position", event.target.value)} />
+      </label>
+      <label className="teacher-content-checkbox teacher-content-field-full">
+        <input type="checkbox" checked={Boolean(form.preview)} onChange={(event) => updateField("preview", event.target.checked)} />
+        Cho phép xem thử
+      </label>
+      <div className="teacher-content-form-actions">
+        <button className="page-action page-action-primary" disabled={saving}>
+          {saving ? "Đang lưu..." : lesson?.id ? "Lưu bài học" : "Thêm bài học"}
+        </button>
+        <button type="button" className="page-action page-action-secondary" onClick={onCancel}>
+          Hủy
+        </button>
       </div>
-      <div className="lb-row-actions">
-        <button className="lb-icon-btn" title="Chỉnh sửa bài học" onClick={() => onEdit(lesson)}>✎</button>
-        <button className="lb-icon-btn lb-icon-btn-danger" title="Xóa bài học" onClick={() => onDelete(lesson)}>✕</button>
-      </div>
-    </div>
+    </form>
   );
 }
 
-// ─── Chapter Card ─────────────────────────────────────────────────────────────
+export default function LessonBuilderPage() {
+  const { courseId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const toast = useToast();
+  const [courses, setCourses] = useState([]);
+  const [course, setCourse] = useState(null);
+  const [chapters, setChapters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editingChapter, setEditingChapter] = useState(null);
+  const [editingLesson, setEditingLesson] = useState(null);
 
-function ChapterCard({ chapter, index, onEdit, onDelete, onAddLesson, onLessonEdit, onLessonDelete }) {
-  const [expanded, setExpanded] = useState(true);
+  const editable = canTeacherEditCourse(course);
+
+  useEffect(() => {
+    if (courseId) {
+      return;
+    }
+
+    getTeacherCourses({ size: 100 })
+      .then((data) => setCourses(data?.items ?? []))
+      .catch((err) => setError(err.message || "Không tải được danh sách khóa học."));
+  }, [courseId]);
+
+  useEffect(() => {
+    if (!courseId) {
+      setLoading(false);
+      return;
+    }
+
+    async function loadContent() {
+      setLoading(true);
+      setError("");
+      try {
+        const [courseDetail, chapterData] = await Promise.all([
+          getTeacherCourseById(courseId),
+          getTeacherCourseChapters(courseId),
+        ]);
+        setCourse(courseDetail);
+        setChapters(chapterData ?? []);
+      } catch (err) {
+        setError(getCourseLoadErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadContent();
+  }, [courseId]);
+
+  useEffect(() => {
+    if (location.state?.createdCourseId) {
+      toast.success("Đã tạo khóa học. Hãy thêm chương và bài học trước khi gửi duyệt.");
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state?.createdCourseId, navigate, toast]);
+
+  const totalLessons = useMemo(
+    () => chapters.reduce((total, chapter) => total + (chapter.lessons?.length ?? 0), 0),
+    [chapters]
+  );
+
+  async function reloadCourse() {
+    if (!courseId) return;
+    const [courseDetail, chapterData] = await Promise.all([
+      getTeacherCourseById(courseId),
+      getTeacherCourseChapters(courseId),
+    ]);
+    setCourse(courseDetail);
+    setChapters(chapterData ?? []);
+  }
+
+  async function handleSaveChapter(payload) {
+    if (!course) return;
+    setSaving(true);
+    try {
+      if (editingChapter?.id) {
+        await updateChapter(editingChapter.id, payload);
+        toast.success("Đã cập nhật chương.");
+      } else {
+        await createChapter(course.id, payload);
+        toast.success("Đã thêm chương mới.");
+      }
+      setEditingChapter(null);
+      await reloadCourse();
+    } catch (err) {
+      setError(err.message || "Không lưu được chương.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteChapter(chapter) {
+    if (!window.confirm(`Bạn có chắc muốn xóa chương "${chapter.title}" không?`)) return;
+    setSaving(true);
+    try {
+      await deleteChapter(chapter.id);
+      toast.success("Đã xóa chương.");
+      await reloadCourse();
+    } catch (err) {
+      setError(err.message || "Không xóa được chương.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveLesson(payload) {
+    if (!editingLesson?.chapter) return;
+    setSaving(true);
+    try {
+      if (editingLesson.lesson?.id) {
+        await updateLesson(editingLesson.lesson.id, payload);
+        toast.success("Đã cập nhật bài học.");
+      } else {
+        await createLesson(editingLesson.chapter.id, payload);
+        toast.success("Đã thêm bài học mới.");
+      }
+      setEditingLesson(null);
+      await reloadCourse();
+    } catch (err) {
+      setError(err.message || "Không lưu được bài học.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteLesson(lesson) {
+    if (!window.confirm(`Bạn có chắc muốn xóa bài học "${lesson.title}" không?`)) return;
+    setSaving(true);
+    try {
+      await deleteLesson(lesson.id);
+      toast.success("Đã xóa bài học.");
+      await reloadCourse();
+    } catch (err) {
+      setError(err.message || "Không xóa được bài học.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function moveChapter(chapterIndex, direction) {
+    const targetIndex = chapterIndex + direction;
+    if (targetIndex < 0 || targetIndex >= chapters.length) return;
+    const currentChapter = chapters[chapterIndex];
+    const targetChapter = chapters[targetIndex];
+    setSaving(true);
+    try {
+      await updateChapter(currentChapter.id, {
+        title: currentChapter.title,
+        description: currentChapter.description || "",
+        position: targetChapter.position,
+      });
+      await updateChapter(targetChapter.id, {
+        title: targetChapter.title,
+        description: targetChapter.description || "",
+        position: currentChapter.position,
+      });
+      await reloadCourse();
+    } catch (err) {
+      setError(err.message || "Không sắp xếp lại được chương.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function moveLesson(chapter, lessonIndex, direction) {
+    const lessons = chapter.lessons ?? [];
+    const targetIndex = lessonIndex + direction;
+    if (targetIndex < 0 || targetIndex >= lessons.length) return;
+    const currentLesson = lessons[lessonIndex];
+    const targetLesson = lessons[targetIndex];
+    setSaving(true);
+    try {
+      await updateLesson(currentLesson.id, {
+        title: currentLesson.title,
+        lessonType: currentLesson.lessonType,
+        content: currentLesson.content || "",
+        audioUrl: currentLesson.audioUrl || "",
+        videoUrl: currentLesson.videoUrl || "",
+        position: targetLesson.position,
+        durationMinutes: currentLesson.durationMinutes || 1,
+        preview: Boolean(currentLesson.preview),
+        status: currentLesson.status,
+      });
+      await updateLesson(targetLesson.id, {
+        title: targetLesson.title,
+        lessonType: targetLesson.lessonType,
+        content: targetLesson.content || "",
+        audioUrl: targetLesson.audioUrl || "",
+        videoUrl: targetLesson.videoUrl || "",
+        position: currentLesson.position,
+        durationMinutes: targetLesson.durationMinutes || 1,
+        preview: Boolean(targetLesson.preview),
+        status: targetLesson.status,
+      });
+      await reloadCourse();
+    } catch (err) {
+      setError(err.message || "Không sắp xếp lại được bài học.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return <p className="auth-state">Đang tải dữ liệu khóa học...</p>;
+  }
+
+  if (!courseId) {
+    return (
+      <div className="course-page">
+        <section className="page-hero">
+          <span className="page-badge">Teacher</span>
+          <h2 className="page-title">Bước 2: Xây dựng nội dung khóa học</h2>
+          <p className="page-description">Chọn một khóa học để thêm chương, bài học và nội dung chi tiết.</p>
+        </section>
+        <CourseSelector courses={courses} />
+      </div>
+    );
+  }
+
+  if (error && !course) return <p className="auth-error">{error}</p>;
+  if (!course) return <p className="auth-state">Không tìm thấy khóa học.</p>;
+
+  const orderedChapters = [...chapters].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
   return (
-    <div className="lb-chapter-card" draggable>
-      <div className="lb-chapter-header">
-        <span className="lb-drag-handle" aria-label="Kéo thả">⠿</span>
-        <span className="lb-chapter-num">Chương {index}</span>
-        <button
-          className="lb-chapter-title-btn"
-          onClick={() => setExpanded((p) => !p)}
-          type="button"
-        >
-          {chapter.title}
-          <span className="lb-chevron">{expanded ? "▲" : "▼"}</span>
-        </button>
-        <div className="lb-row-actions">
-          <button className="lb-icon-btn" title="Chỉnh sửa chương" onClick={() => onEdit(chapter)}>✎</button>
-          <button className="lb-icon-btn lb-icon-btn-danger" title="Xóa chương" onClick={() => onDelete(chapter)}>✕</button>
-        </div>
-      </div>
+    <div className="course-page">
+      <section className="page-hero">
+        <span className="page-badge">Teacher</span>
+        <h2 className="page-title">Bước 2: Xây dựng nội dung khóa học</h2>
+        <p className="page-description">
+          Quản lý chương, bài học, trạng thái hoàn thiện và xem trước khóa học trước khi gửi duyệt.
+        </p>
+      </section>
 
-      {expanded && (
-        <div className="lb-chapter-body">
-          {chapter.lessons && chapter.lessons.length > 0 ? (
-            chapter.lessons
-              .slice()
-              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-              .map((lesson) => (
-                <LessonRow
-                  key={lesson.id}
-                  lesson={lesson}
-                  onEdit={onLessonEdit}
-                  onDelete={onLessonDelete}
-                />
-              ))
-          ) : (
-            <p className="lb-empty-lessons">Chưa có bài học nào. Thêm bài học để bắt đầu.</p>
-          )}
-          <button
-            className="lb-add-lesson-btn"
-            type="button"
-            onClick={() => onAddLesson(chapter)}
-          >
-            + Thêm bài học vào chương này
+      <CourseWorkflowStepper activeStep={2} courseId={course.id} submitted={course.status === "SUBMITTED"} />
+      <StepHint course={course} />
+
+      {error && <p className="auth-error">{error}</p>}
+
+      <section className="page-panel-card" style={{ marginBottom: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+          <div>
+            <h3 style={{ marginTop: 0 }}>{course.title}</h3>
+            <p className="page-description" style={{ margin: 0 }}>
+              {levelLabel(course.level)} · {courseTypeLabel(course.courseType)} · {courseStatusLabel(course.status)} · Giá:{" "}
+              <strong>{formatMoney(course.originalPrice)}</strong>
+            </p>
+            <p className="page-description" style={{ marginTop: "0.5rem" }}>
+              {orderedChapters.length} chương · {totalLessons} bài học
+            </p>
+          </div>
+          <div className="page-actions">
+            <Link className="page-action page-action-secondary" to={`/teacher/courses/${course.id}/edit`}>
+              Chỉnh sửa thông tin
+            </Link>
+            <Link className="page-action page-action-primary" to={`/teacher/courses/${course.id}/preview`}>
+              Xem trước khóa học
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {editingChapter && (
+        <ChapterEditor
+          chapter={editingChapter.id ? editingChapter : null}
+          onSave={handleSaveChapter}
+          onCancel={() => setEditingChapter(null)}
+          saving={saving}
+        />
+      )}
+
+      {editingLesson && (
+        <LessonEditor
+          key={editingLesson.lesson?.id ?? `new-${editingLesson.chapter.id}`}
+          chapterTitle={editingLesson.chapter.title}
+          lesson={editingLesson.lesson}
+          onSave={handleSaveLesson}
+          onCancel={() => setEditingLesson(null)}
+          saving={saving}
+        />
+      )}
+
+      {!editingChapter && editable && orderedChapters.length > 0 && (
+        <div className="page-actions" style={{ marginBottom: "1rem" }}>
+          <button className="page-action page-action-primary" onClick={() => setEditingChapter({ title: "", description: "", position: orderedChapters.length + 1 })}>
+            Thêm chương mới
           </button>
         </div>
       )}
-    </div>
-  );
-}
 
-// ─── Chapter Edit Modal ───────────────────────────────────────────────────────
-
-function ChapterEditModal({ chapter, onSave, onClose, saving }) {
-  const [title, setTitle] = useState(chapter.title);
-  const [description, setDescription] = useState(chapter.description || "");
-  const [position, setPosition] = useState(chapter.position || 1);
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    onSave({ title: title.trim(), description, position });
-  }
-
-  return (
-    <div className="lb-overlay" onClick={onClose}>
-      <div className="lb-modal lb-modal-sm" onClick={(e) => e.stopPropagation()}>
-        <div className="lb-modal-header">
-          <h3>Chỉnh sửa chương</h3>
-          <button className="lb-modal-close" onClick={onClose}>✕</button>
-        </div>
-        <form className="lb-modal-body" onSubmit={handleSubmit}>
-          <div className="lb-field">
-            <label className="lb-label">Tên chương *</label>
-            <input className="lb-input" value={title} onChange={(e) => setTitle(e.target.value)} required />
-          </div>
-          <div className="lb-field">
-            <label className="lb-label">Mô tả</label>
-            <textarea className="lb-textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-          <div className="lb-field">
-            <label className="lb-label">Thứ tự</label>
-            <input className="lb-input" type="number" min={1} value={position} onChange={(e) => setPosition(parseInt(e.target.value) || 1)} />
-          </div>
-          <div className="lb-modal-footer">
-            <button type="button" className="lb-btn lb-btn-ghost" onClick={onClose}>Hủy</button>
-            <button type="submit" className="lb-btn lb-btn-primary" disabled={saving}>
-              {saving ? "Đang lưu..." : "Cập nhật"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-export default function LessonBuilderPage() {
-  const [courses, setCourses] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [chapters, setChapters] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [coursesLoading, setCoursesLoading] = useState(true);
-  const [toasts, setToasts] = useState([]);
-  const [confirm, setConfirm] = useState(null); // { message, onConfirm }
-  const [lessonModal, setLessonModal] = useState(null); // { chapter, lesson? }
-  const [chapterEditModal, setChapterEditModal] = useState(null); // chapter
-  const [saving, setSaving] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const toastIdRef = useRef(0);
-
-  // ── Toasts ────────────────────────────────────────────────────────────────
-  const toast = useCallback((message, type = "success") => {
-    const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
-  }, []);
-
-  // ── Load courses ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    setCoursesLoading(true);
-    getTeacherCourses({ size: 50 })
-      .then((data) => setCourses(data?.items ?? []))
-      .catch(() => toast("Không tải được danh sách khóa học", "error"))
-      .finally(() => setCoursesLoading(false));
-  }, [toast]);
-
-  // ── Load chapters when course selected ───────────────────────────────────
-  async function loadChapters(courseId) {
-    setLoading(true);
-    try {
-      const data = await getTeacherCourseChapters(courseId);
-      setChapters(Array.isArray(data) ? data : []);
-    } catch {
-      toast("Không tải được chương học", "error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleCourseChange(e) {
-    const id = e.target.value;
-    if (!id) {
-      setSelectedCourse(null);
-      setChapters([]);
-      return;
-    }
-    const course = courses.find((c) => String(c.id) === id);
-    setSelectedCourse(course);
-    loadChapters(id);
-  }
-
-  // ── Create chapter ────────────────────────────────────────────────────────
-  function handleChapterCreated(chapter) {
-    // Backend returns chapter without lessons array; add empty lessons
-    setChapters((prev) => [...prev, { ...chapter, lessons: [] }]);
-    toast(`Đã tạo chương "${chapter.title}"`);
-  }
-
-  // ── Edit chapter ──────────────────────────────────────────────────────────
-  async function handleChapterSave(data) {
-    setSaving(true);
-    try {
-      const updated = await updateChapter(chapterEditModal.id, data);
-      setChapters((prev) =>
-        prev.map((c) => (c.id === updated.id ? { ...updated, lessons: c.lessons ?? [] } : c))
-      );
-      toast(`Đã cập nhật chương "${updated.title}"`);
-      setChapterEditModal(null);
-    } catch (err) {
-      toast(err.message || "Lỗi cập nhật chương", "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // ── Delete chapter ────────────────────────────────────────────────────────
-  function confirmDeleteChapter(chapter) {
-    setConfirm({
-      message: `Xóa chương "${chapter.title}"? Tất cả bài học bên trong cũng sẽ bị xóa.`,
-      onConfirm: async () => {
-        setConfirm(null);
-        try {
-          await deleteChapter(chapter.id);
-          setChapters((prev) => prev.filter((c) => c.id !== chapter.id));
-          toast(`Đã xóa chương "${chapter.title}"`);
-        } catch (err) {
-          toast(err.message || "Lỗi xóa chương", "error");
-        }
-      },
-    });
-  }
-
-  // ── Create/Edit lesson ────────────────────────────────────────────────────
-  async function handleLessonSave(formData) {
-    setSaving(true);
-    const isEdit = !!lessonModal.lesson?.id;
-    try {
-      if (isEdit) {
-        const updated = await updateLesson(lessonModal.lesson.id, formData);
-        setChapters((prev) =>
-          prev.map((c) =>
-            c.id === lessonModal.chapter.id
-              ? { ...c, lessons: c.lessons.map((l) => (l.id === updated.id ? updated : l)) }
-              : c
-          )
-        );
-        toast(`Đã cập nhật bài học "${updated.title}"`);
-      } else {
-        const created = await createLesson(lessonModal.chapter.id, formData);
-        setChapters((prev) =>
-          prev.map((c) =>
-            c.id === lessonModal.chapter.id
-              ? { ...c, lessons: [...(c.lessons ?? []), created] }
-              : c
-          )
-        );
-        toast(`Đã thêm bài học "${created.title}"`);
-      }
-      setLessonModal(null);
-    } catch (err) {
-      toast(err.message || "Lỗi lưu bài học", "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // ── Delete lesson ─────────────────────────────────────────────────────────
-  function confirmDeleteLesson(lesson) {
-    // Find which chapter owns this lesson
-    const chapter = chapters.find((c) => c.lessons?.some((l) => l.id === lesson.id));
-    setConfirm({
-      message: `Xóa bài học "${lesson.title}"?`,
-      onConfirm: async () => {
-        setConfirm(null);
-        try {
-          await deleteLesson(lesson.id);
-          if (chapter) {
-            setChapters((prev) =>
-              prev.map((c) =>
-                c.id === chapter.id
-                  ? { ...c, lessons: c.lessons.filter((l) => l.id !== lesson.id) }
-                  : c
-              )
-            );
-          }
-          toast(`Đã xóa bài học "${lesson.title}"`);
-        } catch (err) {
-          toast(err.message || "Lỗi xóa bài học", "error");
-        }
-      },
-    });
-  }
-
-  // ── Submit for review ─────────────────────────────────────────────────────
-  const hasEnoughContent =
-    chapters.length > 0 && chapters.some((c) => c.lessons && c.lessons.length > 0);
-
-  async function handleSubmitReview() {
-    if (!selectedCourse) return;
-    if (!hasEnoughContent) {
-      toast("Khóa học cần ít nhất 1 chương và 1 bài học", "error");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await submitCourseReview(selectedCourse.id);
-      const updated = { ...selectedCourse, status: "SUBMITTED" };
-      setSelectedCourse(updated);
-      setCourses((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-      toast("Đã gửi khóa học để duyệt thành công!");
-    } catch (err) {
-      toast(err.message || "Lỗi gửi duyệt", "error");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-
-  const canSubmit =
-    selectedCourse &&
-    (selectedCourse.status === "DRAFT" || selectedCourse.status === "REJECTED") &&
-    hasEnoughContent;
-
-  return (
-    <div className="lb-page">
-      <Toast toasts={toasts} />
-      {confirm && (
-        <ConfirmDialog
-          message={confirm.message}
-          onConfirm={confirm.onConfirm}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
-      {lessonModal && (
-        <LessonFormModal
-          chapterTitle={lessonModal.chapter.title}
-          lesson={lessonModal.lesson}
-          onSave={handleLessonSave}
-          onClose={() => setLessonModal(null)}
-          saving={saving}
-        />
-      )}
-      {chapterEditModal && (
-        <ChapterEditModal
-          chapter={chapterEditModal}
-          onSave={handleChapterSave}
-          onClose={() => setChapterEditModal(null)}
-          saving={saving}
-        />
-      )}
-
-      {/* ── Header ── */}
-      <div className="lb-header">
-        <div>
-          <h1 className="lb-title">Xây dựng nội dung khóa học</h1>
-          <p className="lb-subtitle">Quản lý chương và bài học theo thứ tự giảng dạy</p>
-        </div>
-        <div className="lb-header-actions">
-          {selectedCourse && (
-            <>
-              <a
-                href={`/courses/${selectedCourse.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                className="lb-btn lb-btn-ghost"
-              >
-                👁 Xem trước
-              </a>
-              <button
-                className="lb-btn lb-btn-primary"
-                onClick={handleSubmitReview}
-                disabled={!canSubmit || submitting}
-                title={
-                  !hasEnoughContent
-                    ? "Cần ít nhất 1 chương và 1 bài học"
-                    : selectedCourse.status === "SUBMITTED"
-                    ? "Đã gửi duyệt"
-                    : ""
-                }
-              >
-                {submitting
-                  ? "Đang gửi..."
-                  : selectedCourse.status === "SUBMITTED"
-                  ? "✓ Đã gửi duyệt"
-                  : "Gửi duyệt"}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ── Course Selector ── */}
-      <div className="lb-course-selector-card">
-        <label className="lb-label">Chọn khóa học để chỉnh sửa nội dung</label>
-        {coursesLoading ? (
-          <Skeleton lines={1} />
-        ) : (
-          <select
-            className="lb-select lb-course-select"
-            value={selectedCourse?.id ?? ""}
-            onChange={handleCourseChange}
-          >
-            <option value="">— Chọn khóa học —</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title} [{c.status}]
-              </option>
-            ))}
-          </select>
-        )}
-        {courses.length === 0 && !coursesLoading && (
-          <p className="lb-hint">
-            Bạn chưa có khóa học nào.{" "}
-            <a href="/teacher/courses/create" className="lb-link">Tạo khóa học mới</a>
+      {!editable && (
+        <section className="page-panel-card" style={{ marginBottom: "1rem" }}>
+          <p className="page-description" style={{ margin: 0 }}>
+            Khóa học đang ở trạng thái <strong>{courseStatusLabel(course.status)}</strong>. Bạn có thể xem nội dung nhưng không thể thêm, sửa hoặc xóa chương và bài học.
           </p>
-        )}
-      </div>
+        </section>
+      )}
 
-      {/* ── Curriculum ── */}
-      {selectedCourse && (
-        <div className="lb-curriculum">
-          <div className="lb-curriculum-header">
-            <h2 className="lb-curriculum-title">
-              {selectedCourse.title}
-              <span className={`lb-status-badge lb-status-${selectedCourse.status?.toLowerCase()}`}>
-                {selectedCourse.status}
-              </span>
-            </h2>
-            <span className="lb-curriculum-count">
-              {chapters.length} chương · {chapters.reduce((s, c) => s + (c.lessons?.length ?? 0), 0)} bài học
-            </span>
+      <section className="course-table page-panel-card">
+        {orderedChapters.length === 0 && (
+          <div>
+            <p className="page-description">
+              Khóa học chưa có chương nào. Hãy tạo ít nhất một chương trước khi sang bước xem trước và gửi duyệt.
+            </p>
+            {editable && (
+              <button
+                className="page-action page-action-primary"
+                onClick={() => setEditingChapter({ title: "", description: "", position: 1 })}
+              >
+                Thêm chương đầu tiên
+              </button>
+            )}
           </div>
+        )}
 
-          {loading ? (
-            <Skeleton lines={6} />
-          ) : (
-            <>
-              {chapters.length === 0 && (
-                <div className="lb-empty-state">
-                  <div className="lb-empty-icon">📚</div>
-                  <h3>Chưa có chương nào</h3>
-                  <p>Tạo chương đầu tiên để bắt đầu xây dựng nội dung khóa học của bạn</p>
-                </div>
-              )}
+        {orderedChapters.map((chapter, chapterIndex) => (
+          <div key={chapter.id} style={{ borderBottom: "1px solid #e2e8f0", paddingBlock: "1rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+              <div>
+                <strong>Chương {chapter.position}: {chapter.title}</strong>
+                <p className="page-description" style={{ margin: "0.35rem 0 0" }}>
+                  {chapter.description || "Chưa có mô tả chương."}
+                </p>
+              </div>
+              <div className="course-row-actions">
+                {editable && (
+                  <>
+                    <button className="page-action page-action-secondary" onClick={() => moveChapter(chapterIndex, -1)} disabled={saving || chapterIndex === 0}>
+                      Lên
+                    </button>
+                    <button className="page-action page-action-secondary" onClick={() => moveChapter(chapterIndex, 1)} disabled={saving || chapterIndex === orderedChapters.length - 1}>
+                      Xuống
+                    </button>
+                    <button className="page-action page-action-secondary" onClick={() => setEditingChapter(chapter)}>
+                      Sửa chương
+                    </button>
+                    <button className="page-action page-action-secondary" onClick={() => setEditingLesson({ chapter, lesson: { ...emptyLesson, position: (chapter.lessons?.length ?? 0) + 1 } })}>
+                      Thêm bài học
+                    </button>
+                    <button className="page-action page-action-secondary" onClick={() => handleDeleteChapter(chapter)}>
+                      Xóa chương
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
 
-              {chapters
+            <div style={{ display: "grid", gap: "0.75rem", marginTop: "1rem" }}>
+              {(chapter.lessons ?? [])
                 .slice()
                 .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-                .map((chapter, idx) => (
-                  <ChapterCard
-                    key={chapter.id}
-                    chapter={chapter}
-                    index={idx + 1}
-                    onEdit={(c) => setChapterEditModal(c)}
-                    onDelete={confirmDeleteChapter}
-                    onAddLesson={(c) => setLessonModal({ chapter: c, lesson: null })}
-                    onLessonEdit={(lesson) => {
-                      const ch = chapters.find((c) => c.lessons?.some((l) => l.id === lesson.id));
-                      setLessonModal({ chapter: ch, lesson });
-                    }}
-                    onLessonDelete={confirmDeleteLesson}
-                  />
+                .map((lesson, lessonIndex, lessons) => (
+                  <div key={lesson.id} className="course-table-row" style={{ alignItems: "flex-start" }}>
+                    <div>
+                      <strong>{lesson.position}. {lesson.title}</strong>
+                      <p style={{ margin: "0.3rem 0", color: "#475569" }}>
+                        {lessonTypeLabel(lesson.lessonType)} · {lessonStatusLabel(lesson.status)} · {lesson.durationMinutes || 0} phút
+                        {lesson.preview ? " · Có xem thử" : ""}
+                      </p>
+                      <p style={{ margin: "0.3rem 0", color: lesson.completed ? "#2e7d32" : "#b45309", fontWeight: 600 }}>
+                        {lesson.completed ? "Đã hoàn thiện" : "Chưa hoàn thiện"}
+                      </p>
+                      {!lesson.completed && lesson.completionErrors?.length > 0 && (
+                        <ul style={{ margin: "0.25rem 0 0", paddingLeft: "1.1rem" }}>
+                          {lesson.completionErrors.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="course-row-actions">
+                      {editable && (
+                        <>
+                          <button className="page-action page-action-secondary" onClick={() => moveLesson(chapter, lessonIndex, -1)} disabled={saving || lessonIndex === 0}>
+                            Lên
+                          </button>
+                          <button className="page-action page-action-secondary" onClick={() => moveLesson(chapter, lessonIndex, 1)} disabled={saving || lessonIndex === lessons.length - 1}>
+                            Xuống
+                          </button>
+                          <button className="page-action page-action-secondary" onClick={() => setEditingLesson({ chapter, lesson })}>
+                            Sửa bài học
+                          </button>
+                          <button className="page-action page-action-secondary" onClick={() => handleDeleteLesson(lesson)}>
+                            Xóa bài học
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 ))}
 
-              <ChapterForm
-                courseId={selectedCourse.id}
-                totalChapters={chapters.length}
-                onCreated={handleChapterCreated}
-              />
-            </>
-          )}
-        </div>
-      )}
-
-      {!selectedCourse && !coursesLoading && courses.length > 0 && (
-        <div className="lb-empty-state lb-empty-state-center">
-          <div className="lb-empty-icon">🎓</div>
-          <h3>Chọn một khóa học để bắt đầu</h3>
-          <p>Chọn khóa học từ danh sách trên để quản lý chương và bài học</p>
-        </div>
-      )}
+              {(chapter.lessons ?? []).length === 0 && (
+                <p className="page-description">Chương này chưa có bài học nào.</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </section>
     </div>
   );
 }
