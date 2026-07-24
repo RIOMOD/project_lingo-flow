@@ -1,3 +1,4 @@
+/* Vocabulary dashboard: course -> topic -> quiz */
 .vocab-dashboard-page {
   min-height: calc(100vh - 80px);
   padding: 32px clamp(18px, 4vw, 56px);
@@ -21,7 +22,7 @@
 .vocab-empty-state {
   border: 1px solid rgba(28, 74, 83, 0.12);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 18px 50px rgba(32, 77, 82, 0.12);
 }
 
@@ -43,6 +44,17 @@
   line-height: 1.75;
 }
 
+.vocab-helper-text {
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.vocab-review-due-btn {
+  width: auto;
+  margin-top: 18px;
+}
+
 .vocab-course-picker {
   display: grid;
   gap: 8px;
@@ -59,6 +71,7 @@
   padding: 0 14px;
   background: #fff;
   color: #17324d;
+  font: inherit;
 }
 
 .vocab-stats {
@@ -94,6 +107,7 @@
 .vocab-topics-section h2 {
   margin: 0 0 20px;
   color: #17324d;
+  font-size: 1.5rem;
 }
 
 .vocab-topic-grid {
@@ -103,7 +117,15 @@
 }
 
 .vocab-topic-card {
+  position: relative;
   overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.vocab-topic-card:hover {
+  transform: translateY(-4px);
+  border-color: #087f7b;
+  box-shadow: 0 18px 36px rgba(13, 148, 136, 0.14);
 }
 
 .vocab-topic-image {
@@ -135,6 +157,7 @@
   margin: 0;
   color: #123c42;
   font-size: 1.35rem;
+  font-weight: 800;
 }
 
 .vocab-topic-progress {
@@ -155,6 +178,7 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #087f7b, #f0b429);
+  transition: width 0.5s ease;
 }
 
 .vocab-topic-stats {
@@ -183,6 +207,10 @@
 .vocab-start-btn {
   background: #087f7b;
   color: #fff;
+}
+
+.vocab-start-btn:hover {
+  background: #0d9488;
 }
 
 .vocab-ghost-btn {
@@ -224,6 +252,10 @@
 }
 
 @media (max-width: 560px) {
+  .vocab-dashboard-page {
+    padding-inline: 14px;
+  }
+
   .vocab-stats {
     grid-template-columns: 1fr;
   }

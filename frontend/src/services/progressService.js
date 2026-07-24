@@ -39,3 +39,10 @@ export async function trackLessonProgress(lessonId, payload = {}) {
 export async function getTeacherProgressDashboard() {
   return unwrap(await apiRequest("/teacher/progress/dashboard"));
 }
+
+export async function recordVocabularyProgress(masteredCount = 5) {
+  return unwrap(await apiRequest("/progress/vocabulary/complete", {
+    method: "POST",
+    body: JSON.stringify({ masteredCount }),
+  }));
+}

@@ -32,6 +32,23 @@ export default function LoginPage() {
     }
   };
 
+  const handleDemoLogin = async (email, password = "Password123!") => {
+    setForm({ email, password });
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const user = await login({ email, password });
+      const fallbackPath = getRoleHome(user.role);
+      const redirectTo = location.state?.from?.pathname ?? fallbackPath;
+      navigate(redirectTo, { replace: true });
+    } catch (caughtError) {
+      setError(caughtError.message || "Đăng nhập thất bại");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section className="auth-page auth-split-page">
       <div className="auth-card">
@@ -43,7 +60,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
           <label className="auth-field">
             <span>Email</span>
             <input
@@ -51,7 +68,8 @@ export default function LoginPage() {
               type="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="student@example.com"
+              placeholder="Nhập email của bạn..."
+              autoComplete="off"
               required
             />
           </label>
@@ -63,7 +81,8 @@ export default function LoginPage() {
               type="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="password"
+              placeholder="Nhập mật khẩu..."
+              autoComplete="current-password"
               required
             />
           </label>
@@ -75,7 +94,34 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="auth-alt">
+        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
+          <small style={{ display: 'block', marginBottom: '0.5rem', color: '#64748b', fontWeight: '600' }}>Đăng nhập nhanh Demo 1-click:</small>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => handleDemoLogin("student@example.com", "Password123!")}
+              style={{ padding: '0.45rem 0.9rem', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #99f6e4', background: '#f0fdfa', color: '#0d9488', cursor: 'pointer', fontWeight: '700' }}
+            >
+              🎓 Student Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDemoLogin("teacher@example.com", "Password123!")}
+              style={{ padding: '0.45rem 0.9rem', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #bfdbfe', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', fontWeight: '700' }}
+            >
+              👨‍🏫 Teacher Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDemoLogin("admin@example.com", "Password123!")}
+              style={{ padding: '0.45rem 0.9rem', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #fef08a', background: '#fefce8', color: '#ca8a04', cursor: 'pointer', fontWeight: '700' }}
+            >
+              ⚡ Admin Demo
+            </button>
+          </div>
+        </div>
+
+        <p className="auth-alt" style={{ marginTop: '1rem' }}>
           Chưa có tài khoản? <Link to="/register">Đăng ký Student</Link>
         </p>
       </div>

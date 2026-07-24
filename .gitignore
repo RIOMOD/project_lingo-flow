@@ -18,5 +18,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Maven Wrapper cache
+.mvn/wrapper/dists/
 backend/.mvn/wrapper/dists/
 backend/.mvn/wrapper/apache-maven-*-bin.zip
+*.zip

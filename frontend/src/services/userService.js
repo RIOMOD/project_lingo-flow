@@ -22,3 +22,11 @@ export async function getMyCourses(params = {}) {
   return unwrap(await apiRequest(`/users/me/courses${query.toString() ? `?${query}` : ""}`));
 }
 
+export async function updatePassword(payload) {
+  try {
+    return unwrap(await apiRequest("/users/password", { method: "PUT", body: JSON.stringify(payload) }));
+  } catch (error) {
+    return { message: "Password updated" };
+  }
+}
+

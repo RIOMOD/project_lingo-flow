@@ -227,6 +227,7 @@ export default function VocabularySessionPage() {
     setResults([]);
     setCompleted(false);
     setStartedAt(Date.now());
+    setImageError(false);
   }
 
   function playAudio() {

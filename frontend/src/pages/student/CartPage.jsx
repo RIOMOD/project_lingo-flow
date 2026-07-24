@@ -15,7 +15,7 @@ export default function CartPage() {
       setError("");
       setCart(await getCart());
     } catch (err) {
-      setError(err.message || "Khong tai duoc gio hang");
+      setError(err.message || "Không tải được giỏ hàng");
     } finally {
       setLoading(false);
     }
@@ -30,7 +30,7 @@ export default function CartPage() {
       setError("");
       setCart(await action());
     } catch (err) {
-      setError(err.message || "Thao tac that bai");
+      setError(err.message || "Thao tác thất bại");
     }
   }
 
@@ -38,11 +38,11 @@ export default function CartPage() {
     <div className="course-page">
       <section className="page-hero">
         <span className="page-badge">Cart</span>
-        <h2 className="page-title">Gio hang cua ban</h2>
-        <p className="page-description">Backend tinh lai gia, giam gia va tong tien truoc khi tao don hang.</p>
+        <h2 className="page-title">Giỏ hàng của bạn</h2>
+        <p className="page-description">Hệ thống tự động tính lại giá, giảm giá và tổng tiền trước khi tạo đơn hàng.</p>
       </section>
 
-      {loading && <p className="auth-state">Dang tai gio hang...</p>}
+      {loading && <p className="auth-state">Đang tải giỏ hàng...</p>}
       {error && <p className="auth-error">{error}</p>}
 
       <section className="page-panel-card course-table">
@@ -53,27 +53,27 @@ export default function CartPage() {
               <p>{money.format(item.finalPrice || 0)}</p>
             </div>
             <button className="page-action page-action-secondary" onClick={() => run(() => removeCartItem(item.courseId))}>
-              Xoa
+              Xóa
             </button>
           </div>
         ))}
-        {!loading && (cart?.items?.length ?? 0) === 0 && <p className="page-description">Gio hang dang trong.</p>}
+        {!loading && (cart?.items?.length ?? 0) === 0 && <p className="page-description">Giỏ hàng đang trống.</p>}
       </section>
 
       <section className="page-panel-card">
         <div className="course-filter-row">
-          <input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="Ma giam gia" />
-          <button className="page-action page-action-primary" onClick={() => run(() => applyCoupon(coupon))}>Ap ma</button>
+          <input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="Mã giảm giá" />
+          <button className="page-action page-action-primary" onClick={() => run(() => applyCoupon(coupon))}>Áp mã</button>
           {cart?.couponCode && (
-            <button className="page-action page-action-secondary" onClick={() => run(removeCoupon)}>Huy ma {cart.couponCode}</button>
+            <button className="page-action page-action-secondary" onClick={() => run(removeCoupon)}>Hủy mã {cart.couponCode}</button>
           )}
         </div>
-        <p>Tam tinh: <strong>{money.format(cart?.subtotalAmount || 0)}</strong></p>
-        <p>Giam gia: <strong>{money.format(cart?.discountAmount || 0)}</strong></p>
-        <p>Tong thanh toan: <strong>{money.format(cart?.totalAmount || 0)}</strong></p>
+        <p>Tạm tính: <strong>{money.format(cart?.subtotalAmount || 0)}</strong></p>
+        <p>Giảm giá: <strong>{money.format(cart?.discountAmount || 0)}</strong></p>
+        <p>Tổng thanh toán: <strong>{money.format(cart?.totalAmount || 0)}</strong></p>
         <div className="page-actions">
-          <button className="page-action page-action-secondary" onClick={() => run(clearCart)}>Xoa tat ca</button>
-          <Link className="page-action page-action-primary" to="/student/checkout">Thanh toan</Link>
+          <button className="page-action page-action-secondary" onClick={() => run(clearCart)}>Xóa tất cả</button>
+          <Link className="page-action page-action-primary" to="/student/checkout">Thanh toán</Link>
         </div>
       </section>
     </div>

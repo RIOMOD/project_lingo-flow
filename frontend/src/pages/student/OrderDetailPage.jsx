@@ -14,7 +14,7 @@ export default function OrderDetailPage() {
     try {
       setOrder(await getOrder(orderCode));
     } catch (err) {
-      setError(err.message || "Khong tai duoc don hang");
+      setError(err.message || "Không tải được đơn hàng");
     }
   }
 
@@ -27,7 +27,7 @@ export default function OrderDetailPage() {
       const payment = await createPayment(orderCode);
       setPaymentUrl(payment.paymentUrl);
     } catch (err) {
-      setError(err.message || "Khong tao duoc thanh toan");
+      setError(err.message || "Không tạo được thanh toán");
     }
   }
 
@@ -35,7 +35,7 @@ export default function OrderDetailPage() {
     try {
       setOrder(await cancelOrder(orderCode));
     } catch (err) {
-      setError(err.message || "Khong huy duoc don hang");
+      setError(err.message || "Không hủy được đơn hàng");
     }
   }
 
@@ -44,13 +44,13 @@ export default function OrderDetailPage() {
       <section className="page-hero">
         <span className="page-badge">Order detail</span>
         <h2 className="page-title">{orderCode}</h2>
-        <p className="page-description">Snapshot khoa hoc va hoa don duoc luu rieng theo don hang.</p>
+        <p className="page-description">Thông tin chi tiết khóa học và hóa đơn được lưu trữ bảo mật theo đơn hàng.</p>
       </section>
       {error && <p className="auth-error">{error}</p>}
       {order && (
         <section className="page-panel-card">
-          <p>Trang thai: <strong>{order.status}</strong></p>
-          <p>Tong tien: <strong>{money.format(order.totalAmount || 0)}</strong></p>
+          <p>Trạng thái: <strong>{order.status}</strong></p>
+          <p>Tổng tiền: <strong>{money.format(order.totalAmount || 0)}</strong></p>
           <div className="course-table">
             {(order.items ?? []).map((item) => (
               <div className="course-table-row" key={item.courseId}>
@@ -62,10 +62,10 @@ export default function OrderDetailPage() {
             ))}
           </div>
           <div className="page-actions">
-            {order.status === "PENDING_PAYMENT" && <button className="page-action page-action-primary" onClick={handlePay}>Thanh toan</button>}
-            {order.status === "PENDING_PAYMENT" && <button className="page-action page-action-secondary" onClick={handleCancel}>Huy don</button>}
-            {paymentUrl && <a className="page-action page-action-primary" href={paymentUrl}>Mo cong thanh toan</a>}
-            {order.invoice && <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}/invoice`}>Hoa don</Link>}
+            {order.status === "PENDING_PAYMENT" && <button className="page-action page-action-primary" onClick={handlePay}>Thanh toán</button>}
+            {order.status === "PENDING_PAYMENT" && <button className="page-action page-action-secondary" onClick={handleCancel}>Hủy đơn</button>}
+            {paymentUrl && <a className="page-action page-action-primary" href={paymentUrl}>Mở cổng thanh toán</a>}
+            {order.invoice && <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}/invoice`}>Hóa đơn</Link>}
           </div>
         </section>
       )}

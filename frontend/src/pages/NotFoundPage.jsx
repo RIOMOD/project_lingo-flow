@@ -8,27 +8,27 @@ export default function NotFoundPage() {
     <div className="not-found-shell">
       <div className="not-found-card">
         <span className="not-found-badge">404</span>
-        <h1 className="not-found-title">Khong tim thay trang</h1>
+        <h1 className="not-found-title">Không tìm thấy trang</h1>
         <p className="not-found-text">
-          Route nay chua ton tai hoac da doi duong dan. Ban co the quay ve trang
-          chu hoac mo dashboard demo theo role.
+          Đường dẫn này không tồn tại hoặc đã được thay đổi. Bạn có thể quay về trang
+          chủ hoặc mở trang cá nhân theo vai trò.
         </p>
         <p className="not-found-path">{location.pathname}</p>
         <div className="not-found-actions">
           <Link to={demoPaths.home} className="not-found-button not-found-button-primary">
-            Ve trang chu
+            Về trang chủ
           </Link>
           <Link
             to={demoPaths.studentDashboard}
             className="not-found-button not-found-button-secondary"
           >
-            Mo Student
+            Trang Học viên
           </Link>
           <Link
             to={demoPaths.adminDashboard}
             className="not-found-button not-found-button-secondary"
           >
-            Mo Admin
+            Trang Quản trị
           </Link>
         </div>
       </div>

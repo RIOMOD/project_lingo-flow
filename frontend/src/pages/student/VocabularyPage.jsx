@@ -29,6 +29,7 @@ export default function VocabularyPage() {
   useEffect(() => {
     let mounted = true;
     setLoadingCourses(true);
+    setError("");
     getMyCourses({ size: 100 })
       .then((data) => {
         if (!mounted) return;
@@ -122,6 +123,13 @@ export default function VocabularyPage() {
     navigate(`/student/vocabulary/session?${params.toString()}`);
   }
 
+  function reviewDueWords() {
+    const firstDueTopic = topics.find((topic) => topic.reviewDueCount > 0);
+    if (firstDueTopic) {
+      startTopic(firstDueTopic, true);
+    }
+  }
+
   return (
     <div className="vocab-dashboard-page">
       <section className="vocab-hero">
@@ -138,6 +146,13 @@ export default function VocabularyPage() {
               ))}
             </select>
           </label>
+          {totals.reviewDueCount > 0 ? (
+            <button className="vocab-start-btn vocab-review-due-btn" type="button" onClick={reviewDueWords}>
+              Ôn tập {totals.reviewDueCount} từ đến hạn
+            </button>
+          ) : (
+            <p className="vocab-helper-text">Bạn chưa có từ vựng nào cần ôn tập. Hãy chọn một chủ đề bên dưới để bắt đầu học.</p>
+          )}
         </div>
         <div className="vocab-stats">
           <div className="vocab-stat-card">

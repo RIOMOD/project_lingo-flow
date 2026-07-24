@@ -45,14 +45,15 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
           <label className="auth-field">
             <span>Họ tên</span>
             <input
               name="fullName"
               value={form.fullName}
               onChange={handleChange}
-              placeholder="Tran Thi Student"
+              placeholder="Nhập họ và tên..."
+              autoComplete="off"
               required
             />
           </label>
@@ -64,7 +65,8 @@ export default function RegisterPage() {
               type="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="student@example.com"
+              placeholder="Nhập địa chỉ email..."
+              autoComplete="off"
               required
             />
           </label>
@@ -75,7 +77,8 @@ export default function RegisterPage() {
               name="phone"
               value={form.phone}
               onChange={handleChange}
-              placeholder="0900000000"
+              placeholder="Nhập số điện thoại..."
+              autoComplete="off"
             />
           </label>
 
@@ -86,7 +89,8 @@ export default function RegisterPage() {
               type="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="Ít nhất 8 ký tự"
+              placeholder="Nhập mật khẩu (ít nhất 8 ký tự)..."
+              autoComplete="new-password"
               minLength={8}
               required
             />

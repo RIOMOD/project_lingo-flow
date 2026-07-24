@@ -226,6 +226,7 @@ const navMatchOverrides = {
 };
 
 function matchesPath(pattern, pathname) {
+  if (!pattern || typeof pattern !== "string" || !pathname) return false;
   return Boolean(matchPath({ path: pattern, end: true }, pathname));
 }
 
@@ -243,9 +244,12 @@ export function resolvePageContext(pathname) {
 }
 
 export function isNavigationItemActive(item, pathname) {
+  if (!item || !item.to || typeof item.to !== "string") return false;
   const patterns = navMatchOverrides[item.to] ?? [item.to];
 
-  return patterns.some((pattern) => matchesPath(pattern, pathname));
+  return patterns
+    .filter((pattern) => pattern && typeof pattern === "string")
+    .some((pattern) => matchesPath(pattern, pathname));
 }
 
 export function resolveNavigationSection(roleKey, pathname) {
@@ -253,7 +257,7 @@ export function resolveNavigationSection(roleKey, pathname) {
 
   return (
     sections.find((section) =>
-      section.items.some((item) => isNavigationItemActive(item, pathname)),
+      (section?.items ?? []).some((item) => isNavigationItemActive(item, pathname)),
     ) ?? null
   );
 }

@@ -12,27 +12,27 @@ export default function InvoicePage() {
   useEffect(() => {
     getOrder(orderCode)
       .then((order) => setInvoice(order?.invoice ?? null))
-      .catch((err) => setError(err.message || "Khong tai duoc hoa don"));
+      .catch((err) => setError(err.message || "Không tải được hóa đơn"));
   }, [orderCode]);
 
   return (
     <div className="course-page">
       <section className="page-hero">
         <span className="page-badge">Invoice</span>
-        <h2 className="page-title">Hoa don {orderCode}</h2>
-        <p className="page-description">Hoa don chi duoc tao sau khi thanh toan thanh cong.</p>
+        <h2 className="page-title">Hóa đơn {orderCode}</h2>
+        <p className="page-description">Hóa đơn điện tử chỉ được tạo tự động sau khi thanh toán thành công.</p>
       </section>
       {error && <p className="auth-error">{error}</p>}
       <section className="page-panel-card">
         {invoice ? (
           <>
-            <p>Ma hoa don: <strong>{invoice.invoiceCode}</strong></p>
-            <p>Nguoi mua: <strong>{invoice.billingName}</strong></p>
+            <p>Mã hóa đơn: <strong>{invoice.invoiceCode}</strong></p>
+            <p>Người mua: <strong>{invoice.billingName}</strong></p>
             <p>Email: <strong>{invoice.billingEmail}</strong></p>
-            <p>Tong tien: <strong>{money.format(invoice.totalAmount || 0)}</strong></p>
+            <p>Tổng tiền: <strong>{money.format(invoice.totalAmount || 0)}</strong></p>
           </>
         ) : (
-          <p className="page-description">Don hang chua co hoa don.</p>
+          <p className="page-description">Đơn hàng này chưa có hóa đơn.</p>
         )}
       </section>
     </div>
