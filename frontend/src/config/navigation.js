@@ -71,6 +71,8 @@ export const demoPaths = {
   studentTest: "/student/tests",
   studentVocabulary: "/student/vocabulary",
   studentGrammar: "/student/grammar",
+  studentPronunciation: "/student/pronunciation",
+  studentLeaderboard: "/student/leaderboard",
   studentProgress: "/student/progress",
   studentChatbot: "/student/chatbot",
   studentWriting: "/student/writing",
