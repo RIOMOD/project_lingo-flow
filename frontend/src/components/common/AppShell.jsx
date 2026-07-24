@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import { navigationByRole, roleMeta, roleSwitches } from "../../config/navigation";
 import { isNavigationItemActive, resolveNavigationSection, resolvePageContext } from "../../config/pageContext";
 import { useAuth } from "../../hooks/useAuth";
+import ErrorBoundary from "./ErrorBoundary";
 import "../../styles/Navbar.css";
 import {
   IconBell,
@@ -22,9 +23,9 @@ function initials(name = "Học viên") {
   return name.split(/\s+/).filter(Boolean).slice(-2).map((part) => part[0]).join("").toUpperCase();
 }
 
-export default function AppShell({ roleKey }) {
-  const role = roleMeta[roleKey];
-  const sections = navigationByRole[roleKey];
+export default function AppShell({ roleKey = "student" }) {
+  const role = roleMeta[roleKey] || roleMeta.student;
+  const sections = navigationByRole[roleKey] || navigationByRole.student || [];
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -243,7 +244,11 @@ export default function AppShell({ roleKey }) {
             </div>
           )}
         </header>
-        <main className="app-main"><Outlet /></main>
+        <main className="app-main">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
       </div>
     </div>
   );

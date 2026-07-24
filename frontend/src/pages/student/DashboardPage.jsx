@@ -38,12 +38,20 @@ export default function StudentDashboardPage() {
 
   useEffect(() => {
     getProgressDashboard().then(async (data) => {
-      setDashboard(data);
+      setDashboard(data || {});
       if (data?.continueLearning?.courseId) {
-        const chapters = await getCourseChapters(data.continueLearning.courseId);
-        setPath(chapters.flatMap((chapter) => (chapter.lessons ?? []).map((lesson) => ({ ...lesson, chapterTitle: chapter.title }))));
+        try {
+          const res = await getCourseChapters(data.continueLearning.courseId);
+          const list = Array.isArray(res) ? res : Array.isArray(res?.items) ? res.items : [];
+          setPath(list.flatMap((chapter) => (chapter?.lessons ?? []).map((lesson) => ({ ...lesson, chapterTitle: chapter.title }))));
+        } catch (chapterErr) {
+          console.warn("Could not load course chapters:", chapterErr);
+        }
       }
-    }).catch((err) => setError(err.message || "Không tải được tổng quan học tập"));
+    }).catch((err) => {
+      console.error(err);
+      setError(err?.message || "Không tải được tổng quan học tập");
+    });
   }, []);
 
   const current = dashboard?.continueLearning;
