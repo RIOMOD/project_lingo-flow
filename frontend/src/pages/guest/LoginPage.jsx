@@ -77,7 +77,34 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="auth-alt">
+        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
+          <small style={{ display: 'block', marginBottom: '0.5rem', color: '#64748b', fontWeight: '600' }}>Đăng nhập nhanh Demo 1-click:</small>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => { setForm({ email: "student@example.com", password: "Student123!" }); }}
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', borderRadius: '8px', border: '1px solid #99f6e4', background: '#f0fdfa', color: '#0d9488', cursor: 'pointer', fontWeight: '600' }}
+            >
+              🎓 Student Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => { setForm({ email: "teacher@example.com", password: "Student123!" }); }}
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', borderRadius: '8px', border: '1px solid #bfdbfe', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', fontWeight: '600' }}
+            >
+              👨‍🏫 Teacher Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => { setForm({ email: "admin@example.com", password: "Student123!" }); }}
+              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', borderRadius: '8px', border: '1px solid #fef08a', background: '#fefce8', color: '#ca8a04', cursor: 'pointer', fontWeight: '600' }}
+            >
+              ⚡ Admin Demo
+            </button>
+          </div>
+        </div>
+
+        <p className="auth-alt" style={{ marginTop: '1rem' }}>
           Chưa có tài khoản? <Link to="/register">Đăng ký Student</Link>
         </p>
       </div>
