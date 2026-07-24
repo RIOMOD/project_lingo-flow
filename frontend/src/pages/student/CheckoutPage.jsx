@@ -48,12 +48,29 @@ export default function CheckoutPage() {
           </button>
         )}
         {order && (
-          <div>
-            <p>Mã đơn: <strong>{order.orderCode}</strong></p>
-            <p>Trạng thái: <strong>{order.status}</strong></p>
-            <div className="page-actions">
-              {payment?.paymentUrl && <a className="page-action page-action-primary" href={payment.paymentUrl}>Mở cổng thanh toán</a>}
-              <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}`}>Xem đơn hàng</Link>
+          <div className="vietqr-payment-card" style={{ marginTop: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: '16px', border: '1px solid #cbd5e1' }}>
+            <h3 style={{ margin: '0 0 1rem', color: '#0f172a' }}>💳 Thanh toán qua mã VietQR / Chuyển khoản</h3>
+            <p>Mã đơn hàng: <strong>{order.orderCode}</strong></p>
+            <p>Trạng thái: <strong style={{ color: '#d97706' }}>{order.status}</strong></p>
+            
+            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', margin: '1rem 0', flexWrap: 'wrap' }}>
+              <img
+                src={`https://img.vietqr.io/image/MB-123456789-compact2.png?amount=${cart?.totalAmount || 100000}&addInfo=LINGOFLOW_${order.orderCode}&accountName=LINGO_FLOW_ACADEMY`}
+                alt="VietQR Payment Code"
+                style={{ width: '180px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#ffffff', padding: '8px' }}
+              />
+              <div>
+                <p style={{ margin: '0 0 0.4rem' }}>Ngân hàng: <strong>MBBank (Ngân hàng Quân Đội)</strong></p>
+                <p style={{ margin: '0 0 0.4rem' }}>Số tài khoản: <strong style={{ color: '#0d9488', fontSize: '1.1rem' }}>999988886666</strong></p>
+                <p style={{ margin: '0 0 0.4rem' }}>Chủ tài khoản: <strong>LINGO FLOW ACADEMY</strong></p>
+                <p style={{ margin: '0 0 0.4rem' }}>Nội dung chuyển khoản: <strong style={{ color: '#2563eb' }}>LINGOFLOW_{order.orderCode}</strong></p>
+                <small style={{ color: '#64748b' }}>Hệ thống tự động kích hoạt khóa học ngay sau khi nhận tiền.</small>
+              </div>
+            </div>
+
+            <div className="page-actions" style={{ marginTop: '1rem' }}>
+              {payment?.paymentUrl && <a className="page-action page-action-primary" href={payment.paymentUrl}>Mở cổng thanh toán tự động</a>}
+              <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}`}>Xem chi tiết đơn hàng</Link>
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { recordVocabularyProgress } from "../../services/progressService";
+import { speakText } from "../../utils/sound";
 import "../../styles/VocabularySession.css";
 
 // Mock activity sets for each topic. In a real app these would be fetched from the backend.
@@ -233,7 +234,30 @@ export default function VocabularySessionPage() {
             {currentActivity.activityType === 'PRODUCTION' && 'Sử dụng từ vựng'}
           </div>
           
-          <h2 className="vocab-question">{currentActivity.question}</h2>
+          <div className="vocab-question-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <h2 className="vocab-question" style={{ margin: 0 }}>{currentActivity.question}</h2>
+            <button
+              className="vocab-audio-btn"
+              type="button"
+              onClick={() => speakText(currentActivity.answer || currentActivity.question)}
+              title="Phát âm từ vựng"
+              style={{
+                background: '#f0fdfa',
+                border: '1px solid #99f6e4',
+                color: '#0d9488',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              🔊
+            </button>
+          </div>
           
           {currentActivity.imageUrl && (
             <img src={currentActivity.imageUrl} alt="Illustration" className="vocab-image" />

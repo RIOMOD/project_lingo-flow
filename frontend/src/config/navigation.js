@@ -18,6 +18,8 @@ export const routePatterns = {
   studentTest: "/student/tests",
   studentVocabulary: "/student/vocabulary",
   studentGrammar: "/student/grammar",
+  studentPronunciation: "/student/pronunciation",
+  studentLeaderboard: "/student/leaderboard",
   studentProgress: "/student/progress",
   studentChatbot: "/student/chatbot",
   studentWriting: "/student/writing",
@@ -183,6 +185,7 @@ export const navigationByRole = {
       items: [
         { label: "Từ vựng", to: demoPaths.studentVocabulary, icon: "A" },
         { label: "Ngữ pháp", to: demoPaths.studentGrammar, icon: "¶" },
+        { label: "Luyện phát âm AI", to: demoPaths.studentPronunciation, icon: "🎙" },
       ],
     },
     {
@@ -194,10 +197,11 @@ export const navigationByRole = {
       ],
     },
     {
-      title: "Tiến độ",
+      title: "Tiến độ & Thi đua",
       icon: "◎",
       items: [
         { label: "Tiến độ học tập", to: demoPaths.studentProgress, icon: "◎" },
+        { label: "Bảng xếp hạng 🔥", to: demoPaths.studentLeaderboard, icon: "🏆" },
       ],
     },
   ],
