@@ -65,9 +65,7 @@ export default function QuestionBankPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Question bank</h2>
+      <section className="page-hero">        <h2 className="page-title">Question bank</h2>
         <p className="page-description">Tao cau hoi, dap an, bai tap, bai kiem tra va xem ket qua hoc vien.</p>
       </section>
       {error && <p className="auth-error">{error}</p>}

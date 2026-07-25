@@ -152,6 +152,16 @@ const pageEntries = [
     roleKey: "teacher",
   },
   {
+    pattern: routePatterns.teacherVocabulary,
+    pageKey: "teacherVocabulary",
+    roleKey: "teacher",
+  },
+  {
+    pattern: routePatterns.teacherGrammar,
+    pageKey: "teacherGrammar",
+    roleKey: "teacher",
+  },
+  {
     pattern: routePatterns.adminDashboard,
     pageKey: "adminDashboard",
     roleKey: "admin",

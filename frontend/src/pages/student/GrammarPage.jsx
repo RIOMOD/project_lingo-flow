@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { getGrammarTopics } from "../../services/learningService";
+import { useNavigate } from "react-router-dom";
 
 export default function GrammarPage() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     getGrammarTopics({ search, level, size: 20 })
@@ -28,6 +30,7 @@ export default function GrammarPage() {
             <option value="INTERMEDIATE">Trung cấp (Intermediate)</option>
             <option value="ADVANCED">Nâng cao (Advanced)</option>
           </select>
+          <button className="page-action page-action-primary" onClick={() => navigate('/student/grammar/history')}>Lịch sử làm bài</button>
         </div>
       </section>
       {error && <p className="auth-error">{error}</p>}
@@ -39,6 +42,10 @@ export default function GrammarPage() {
               <p>{item.level} - {item.description}</p>
               <p>{item.formula}</p>
               <p>{item.example}</p>
+            </div>
+            <div className="course-row-actions">
+              <button className="page-action page-action-secondary" onClick={() => navigate(`/student/grammar/${item.id}`)}>Học chi tiết</button>
+              <button className="page-action page-action-primary" onClick={() => navigate(`/student/grammar/${item.id}/exercise`)}>Làm bài</button>
             </div>
           </div>
         ))}

@@ -15,9 +15,7 @@ export default function CourseSubmissionPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Bước 4: Gửi khóa học cho Admin duyệt</h2>
+      <section className="page-hero">        <h2 className="page-title">Bước 4: Gửi khóa học cho Admin duyệt</h2>
         <p className="page-description">
           Chỉ các khóa học đã đủ điều kiện hoàn thiện mới có thể gửi duyệt. Chọn khóa học bên dưới để xem trước và gửi.
         </p>

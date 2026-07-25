@@ -15,9 +15,7 @@ export default function CourseManagementPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Quản lý khóa học</h2>
+      <section className="page-hero">        <h2 className="page-title">Quản lý khóa học</h2>
         <p className="page-description">
           Theo dõi tiến độ hoàn thiện của từng khóa học và truy cập đúng bước: thông tin cơ bản, nội dung, xem trước hoặc gửi duyệt.
         </p>

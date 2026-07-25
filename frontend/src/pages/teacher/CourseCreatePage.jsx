@@ -64,9 +64,7 @@ export default function CourseCreatePage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Bước 1: Tạo thông tin cơ bản khóa học</h2>
+      <section className="page-hero">        <h2 className="page-title">Bước 1: Tạo thông tin cơ bản khóa học</h2>
         <p className="page-description">
           Sau khi lưu thông tin cơ bản, bạn sẽ được chuyển sang bước xây dựng chương và bài học của khóa học.
         </p>

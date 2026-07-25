@@ -214,7 +214,6 @@ export const navigationByRole = {
         { label: "Tổng quan", to: demoPaths.teacherDashboard },
         { label: "Quản lý khóa học", to: demoPaths.teacherCourses },
         { label: "Tạo khóa học", to: demoPaths.teacherCourseCreate },
-        { label: "Chỉnh sửa khóa học", to: demoPaths.teacherCourseEdit },
         { label: "Xây dựng nội dung", to: demoPaths.teacherLessonBuilder },
         { label: "Từ vựng", to: demoPaths.teacherVocabulary },
         { label: "Ngữ pháp", to: demoPaths.teacherGrammar },
@@ -599,7 +598,7 @@ export const pageConfigs = {
   },
   teacherDashboard: {
     roleKey: "teacher",
-    title: "Dashboard Teacher",
+    title: "Tổng quan",
     description: "Tong quan khóa học, luot mua, học vien dang học va cac khóa học can xu ly.",
     stats: [stat("5", "Khóa học quan ly"), stat("124", "Hoc vien"), stat("8", "Muc can duyệt")],
     actions: [
@@ -655,6 +654,36 @@ export const pageConfigs = {
     panels: [
       panel("Cần tranh", ["Sửa khóa học cua người khac", "Xuat ban boi Teacher", "Bypass quy trinh duyệt gia"]),
       panel("Khi khóa học da publish", ["Neu thay doi lon thi nen submit lai de duyệt"]),
+    ],
+  },
+  teacherVocabulary: {
+    roleKey: "teacher",
+    title: "Quản lý từ vựng",
+    description: "Tạo và quản lý danh sách từ vựng theo chủ đề và bài học.",
+    stats: [stat("Từ vựng", "Quản lý"), stat("Chủ đề", "Phân nhóm"), stat("Audio", "Phát âm")],
+    actions: [
+      action("Xem ngữ pháp", demoPaths.teacherGrammar),
+      action("Quản lý khóa học", demoPaths.teacherCourses, "secondary"),
+      action("Về tổng quan", demoPaths.teacherDashboard, "ghost"),
+    ],
+    panels: [
+      panel("Nội dung quản lý", ["Từ cần học", "Phát âm", "Nghĩa", "Ví dụ", "Mức độ"]),
+      panel("Liên kết", ["Bài học", "Bài tập từ vựng", "Tiến độ học viên"]),
+    ],
+  },
+  teacherGrammar: {
+    roleKey: "teacher",
+    title: "Quản lý ngữ pháp",
+    description: "Quản lý các chủ điểm ngữ pháp và tạo bài tập trắc nghiệm cho học viên.",
+    stats: [stat("Chủ điểm", "Ngữ pháp"), stat("Bài tập", "Trắc nghiệm"), stat("Kết quả", "Theo dõi")],
+    actions: [
+      action("Xem từ vựng", demoPaths.teacherVocabulary),
+      action("Quản lý khóa học", demoPaths.teacherCourses, "secondary"),
+      action("Về tổng quan", demoPaths.teacherDashboard, "ghost"),
+    ],
+    panels: [
+      panel("Nội dung bài tập", ["Câu hỏi trắc nghiệm", "4 lựa chọn A/B/C/D", "Đáp án đúng", "Giải thích"]),
+      panel("Quản lý", ["Tạo/sửa/xóa câu hỏi", "Xem kết quả học viên", "Lịch sử làm bài"]),
     ],
   },
   teacherLessonBuilder: {

@@ -77,9 +77,7 @@ export default function CourseEditPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Bước 1: Cập nhật thông tin cơ bản</h2>
+      <section className="page-hero">        <h2 className="page-title">Bước 1: Cập nhật thông tin cơ bản</h2>
         <p className="page-description">
           Trạng thái hiện tại: <strong>{courseStatusLabel(course.status)}</strong>.
         </p>

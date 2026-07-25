@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createTeacherGrammar, deleteTeacherGrammar, getTeacherGrammarTopics, updateTeacherGrammar } from "../../services/learningService";
 import { getTeacherCourses, getCourseChapters } from "../../services/courseService";
+import { useNavigate } from "react-router-dom";
 
 const emptyForm = {
   courseId: "1",
@@ -22,6 +23,7 @@ export default function GrammarManagementPage() {
 
   const [courses, setCourses] = useState([]);
   const [chapters, setChapters] = useState([]);
+  const navigate = useNavigate();
 
   async function load() {
     try {
@@ -97,9 +99,7 @@ export default function GrammarManagementPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Quan ly ngu phap</h2>
+      <section className="page-hero">        <h2 className="page-title">Quan ly ngu phap</h2>
         <p className="page-description">Tao chu diem ngu phap va gan vao course/lesson.</p>
       </section>
       {error && <p className="auth-error">{error}</p>}
@@ -132,6 +132,7 @@ export default function GrammarManagementPage() {
               <p>{item.level} - {item.formula}</p>
             </div>
             <div className="course-row-actions">
+              <button className="page-action page-action-primary" onClick={() => navigate(`/teacher/grammar/${item.id}/questions`)}>Quản lý bài tập</button>
               <button className="page-action page-action-secondary" onClick={() => edit(item)}>Sua</button>
               <button className="page-action page-action-secondary" onClick={() => remove(item.id)}>Xoa</button>
             </div>

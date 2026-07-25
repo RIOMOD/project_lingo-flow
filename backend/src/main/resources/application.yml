@@ -21,7 +21,7 @@ spring:
       mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:

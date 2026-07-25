@@ -23,6 +23,18 @@ function initials(name = "Học viên") {
   return name.split(/\s+/).filter(Boolean).slice(-2).map((part) => part[0]).join("").toUpperCase();
 }
 
+/** Trả về đường dẫn hồ sơ và cài đặt theo role */
+function roleProfileLinks(roleKey) {
+  switch (roleKey) {
+    case "teacher":
+      return { profile: "/teacher/profile", settings: null, orders: null };
+    case "admin":
+      return { profile: "/admin/users", settings: null, orders: null };
+    default:
+      return { profile: "/student/profile", settings: "/student/settings", orders: "/student/orders" };
+  }
+}
+
 export default function AppShell({ roleKey = "student" }) {
   const role = roleMeta[roleKey] || roleMeta.student;
   const sections = navigationByRole[roleKey] || navigationByRole.student || [];
@@ -34,8 +46,6 @@ export default function AppShell({ roleKey = "student" }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState(() => Object.fromEntries(sections.map((section) => [section.title, true])));
-  const isStudent = roleKey === "student";
-  const showDevSwitch = import.meta.env.DEV && !isStudent;
 
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
 
@@ -53,6 +63,8 @@ export default function AppShell({ roleKey = "student" }) {
   const accountName = user?.fullName || user?.name || "Học viên";
   const pageTitle = currentPage?.title ?? role.title;
   const breadcrumb = useMemo(() => currentSection?.title ?? role.label, [currentSection, role.label]);
+  const profileLinks = roleProfileLinks(roleKey);
+  const isStudent = roleKey === "student";
 
   async function handleLogout() {
     await logout();
@@ -73,7 +85,7 @@ export default function AppShell({ roleKey = "student" }) {
       <button type="button" className={`app-sidebar-overlay ${isSidebarOpen ? "is-visible" : ""}`} onClick={() => setIsSidebarOpen(false)} aria-hidden={!isSidebarOpen} tabIndex={isSidebarOpen ? 0 : -1} />
 
       <aside className={`app-sidebar ${isSidebarOpen ? "is-open" : ""}`}>
-        {/* Untitled UI Top Banner Header */}
+        {/* Top Banner Header */}
         <div className="app-sidebar-header-banner">
           <Link to={role.homePath} className="app-brand-card">
             <span className="app-brand-logo-box">
@@ -99,13 +111,13 @@ export default function AppShell({ roleKey = "student" }) {
           </button>
         </div>
 
-        {/* Untitled UI Workspace Bar */}
+        {/* Workspace Bar */}
         <div className="app-sidebar-workspace-bar app-label">
-          <span>{role.title || "Lingo Flow Admins"}</span>
-          <button className="app-workspace-add-btn" type="button">+ Create team</button>
+          <span>{role.title || "Lingo Flow"}</span>
+          {isStudent && <button className="app-workspace-add-btn" type="button">+ Create team</button>}
         </div>
 
-        {/* Untitled UI Sidebar Search Box */}
+        {/* Sidebar Search Box */}
         <div className="app-sidebar-search-box app-label">
           <IconSearch className="app-sidebar-search-icon" />
           <input placeholder="Search..." name="sidebar-search" />
@@ -162,87 +174,84 @@ export default function AppShell({ roleKey = "student" }) {
             <div className="app-account-copy app-label">
               <strong>{accountName}</strong>
               <div className="app-account-links">
-                <Link to="/student/profile">Hồ sơ</Link> · <Link to="/student/settings">Cài đặt</Link>
+                <Link to={profileLinks.profile}>Hồ sơ</Link>
+                {profileLinks.settings && <> · <Link to={profileLinks.settings}>Cài đặt</Link></>}
               </div>
             </div>
             <button className="app-logout" onClick={handleLogout} type="button" aria-label="Đăng xuất" title="Đăng xuất">
               <IconLogOut />
             </button>
           </div>
-          {showDevSwitch && (
-            <div className="app-dev-switch">
-              <p className="app-sidebar-caption">Development roles</p>
-              <div className="app-switch-pills">
-                {roleSwitches.map((item) => <Link key={item.to} to={item.to} className="app-switch-pill">{item.label}</Link>)}
-              </div>
-            </div>
-          )}
         </div>
       </aside>
 
       <div className="app-content">
         <header className="app-topbar">
           <div className="app-topbar-copy">
-            <span className="app-eyebrow">{breadcrumb}</span>
+            <span className="app-eyebrow">{role.label.toUpperCase()}</span>
             <h1 className="app-topbar-title">{pageTitle}</h1>
           </div>
-          {isStudent && (
-            <div className="app-header-actions">
-              <form className="app-search" onSubmit={submitSearch}>
-                <label className="sr-only" htmlFor="app-search-input">Tìm khóa học</label>
-                <button type="submit" aria-label="Tìm kiếm">
-                  <IconSearch />
-                </button>
-                <input id="app-search-input" name="search" placeholder="Tìm kiếm khóa học..." />
-                <kbd className="app-search-kbd">⌘K</kbd>
-              </form>
-              <button
-                className="app-icon-button"
-                type="button"
-                onClick={toggleTheme}
-                aria-label="Đổi chủ đề sáng tối"
-                title={`Chuyển sang giao diện ${theme === "light" ? "Tối" : "Sáng"}`}
-              >
-                {theme === "light" ? <IconMoon /> : <IconSun />}
+          <div className="app-header-actions">
+            <form className="app-search" onSubmit={submitSearch}>
+              <label className="sr-only" htmlFor={`app-search-input-${roleKey}`}>Tìm khóa học</label>
+              <button type="submit" aria-label="Tìm kiếm">
+                <IconSearch />
               </button>
+              <input id={`app-search-input-${roleKey}`} name="search" placeholder="Tìm kiếm khóa học..." />
+              <kbd className="app-search-kbd">⌘K</kbd>
+            </form>
+            <button
+              className="app-icon-button"
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Đổi chủ đề sáng tối"
+              title={`Chuyển sang giao diện ${theme === "light" ? "Tối" : "Sáng"}`}
+            >
+              {theme === "light" ? <IconMoon /> : <IconSun />}
+            </button>
+            {isStudent && (
               <Link className="app-icon-button app-badge-button" to="/student/cart" aria-label="Giỏ hàng" title="Giỏ hàng">
                 <IconCart />
                 <span className="app-badge-dot">2</span>
               </Link>
-              <button className="app-icon-button app-badge-button" type="button" aria-label="Thông báo" title="Thông báo">
-                <IconBell />
-                <span className="app-badge-pulse" />
-              </button>
-              <details className="app-account-menu">
-                <summary aria-label="Mở menu tài khoản">
-                  <span className="app-avatar">{initials(accountName)}</span>
-                </summary>
-                <div className="app-menu-dropdown">
-                  <div className="app-menu-header">
-                    <strong>{accountName}</strong>
-                    <small>{user?.email || "student@example.com"}</small>
-                  </div>
-                  <div className="app-menu-divider" />
-                  <Link to="/student/profile" className="app-menu-item">
-                    <span>👤 Hồ sơ cá nhân</span>
-                    <kbd className="app-kbd">⌘P</kbd>
-                  </Link>
-                  <Link to="/student/settings" className="app-menu-item">
+            )}
+            <button className="app-icon-button app-badge-button" type="button" aria-label="Thông báo" title="Thông báo">
+              <IconBell />
+              <span className="app-badge-pulse" />
+            </button>
+            <details className="app-account-menu">
+              <summary aria-label="Mở menu tài khoản">
+                <span className="app-avatar">{initials(accountName)}</span>
+              </summary>
+              <div className="app-menu-dropdown">
+                <div className="app-menu-header">
+                  <strong>{accountName}</strong>
+                  <small>{user?.email || "user@example.com"}</small>
+                </div>
+                <div className="app-menu-divider" />
+                <Link to={profileLinks.profile} className="app-menu-item">
+                  <span>👤 Hồ sơ cá nhân</span>
+                  <kbd className="app-kbd">⌘P</kbd>
+                </Link>
+                {profileLinks.settings && (
+                  <Link to={profileLinks.settings} className="app-menu-item">
                     <span>⚙️ Cài đặt tài khoản</span>
                     <kbd className="app-kbd">⌘S</kbd>
                   </Link>
-                  <Link to="/student/orders" className="app-menu-item">
+                )}
+                {profileLinks.orders && (
+                  <Link to={profileLinks.orders} className="app-menu-item">
                     <span>🛒 Lịch sử mua hàng</span>
                   </Link>
-                  <div className="app-menu-divider" />
-                  <button type="button" className="app-menu-item is-logout" onClick={handleLogout}>
-                    <span>🚪 Đăng xuất</span>
-                    <kbd className="app-kbd">⌥Q</kbd>
-                  </button>
-                </div>
-              </details>
-            </div>
-          )}
+                )}
+                <div className="app-menu-divider" />
+                <button type="button" className="app-menu-item is-logout" onClick={handleLogout}>
+                  <span>🚪 Đăng xuất</span>
+                  <kbd className="app-kbd">⌥Q</kbd>
+                </button>
+              </div>
+            </details>
+          </div>
         </header>
         <main className="app-main">
           <ErrorBoundary>

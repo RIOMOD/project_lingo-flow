@@ -80,9 +80,7 @@ export default function CoursePreviewPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Bước 3: Xem trước và kiểm tra khóa học</h2>
+      <section className="page-hero">        <h2 className="page-title">Bước 3: Xem trước và kiểm tra khóa học</h2>
         <p className="page-description">
           Kiểm tra lại nội dung, checklist hoàn thiện và chỉ gửi duyệt khi khóa học đã đủ điều kiện.
         </p>

@@ -265,9 +265,7 @@ export default function VocabularyManagementPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Quản lý từ vựng</h2>
+      <section className="page-hero">        <h2 className="page-title">Quản lý từ vựng</h2>
         <p className="page-description">Tạo từ vựng theo khóa học, chủ đề và bài học tùy chọn để Student học bằng quiz.</p>
       </section>
 

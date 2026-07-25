@@ -9,28 +9,29 @@ export default function TeacherDashboardPage() {
   useEffect(() => {
     getTeacherProgressDashboard()
       .then(setDashboard)
-      .catch((err) => setError(err.message || "Khong tai duoc dashboard teacher"));
+      .catch((err) => setError(err.message || "Không tải được dashboard teacher"));
   }, []);
 
   return (
     <div className="course-page">
       <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Dashboard Teacher</h2>
-        <p className="page-description">Theo doi lop hoc, attempt, ky nang manh/yeu va hoat dong theo tuan.</p>
+        <div className="page-hero-copy">
+          <h2 className="page-title">Dashboard giảng viên</h2>
+          <p className="page-description">Theo dõi khóa học, bài làm và tiến độ học viên.</p>
+        </div>
         <div className="page-actions">
-          <Link className="page-action page-action-primary" to="/teacher/question-bank">Xem ket qua</Link>
-          <Link className="page-action page-action-secondary" to="/teacher/courses">Quan ly khoa hoc</Link>
+          <Link className="page-action page-action-primary" to="/teacher/question-bank">Xem kết quả</Link>
+          <Link className="page-action page-action-secondary" to="/teacher/courses">Quản lý khóa học</Link>
         </div>
       </section>
       {error && <p className="auth-error">{error}</p>}
       {dashboard && (
         <>
           <section className="course-grid">
-            <article className="page-panel-card"><strong>{dashboard.activeCourses}</strong><p>Khoa dang day</p></article>
-            <article className="page-panel-card"><strong>{dashboard.startedLessons}</strong><p>Luot lam bai</p></article>
-            <article className="page-panel-card"><strong>{dashboard.completedLessons}</strong><p>Da nop</p></article>
-            <article className="page-panel-card"><strong>{dashboard.strongestSkill?.skill || "-"}</strong><p>Ky nang manh</p></article>
+            <article className="page-panel-card"><strong>{dashboard.activeCourses}</strong><p>Khóa đang dạy</p></article>
+            <article className="page-panel-card"><strong>{dashboard.startedLessons}</strong><p>Lượt làm bài</p></article>
+            <article className="page-panel-card"><strong>{dashboard.completedLessons}</strong><p>Đã nộp</p></article>
+            <article className="page-panel-card"><strong>{dashboard.strongestSkill?.skill || "-"}</strong><p>Kỹ năng mạnh</p></article>
           </section>
           <section className="course-table page-panel-card">
             {(dashboard.weeklyChart ?? []).map((item) => (

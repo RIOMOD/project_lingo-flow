@@ -513,9 +513,7 @@ export default function LessonBuilderPage() {
   if (!courseId) {
     return (
       <div className="course-page">
-        <section className="page-hero">
-          <span className="page-badge">Teacher</span>
-          <h2 className="page-title">Bước 2: Xây dựng nội dung khóa học</h2>
+        <section className="page-hero">          <h2 className="page-title">Bước 2: Xây dựng nội dung khóa học</h2>
           <p className="page-description">Chọn một khóa học để thêm chương, bài học và nội dung chi tiết.</p>
         </section>
         <CourseSelector courses={courses} />
@@ -530,9 +528,7 @@ export default function LessonBuilderPage() {
 
   return (
     <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Teacher</span>
-        <h2 className="page-title">Bước 2: Xây dựng nội dung khóa học</h2>
+      <section className="page-hero">        <h2 className="page-title">Bước 2: Xây dựng nội dung khóa học</h2>
         <p className="page-description">
           Quản lý chương, bài học, trạng thái hoàn thiện và xem trước khóa học trước khi gửi duyệt.
         </p>

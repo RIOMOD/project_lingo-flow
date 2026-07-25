@@ -35,6 +35,10 @@ const TestPage = lazy(() => import("../pages/student/TestPage"));
 const VocabularyPage = lazy(() => import("../pages/student/VocabularyPage"));
 const VocabularySessionPage = lazy(() => import("../pages/student/VocabularySessionPage"));
 const GrammarPage = lazy(() => import("../pages/student/GrammarPage"));
+const GrammarDetailPage = lazy(() => import("../pages/student/GrammarDetailPage"));
+const GrammarExerciseTakingPage = lazy(() => import("../pages/student/GrammarExerciseTakingPage"));
+const GrammarResultPage = lazy(() => import("../pages/student/GrammarResultPage"));
+const GrammarHistoryPage = lazy(() => import("../pages/student/GrammarHistoryPage"));
 const PronunciationPage = lazy(() => import("../pages/student/PronunciationPage"));
 const LeaderboardPage = lazy(() => import("../pages/student/LeaderboardPage"));
 const ChatbotPage = lazy(() => import("../pages/student/ChatbotPage"));
@@ -51,6 +55,8 @@ const LessonBuilderPage = lazy(() => import("../pages/teacher/LessonBuilderPage"
 const CoursePreviewPage = lazy(() => import("../pages/teacher/CoursePreviewPage"));
 const VocabularyManagementPage = lazy(() => import("../pages/teacher/VocabularyManagementPage"));
 const GrammarManagementPage = lazy(() => import("../pages/teacher/GrammarManagementPage"));
+const GrammarQuestionManagementPage = lazy(() => import("../pages/teacher/GrammarQuestionManagementPage"));
+const GrammarStudentResultsPage = lazy(() => import("../pages/teacher/GrammarStudentResultsPage"));
 const QuestionBankPage = lazy(() => import("../pages/teacher/QuestionBankPage"));
 const CourseSubmissionPage = lazy(() => import("../pages/teacher/CourseSubmissionPage"));
 const StudentTrackingPage = lazy(() => import("../pages/teacher/StudentTrackingPage"));
@@ -109,6 +115,10 @@ export default function AppRoutes() {
                 <Route path="vocabulary" element={<VocabularyPage />} />
                 <Route path="vocabulary/session" element={<VocabularySessionPage />} />
                 <Route path="grammar" element={<GrammarPage />} />
+                <Route path="grammar/history" element={<GrammarHistoryPage />} />
+                <Route path="grammar/:id" element={<GrammarDetailPage />} />
+                <Route path="grammar/:id/exercise" element={<GrammarExerciseTakingPage />} />
+                <Route path="grammar/result/:id" element={<GrammarResultPage />} />
                 <Route path="pronunciation" element={<PronunciationPage />} />
                 <Route path="leaderboard" element={<LeaderboardPage />} />
                 <Route path="chatbot" element={<ChatbotPage />} />
@@ -131,6 +141,8 @@ export default function AppRoutes() {
                 <Route path="lessons" element={<LessonBuilderPage />} />
                 <Route path="vocabulary" element={<VocabularyManagementPage />} />
                 <Route path="grammar" element={<GrammarManagementPage />} />
+                <Route path="grammar/:id/questions" element={<GrammarQuestionManagementPage />} />
+                <Route path="grammar/:id/results" element={<GrammarStudentResultsPage />} />
                 <Route path="question-bank" element={<QuestionBankPage />} />
                 <Route path="submission" element={<CourseSubmissionPage />} />
                 <Route path="students" element={<StudentTrackingPage />} />
