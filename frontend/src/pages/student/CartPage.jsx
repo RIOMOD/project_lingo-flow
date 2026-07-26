@@ -62,8 +62,8 @@ export default function CartPage() {
 
       <section className="page-panel-card">
         <div className="course-filter-row">
-          <input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="Mã giảm giá" />
-          <button className="page-action page-action-primary" onClick={() => run(() => applyCoupon(coupon))}>Áp mã</button>
+          <input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="Mã giảm giá" style={{ textTransform: 'uppercase' }} />
+          <button className="page-action page-action-primary" onClick={() => run(() => applyCoupon(coupon.trim().toUpperCase()))}>Áp mã</button>
           {cart?.couponCode && (
             <button className="page-action page-action-secondary" onClick={() => run(removeCoupon)}>Hủy mã {cart.couponCode}</button>
           )}
@@ -73,7 +73,14 @@ export default function CartPage() {
         <p>Tổng thanh toán: <strong>{money.format(cart?.totalAmount || 0)}</strong></p>
         <div className="page-actions">
           <button className="page-action page-action-secondary" onClick={() => run(clearCart)}>Xóa tất cả</button>
-          <Link className="page-action page-action-primary" to="/student/checkout">Thanh toán</Link>
+          <Link
+            className={`page-action page-action-primary${(cart?.items?.length ?? 0) === 0 ? " page-action-disabled" : ""}`}
+            to="/student/checkout"
+            style={(cart?.items?.length ?? 0) === 0 ? { pointerEvents: "none", opacity: 0.5 } : {}}
+            aria-disabled={(cart?.items?.length ?? 0) === 0}
+          >
+            Thanh toán
+          </Link>
         </div>
       </section>
     </div>

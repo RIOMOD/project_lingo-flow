@@ -69,6 +69,13 @@ export async function getPaymentStatus(orderCode) {
   return unwrap(await apiRequest(`/payments/${orderCode}/status`));
 }
 
+export async function mockCompletePayment(orderCode, status) {
+  return unwrap(await apiRequest(`/payments/${orderCode}/mock-complete`, {
+    method: "POST",
+    body: JSON.stringify({ status }),
+  }));
+}
+
 export async function getAdminOrders(params = {}) {
   const query = toQuery(params);
   return unwrap(await apiRequest(`/admin/orders${query ? `?${query}` : ""}`));

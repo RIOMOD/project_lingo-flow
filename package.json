@@ -6,10 +6,10 @@
     "dev": "concurrently --kill-others-on-fail --names BACKEND,FRONTEND -c \"bgMagenta.bold,bgBlue.bold\" \"npm run dev:backend\" \"npm run dev:frontend:wait\"",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:frontend:wait": "wait-on tcp:127.0.0.1:8080 && npm run dev:frontend",
-    "dev:backend": "npm --prefix backend run dev",
+    "dev:backend": "cd backend && .\\mvnw.cmd clean package -DskipTests -q && java -Dfile.encoding=UTF-8 -jar target\\english-learning-backend-0.0.1-SNAPSHOT.jar",
     "install:all": "npm install && npm --prefix frontend install",
     "build:frontend": "npm --prefix frontend run build",
-    "build:backend": "npm --prefix backend exec -- mvnw.cmd clean package -DskipTests",
+    "build:backend": "cd backend && .\\mvnw.cmd clean package -DskipTests",
     "build": "npm run build:frontend && npm run build:backend"
   },
   "devDependencies": {

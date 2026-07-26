@@ -1,6 +1,7 @@
 package com.example.englishlearning.controller;
 
 import com.example.englishlearning.dto.common.ApiResponse;
+import com.example.englishlearning.dto.payment.MockCompleteRequest;
 import com.example.englishlearning.dto.payment.PaymentResponse;
 import com.example.englishlearning.dto.payment.PaymentWebhookRequest;
 import com.example.englishlearning.service.CommerceService;
@@ -50,5 +51,21 @@ public class PaymentController {
             @PathVariable String orderCode
     ) {
         return ApiResponse.success(commerceService.getPaymentStatus(authentication.getName(), orderCode));
+    }
+
+    /**
+     * Mock payment completion endpoint — for testing only.
+     * Only works with MOCK provider. Only the order owner can call this.
+     */
+    @PostMapping("/{orderCode}/mock-complete")
+    public ApiResponse<PaymentResponse> mockComplete(
+            Authentication authentication,
+            @PathVariable String orderCode,
+            @Valid @RequestBody MockCompleteRequest request
+    ) {
+        return ApiResponse.success(
+                "Mock payment " + request.getStatus().toLowerCase(),
+                commerceService.mockCompletePayment(authentication.getName(), orderCode, request.getStatus())
+        );
     }
 }

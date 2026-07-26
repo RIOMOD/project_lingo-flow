@@ -201,6 +201,18 @@ public class CommerceServiceImpl implements CommerceService {
         if (items.isEmpty()) {
             throw new BadRequestException("Cart is empty");
         }
+
+        // Validate each course is still valid and user doesn't own it
+        for (CartItem cartItem : items) {
+            Course course = cartItem.getCourse();
+            if (course.getStatus() != Course.CourseStatus.PUBLISHED) {
+                throw new BadRequestException("Course '" + course.getTitle() + "' is no longer available");
+            }
+            if (courseOwnershipRepository.existsByUserIdAndCourseIdAndStatus(user.getId(), course.getId(), CourseOwnership.OwnershipStatus.ACTIVE)) {
+                throw new BadRequestException("You already own '" + course.getTitle() + "'. Please remove it from cart.");
+            }
+        }
+
         BigDecimal subtotal = calculateSubtotal(items);
         BigDecimal discount = calculateDiscount(cart.getCoupon(), subtotal);
         Order order = new Order();
@@ -227,22 +239,10 @@ public class CommerceServiceImpl implements CommerceService {
             orderItemRepository.save(orderItem);
         }
 
-        if (cart.getCoupon() != null) {
-            Coupon coupon = cart.getCoupon();
-            coupon.setUsedCount((coupon.getUsedCount() == null ? 0 : coupon.getUsedCount()) + 1);
-            couponRepository.save(coupon);
-            CouponUsage usage = new CouponUsage();
-            usage.setCoupon(coupon);
-            usage.setUser(user);
-            usage.setOrder(order);
-            usage.setDiscountAmount(discount);
-            couponUsageRepository.save(usage);
-        }
+        // DO NOT delete cart items or change cart status here.
+        // Cart is cleaned up only after payment SUCCESS in markOrderPaid().
+        // CouponUsage is recorded only after payment SUCCESS.
 
-        cartItemRepository.deleteByCartId(cart.getId());
-        cart.setCoupon(null);
-        cart.setStatus(Cart.CartStatus.CHECKED_OUT);
-        cartRepository.save(cart);
         return toOrderResponse(order);
     }
 
@@ -293,9 +293,30 @@ public class CommerceServiceImpl implements CommerceService {
                     created.setStatus(Payment.PaymentStatus.INITIATED);
                     return created;
                 });
-        payment.setPaymentUrl("http://localhost:5173/student/payment/pending?orderCode="
-                + order.getOrderCode() + "&paymentCode=" + payment.getPaymentCode());
+        // Use relative path to be port-agnostic; frontend handles routing
+        payment.setPaymentUrl("/student/checkout?orderCode=" + order.getOrderCode());
         return toPaymentResponse(paymentRepository.save(payment));
+    }
+
+    @Override
+    public PaymentResponse mockCompletePayment(String email, String orderCode, String status) {
+        User user = getUser(email);
+        Order order = orderRepository.findByOrderCodeAndUserId(orderCode, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Payment payment = paymentRepository.findTopByOrderIdOrderByCreatedAtDesc(order.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found. Please initiate payment first."));
+        if (payment.getProvider() != Payment.PaymentProvider.MOCK) {
+            throw new BadRequestException("Mock payment is only available for MOCK provider");
+        }
+        if (payment.getStatus() == Payment.PaymentStatus.SUCCESS) {
+            return toPaymentResponse(payment);
+        }
+        if (payment.getStatus() == Payment.PaymentStatus.CANCELED || payment.getStatus() == Payment.PaymentStatus.FAILED) {
+            // Allow re-creating a new INITIATED payment for retry
+            throw new BadRequestException("Payment already " + payment.getStatus() + ". Create a new payment to try again.");
+        }
+        String transactionCode = generateCode("MOCK") + "-" + status;
+        return completePayment(payment.getPaymentCode(), transactionCode, status, "{\"mock\":true,\"status\":\"" + status + "\"}");
     }
 
     @Override
@@ -466,6 +487,24 @@ public class CommerceServiceImpl implements CommerceService {
             return toPaymentResponse(payment);
         }
         boolean success = "SUCCESS".equalsIgnoreCase(status) || "PAID".equalsIgnoreCase(status);
+        boolean canceled = "CANCELED".equalsIgnoreCase(status) || "CANCEL".equalsIgnoreCase(status);
+
+        if (canceled) {
+            payment.setStatus(Payment.PaymentStatus.CANCELED);
+            payment.setFailedReason("Payment canceled by user");
+            payment = paymentRepository.save(payment);
+            // Record transaction for audit
+            PaymentTransaction transaction = new PaymentTransaction();
+            transaction.setPayment(payment);
+            transaction.setTransactionCode(uniqueTransactionCode(transactionCode));
+            transaction.setGatewayTransactionCode(transactionCode);
+            transaction.setAmount(payment.getAmount());
+            transaction.setStatus(PaymentTransaction.TransactionStatus.FAILED);
+            transaction.setRawResponse(rawResponse);
+            transactionRepository.save(transaction);
+            return toPaymentResponse(payment);
+        }
+
         payment.setStatus(success ? Payment.PaymentStatus.SUCCESS : Payment.PaymentStatus.FAILED);
         payment.setPaidAt(success ? LocalDateTime.now() : null);
         if (!success) {
@@ -496,7 +535,8 @@ public class CommerceServiceImpl implements CommerceService {
         order.setPaidAt(LocalDateTime.now());
         orderRepository.save(order);
         User user = order.getUser();
-        for (OrderItem item : orderItemRepository.findByOrderId(order.getId())) {
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+        for (OrderItem item : orderItems) {
             if (!courseOwnershipRepository.existsByUserIdAndCourseId(user.getId(), item.getCourse().getId())) {
                 CourseOwnership ownership = new CourseOwnership();
                 ownership.setUser(user);
@@ -515,6 +555,37 @@ public class CommerceServiceImpl implements CommerceService {
                 courseEnrollmentRepository.save(enrollment);
             }
         }
+
+        // Record coupon usage ONLY after successful payment (idempotent)
+        if (order.getCoupon() != null) {
+            boolean usageExists = couponUsageRepository.existsByOrderId(order.getId());
+            if (!usageExists) {
+                Coupon coupon = order.getCoupon();
+                coupon.setUsedCount((coupon.getUsedCount() == null ? 0 : coupon.getUsedCount()) + 1);
+                couponRepository.save(coupon);
+                CouponUsage usage = new CouponUsage();
+                usage.setCoupon(coupon);
+                usage.setUser(user);
+                usage.setOrder(order);
+                usage.setDiscountAmount(order.getDiscountAmount());
+                couponUsageRepository.save(usage);
+            }
+        }
+
+        // Remove purchased courses from cart (idempotent)
+        cartRepository.findByUserId(user.getId()).ifPresent(cart -> {
+            for (OrderItem item : orderItems) {
+                cartItemRepository.findByCartIdAndCourseId(cart.getId(), item.getCourse().getId())
+                        .ifPresent(cartItemRepository::delete);
+            }
+            // If cart is now empty, reset coupon
+            List<CartItem> remaining = cartItemRepository.findByCartIdOrderByAddedAtDesc(cart.getId());
+            if (remaining.isEmpty()) {
+                cart.setCoupon(null);
+                cartRepository.save(cart);
+            }
+        });
+
         invoiceRepository.findByOrderId(order.getId()).orElseGet(() -> {
             Invoice invoice = new Invoice();
             invoice.setOrder(order);
@@ -634,8 +705,11 @@ public class CommerceServiceImpl implements CommerceService {
                 .paymentCode(payment.getPaymentCode())
                 .provider(payment.getProvider())
                 .status(payment.getStatus())
+                .orderStatus(payment.getOrder().getStatus())
                 .amount(payment.getAmount())
                 .paymentUrl(payment.getPaymentUrl())
+                .paidAt(payment.getPaidAt())
+                .failedReason(payment.getFailedReason())
                 .build();
     }
 

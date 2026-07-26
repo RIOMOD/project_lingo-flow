@@ -42,6 +42,9 @@ public interface CommerceService {
 
     PaymentResponse getPaymentStatus(String email, String orderCode);
 
+    PaymentResponse mockCompletePayment(String email, String orderCode, String status);
+
+
     PageResponse<OrderResponse> getAdminOrders(Pageable pageable);
 
     PageResponse<TransactionResponse> getAdminTransactions(Pageable pageable);
