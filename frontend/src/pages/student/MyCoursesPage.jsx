@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import CertificateModal from "../../components/student/CertificateModal";
+import { useToast } from "../../context/ToastContext";
+import { addCartItem } from "../../services/commerceService";
+import { enrollFree, getCourses } from "../../services/courseService";
+import { getCertificateEligibility, getCourseProgress } from "../../services/progressService";
 import { getMyCourses } from "../../services/userService";
-import { getCourseProgress } from "../../services/progressService";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80",
@@ -30,35 +34,123 @@ function CourseImage({ course, index }) {
   );
 }
 
+function priceText(course) {
+  if (!course) return "";
+  if (course.courseType === "FREE") return "Miễn phí";
+  const value = course.salePrice || course.originalPrice || 0;
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+}
+
+function hasSale(course) {
+  return course?.courseType === "PAID" && course?.salePrice && course?.originalPrice && course.salePrice < course.originalPrice;
+}
+
 export default function MyCoursesPage() {
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const [activeTab, setActiveTab] = useState("my"); // "my" | "catalog"
   const [courses, setCourses] = useState([]);
+  const [catalogCourses, setCatalogCourses] = useState([]);
   const [progressByCourse, setProgressByCourse] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [certCourse, setCertCourse] = useState(null);
+  const [ineligibleData, setIneligibleData] = useState(null);
+  const [checkingCert, setCheckingCert] = useState(false);
+  const [actionCourseId, setActionCourseId] = useState(null);
 
-  useEffect(() => {
-    let mounted = true;
+  const loadData = async () => {
     setLoading(true);
     setError("");
+    try {
+      const [myRes, progRes, catRes] = await Promise.all([
+        getMyCourses({ size: 20 }),
+        getCourseProgress(),
+        getCourses({ size: 30 }),
+      ]);
+      setCourses(myRes?.items ?? []);
+      setProgressByCourse(Object.fromEntries((progRes ?? []).map((item) => [item.courseId, item])));
+      setCatalogCourses(Array.isArray(catRes) ? catRes : Array.isArray(catRes?.items) ? catRes.items : []);
+    } catch (err) {
+      setError(err.message || "Không tải được danh sách khóa học");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    Promise.all([getMyCourses({ size: 12 }), getCourseProgress()])
-      .then(([data, progress]) => {
-        if (mounted) {
-          setCourses(data?.items ?? []);
-          setProgressByCourse(Object.fromEntries((progress ?? []).map((item) => [item.courseId, item])));
-        }
-      })
-      .catch((caughtError) => {
-        if (mounted) setError(caughtError.message || "Khong tai duoc khoa hoc cua ban");
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
+  useEffect(() => {
+    loadData();
   }, []);
+
+  const enrolledCourseIds = useMemo(() => {
+    return new Set(courses.map((c) => c.courseId || c.id));
+  }, [courses]);
+
+  const availableCatalog = useMemo(() => {
+    return catalogCourses.filter((c) => !enrolledCourseIds.has(c.id));
+  }, [catalogCourses, enrolledCourseIds]);
+
+  async function handleOpenCertificate(course) {
+    setCheckingCert(true);
+    try {
+      const eligibility = await getCertificateEligibility();
+      if (eligibility && eligibility.eligible) {
+        setCertCourse(course);
+      } else {
+        setIneligibleData(eligibility || {
+          message: "Chưa đủ điều kiện nhận chứng chỉ",
+          skillCourses: [
+            { skillType: "LISTENING", skillName: "Nghe (Listening)", courseTitle: "Khóa học Nghe", progressPercent: 0, isPassed: false },
+            { skillType: "SPEAKING", skillName: "Nói (Speaking)", courseTitle: "Khóa học Nói", progressPercent: 0, isPassed: false },
+            { skillType: "WRITING", skillName: "Viết (Writing)", courseTitle: "Khóa học Viết", progressPercent: 0, isPassed: false },
+          ]
+        });
+      }
+    } catch (err) {
+      setError(err.message || "Không thể kiểm tra điều kiện cấp chứng chỉ");
+    } finally {
+      setCheckingCert(false);
+    }
+  }
+
+  async function handleEnrollFreeCourse(courseId) {
+    setActionCourseId(courseId);
+    try {
+      await enrollFree(courseId);
+      toast.success("Đã đăng ký khóa học miễn phí thành công!");
+      await loadData();
+      setActiveTab("my");
+    } catch (err) {
+      toast.error(err.message || "Không thể đăng ký khóa học này");
+    } finally {
+      setActionCourseId(null);
+    }
+  }
+
+  async function handleBuyCourseNow(courseId) {
+    setActionCourseId(courseId);
+    try {
+      await addCartItem(courseId);
+      navigate("/student/checkout");
+    } catch (err) {
+      toast.error(err.message || "Không tạo được thanh toán");
+    } finally {
+      setActionCourseId(null);
+    }
+  }
+
+  async function handleAddToCartCourse(courseId) {
+    setActionCourseId(courseId);
+    try {
+      await addCartItem(courseId);
+      toast.success("Đã thêm khóa học vào giỏ hàng!");
+    } catch (err) {
+      toast.error(err.message || "Không thêm được vào giỏ");
+    } finally {
+      setActionCourseId(null);
+    }
+  }
 
   const stats = useMemo(() => {
     const free = courses.filter((course) => course.courseType === "FREE").length;
@@ -75,87 +167,272 @@ export default function MyCoursesPage() {
       <div className="my-courses-hero">
         <div className="my-courses-copy">
           <span className="page-badge">Student learning</span>
-          <h2>Khoa hoc cua toi</h2>
+          <h2>Góc học tập & Khám phá khóa học</h2>
           <p>
-            Tat ca khoa FREE va PAID ban dang so huu nam o day. Chon mot khoa
-            de vao hoc tiep, xem tien do va tiep tuc bai gan nhat.
+            Quản lý các khóa học đang sở hữu hoặc khám phá khóa học mới để đăng ký & mua thêm trực tiếp tại đây.
           </p>
-          <div className="my-courses-actions">
-            <Link className="page-action page-action-primary" to="/courses">
-              Mua them khoa hoc
-            </Link>
-            <Link className="page-action page-action-secondary" to="/student/progress">
-              Xem tien do
-            </Link>
+          <div className="my-courses-actions" style={{ display: "flex", gap: "10px", marginTop: "1rem" }}>
+            <button
+              type="button"
+              className={`page-action ${activeTab === "my" ? "page-action-primary" : "page-action-secondary"}`}
+              onClick={() => setActiveTab("my")}
+            >
+              📚 Khóa học của tôi ({courses.length})
+            </button>
+            <button
+              type="button"
+              className={`page-action ${activeTab === "catalog" ? "page-action-primary" : "page-action-secondary"}`}
+              onClick={() => setActiveTab("catalog")}
+            >
+              🛒 Khám phá khóa học mới ({availableCatalog.length})
+            </button>
           </div>
         </div>
 
-        <div className="my-courses-summary" aria-label="Thong ke khoa hoc">
+        <div className="my-courses-summary" aria-label="Thống kê khóa học">
           <div>
-            <span>Tong khoa</span>
+            <span>Đã sở hữu</span>
             <strong>{stats.total}</strong>
           </div>
           <div>
-            <span>FREE</span>
+            <span>Khóa FREE</span>
             <strong>{stats.free}</strong>
           </div>
           <div>
-            <span>PAID</span>
+            <span>Khóa PAID</span>
             <strong>{stats.paid}</strong>
           </div>
         </div>
       </div>
 
-      {loading && <p className="auth-state">Dang tai khoa hoc cua ban...</p>}
+      {loading && <p className="auth-state">Đang tải dữ liệu khóa học...</p>}
       {error && <p className="auth-error">{error}</p>}
 
-      {!loading && !error && courses.length === 0 && (
-        <article className="my-courses-empty">
-          <h3>Ban chua so huu khoa hoc nao</h3>
-          <p>Hay dang ky mot khoa FREE hoac mua khoa PAID de bat dau hoc.</p>
-          <Link className="page-action page-action-primary" to="/courses">
-            Kham pha khoa hoc
-          </Link>
-        </article>
+      {!loading && !error && activeTab === "my" && (
+        <>
+          {courses.length === 0 ? (
+            <article className="my-courses-empty">
+              <h3>Bạn chưa sở hữu khóa học nào</h3>
+              <p>Hãy khám phá các khóa học mới bên dưới để bắt đầu lộ trình.</p>
+              <button
+                type="button"
+                className="page-action page-action-primary"
+                onClick={() => setActiveTab("catalog")}
+              >
+                Khám phá khóa học mới
+              </button>
+            </article>
+          ) : (
+            <div className="my-courses-grid">
+              {courses.map((course, index) => {
+                const prog = progressByCourse[course.courseId];
+                const percent = Number(prog?.progressPercent || 0);
+
+                return (
+                  <article className="my-course-card" key={course.courseId}>
+                    <div className="my-course-media">
+                      <CourseImage course={course} index={index} />
+                      <span className={`my-course-type ${course.courseType?.toLowerCase()}`}>
+                        {course.courseType}
+                      </span>
+                    </div>
+
+                    <div className="my-course-body">
+                      <div className="course-card-meta">
+                        <span>{course.level}</span>
+                        <span>{course.ownershipType}</span>
+                      </div>
+
+                      <h3>{course.title}</h3>
+                      <p>
+                        Trạng thái: <strong>{course.ownershipStatus}</strong> · Cấp quyền:{" "}
+                        {formatDate(course.grantedAt)}
+                      </p>
+
+                      <div className="my-course-progress" aria-label={`Tiến độ ${percent.toFixed(0)}%`}>
+                        <span style={{ width: `${percent}%` }} />
+                      </div>
+
+                      <div className="course-card-footer" style={{ marginTop: "auto", paddingTop: "10px", borderTop: "1px solid #f1f5f9", display: "flex", gap: "8px", width: "100%" }}>
+                        <button
+                          type="button"
+                          disabled={checkingCert}
+                          onClick={() => handleOpenCertificate(course)}
+                          style={{ flex: "1.2", padding: "8px 10px", fontSize: "0.78rem", borderRadius: "8px", border: "1px solid #99f6e4", background: "#f0fdfa", color: "#0d9488", cursor: "pointer", fontWeight: "700", opacity: checkingCert ? 0.6 : 1, whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          {checkingCert ? "Đang kiểm tra..." : "🎓 Chứng nhận (PDF)"}
+                        </button>
+                        <Link
+                          className="page-action page-action-primary"
+                          to={`/student/learn/${course.courseId}${prog?.nextLessonId ? `/${prog.nextLessonId}` : ""}`}
+                          style={{ flex: "1", padding: "8px 12px", fontSize: "0.85rem", textAlign: "center", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          Vào học
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
-      <div className="my-courses-grid">
-        {courses.map((course, index) => (
-          <article className="my-course-card" key={course.courseId}>
-            <div className="my-course-media">
-              <CourseImage course={course} index={index} />
-              <span className={`my-course-type ${course.courseType?.toLowerCase()}`}>
-                {course.courseType}
-              </span>
+      {!loading && !error && activeTab === "catalog" && (
+        <>
+          <div style={{ margin: "1.5rem 0 1rem 0" }}>
+            <h3 style={{ fontSize: "1.3rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.4rem 0" }}>
+              Danh mục khóa học chưa tham gia ({availableCatalog.length})
+            </h3>
+            <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0 }}>
+              Đăng ký ngay khóa FREE hoặc mua khóa PAID để bổ sung vào lộ trình học tập của bạn.
+            </p>
+          </div>
+
+          {availableCatalog.length === 0 ? (
+            <article className="my-courses-empty">
+              <h3>Bạn đã sở hữu tất cả khóa học hiện có!</h3>
+              <p>Hãy chọn tab "Khóa học của tôi" để tiếp tục nâng cao trình độ.</p>
+              <button type="button" className="page-action page-action-primary" onClick={() => setActiveTab("my")}>
+                Quay lại Khóa học của tôi
+              </button>
+            </article>
+          ) : (
+            <div className="my-courses-grid">
+              {availableCatalog.map((course, index) => {
+                const isFree = course.courseType === "FREE";
+                const isActing = actionCourseId === course.id;
+
+                return (
+                  <article className="my-course-card" key={course.id}>
+                    <div className="my-course-media">
+                      <CourseImage course={course} index={index} />
+                      <span className={`my-course-type ${course.courseType?.toLowerCase()}`}>
+                        {course.courseType}
+                      </span>
+                    </div>
+
+                    <div className="my-course-body">
+                      <div className="course-card-meta">
+                        <span>{course.level}</span>
+                        <span>{isFree ? "Miễn phí" : "Khóa trả phí"}</span>
+                      </div>
+
+                      <h3>{course.title}</h3>
+                      <p style={{ color: "#475569", fontSize: "0.86rem", lineHeight: 1.4, margin: "0 0 0.5rem 0", height: "2.8em", minHeight: "2.8em", maxHeight: "2.8em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {course.shortDescription || "Nâng cao kỹ năng tiếng Anh giao tiếp thông minh với bài giảng bài bản."}
+                      </p>
+
+                      <div style={{ marginTop: "auto", paddingTop: "0.75rem", borderTop: "1px solid #f1f5f9" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "24px", minHeight: "24px", marginBottom: "8px" }}>
+                          {hasSale(course) && (
+                            <span style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.8rem" }}>
+                              {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(course.originalPrice)}
+                            </span>
+                          )}
+                          <strong style={{ fontSize: "1.1rem", color: isFree ? "#16a34a" : "#2563eb", fontWeight: 700 }}>
+                            {priceText(course)}
+                          </strong>
+                        </div>
+
+                        {isFree ? (
+                          <button
+                            type="button"
+                            disabled={isActing}
+                            onClick={() => handleEnrollFreeCourse(course.id)}
+                            style={{ width: "100%", padding: "8px 12px", borderRadius: "10px", background: "linear-gradient(135deg, #16a34a, #15803d)", color: "#fff", border: "none", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", whiteSpace: "nowrap" }}
+                          >
+                            {isActing ? "Đang xử lý..." : "✨ Đăng ký miễn phí"}
+                          </button>
+                        ) : (
+                          <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                            <button
+                              type="button"
+                              disabled={isActing}
+                              onClick={() => handleAddToCartCourse(course.id)}
+                              style={{ flex: "1", padding: "8px 10px", borderRadius: "8px", background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1", fontWeight: 600, fontSize: "0.82rem", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                              title="Thêm vào giỏ hàng"
+                            >
+                              🛒 Giỏ hàng
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isActing}
+                              onClick={() => handleBuyCourseNow(course.id)}
+                              style={{ flex: "1.2", padding: "8px 12px", borderRadius: "8px", background: "linear-gradient(135deg, #2563eb, #4f46e5)", color: "#fff", border: "none", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(37,99,235,0.25)" }}
+                            >
+                              {isActing ? "Đang xử lý..." : "⚡ Mua ngay"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
+          )}
+        </>
+      )}
 
-            <div className="my-course-body">
-              <div className="course-card-meta">
-                <span>{course.level}</span>
-                <span>{course.ownershipType}</span>
+      {ineligibleData && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(6px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1.5rem"
+        }}>
+          <div style={{
+            background: "#ffffff", borderRadius: "20px", width: "100%", maxWidth: "520px", padding: "2rem",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)", border: "1px solid #f1f5f9"
+          }}>
+            <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#fef3c7", color: "#d97706", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", marginBottom: "0.75rem" }}>
+                🔒
               </div>
-
-              <h3>{course.title}</h3>
-              <p>
-                Trang thai: <strong>{course.ownershipStatus}</strong> · Cap quyen:{" "}
-                {formatDate(course.grantedAt)}
+              <h3 style={{ margin: 0, fontSize: "1.35rem", fontWeight: 700, color: "#0f172a" }}>Chưa đủ điều kiện nhận chứng chỉ</h3>
+              <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.88rem", color: "#64748b", lineHeight: 1.5 }}>
+                Điều kiện: Học viên phải tham gia đủ <strong>3 khóa học cho 3 kỹ năng (Nghe, Nói, Viết)</strong> và đạt <strong>trên 95% tiến độ học tập</strong> của 3 khóa đó.
               </p>
-
-              <div className="my-course-progress" aria-label={`Tiến độ ${Number(progressByCourse[course.courseId]?.progressPercent || 0).toFixed(0)}%`}>
-                <span style={{ width: `${Number(progressByCourse[course.courseId]?.progressPercent || 0)}%` }} />
-              </div>
-
-              <div className="course-card-footer">
-                <span className="my-course-status">{course.courseStatus}</span>
-                <Link className="page-action page-action-primary" to={`/student/learn/${course.courseId}${progressByCourse[course.courseId]?.nextLessonId ? `/${progressByCourse[course.courseId].nextLessonId}` : ""}`}>
-                  Vào học
-                </Link>
-              </div>
             </div>
-          </article>
-        ))}
-      </div>
+
+            <div style={{ background: "#f8fafc", borderRadius: "12px", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "1.5rem", border: "1px solid #e2e8f0" }}>
+              {(ineligibleData.skillCourses || []).map((skill) => (
+                <div key={skill.skillType} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.6rem 0.85rem", background: "#ffffff", borderRadius: "8px", border: "1px solid #f1f5f9" }}>
+                  <div>
+                    <strong style={{ display: "block", fontSize: "0.9rem", color: "#1e293b" }}>{skill.skillName}</strong>
+                    <small style={{ color: "#64748b", fontSize: "0.78rem" }}>{skill.courseTitle}</small>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span style={{ display: "block", fontWeight: 700, fontSize: "0.92rem", color: skill.isPassed ? "#16a34a" : "#dc2626" }}>
+                      {Number(skill.progressPercent || 0).toFixed(0)}%
+                    </span>
+                    <small style={{ fontSize: "0.72rem", color: skill.isPassed ? "#16a34a" : "#dc2626", fontWeight: 600 }}>
+                      {skill.isPassed ? "✓ Đạt (≥ 95%)" : "✕ Chưa đạt"}
+                    </small>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => setIneligibleData(null)}
+                style={{ width: "100%", padding: "0.75rem", background: "linear-gradient(135deg, #2563eb, #4f46e5)", color: "#fff", border: "none", borderRadius: "10px", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer" }}
+              >
+                Đã hiểu, tôi sẽ hoàn thành đủ 3 khóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {certCourse && (
+        <CertificateModal 
+          courseTitle={certCourse.title}
+          onClose={() => setCertCourse(null)}
+        />
+      )}
     </section>
   );
 }
-

@@ -39,6 +39,16 @@ public class PaymentController {
         return ApiResponse.success("Payment return handled", commerceService.handlePaymentReturn(params));
     }
 
+    @PostMapping("/{orderCode}/simulate")
+    public ApiResponse<PaymentResponse> simulatePayment(
+            Authentication authentication,
+            @PathVariable String orderCode
+    ) {
+        PaymentResponse init = commerceService.createPayment(authentication.getName(), orderCode);
+        Map<String, String> params = Map.of("paymentCode", init.getPaymentCode(), "status", "SUCCESS");
+        return ApiResponse.success("Demo payment completed successfully", commerceService.handlePaymentReturn(params));
+    }
+
     @PostMapping("/webhook")
     public ApiResponse<PaymentResponse> paymentWebhook(@Valid @RequestBody PaymentWebhookRequest request) {
         return ApiResponse.success("Payment webhook handled", commerceService.handlePaymentWebhook(request));

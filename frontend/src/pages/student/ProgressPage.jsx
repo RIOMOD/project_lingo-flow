@@ -58,16 +58,29 @@ export default function ProgressPage() {
             <div className="student-panel-head">
               <div>
                 <span className="page-badge">Monthly</span>
-                <h3>Biểu đồ tháng</h3>
+                <h3>Biểu đồ học tập tháng</h3>
               </div>
             </div>
-            <div className="student-month-grid">
-              {(dashboard.monthlyChart ?? []).map((item) => (
-                <div className="student-month-cell" key={item.label}>
-                  <strong>{item.value}</strong>
-                  <span>Ngày {item.label}</span>
-                </div>
-              ))}
+
+            <div className="student-calendar-weekdays">
+              <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+            </div>
+
+            <div className="student-calendar-grid">
+              {(dashboard.monthlyChart ?? []).map((item) => {
+                const val = Number(item.value || 0);
+                const active = val > 0;
+                return (
+                  <div
+                    className={`student-calendar-cell ${active ? "has-activity" : ""}`}
+                    key={item.label}
+                    title={`Ngày ${item.label}: ${val > 0 ? `${val} phút học` : "Chưa học"}`}
+                  >
+                    <span className="calendar-day-num">{item.label}</span>
+                    <span className="calendar-day-val">{val > 0 ? `${val}m` : "-"}</span>
+                  </div>
+                );
+              })}
             </div>
           </article>
         </section>

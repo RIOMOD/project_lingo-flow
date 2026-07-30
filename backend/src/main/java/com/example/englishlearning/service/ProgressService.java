@@ -4,6 +4,8 @@ import com.example.englishlearning.dto.progress.CourseProgressResponse;
 import com.example.englishlearning.dto.progress.LessonProgressRequest;
 import com.example.englishlearning.dto.progress.ProgressDashboardResponse;
 
+import com.example.englishlearning.dto.progress.CertificateEligibilityResponse;
+
 import java.util.List;
 
 public interface ProgressService {
@@ -15,4 +17,5 @@ public interface ProgressService {
     CourseProgressResponse completeLesson(String email, Long lessonId, LessonProgressRequest request);
     void recordVocabularyProgress(String email, int masteredCount);
     ProgressDashboardResponse getTeacherDashboard(String email);
+    CertificateEligibilityResponse getCertificateEligibility(String email);
 }

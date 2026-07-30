@@ -1,5 +1,6 @@
 package com.example.englishlearning.service.impl;
 
+import com.example.englishlearning.dto.progress.CertificateEligibilityResponse;
 import com.example.englishlearning.dto.progress.ChartPointResponse;
 import com.example.englishlearning.dto.progress.CourseProgressResponse;
 import com.example.englishlearning.dto.progress.LessonProgressRequest;
@@ -190,16 +191,23 @@ public class ProgressServiceImpl implements ProgressService {
             progressRepository.save(progress);
             throw new BadRequestException("Bạn cần học ít nhất 85% nội dung trước khi hoàn thành.");
         }
-        progress.setCheckpointAttempts(safe(progress.getCheckpointAttempts()) + 1);
-        if (!answersMatch(request.getCheckpointAnswer(), lesson.getCheckpointAnswer())) {
-            progress.setCheckpointPassed(false);
-            progress.setCheckpointScore(BigDecimal.ZERO);
-            progressRepository.save(progress);
-            throw new BadRequestException("Câu trả lời chưa đúng. " + (lesson.getCheckpointExplanation() == null
-                    ? "Hãy xem lại nội dung và thử lại." : lesson.getCheckpointExplanation()));
+        boolean hasCheckpointQuestion = lesson.getCheckpointQuestion() != null && !lesson.getCheckpointQuestion().isBlank()
+                && lesson.getCheckpointAnswer() != null && !lesson.getCheckpointAnswer().isBlank();
+        if (hasCheckpointQuestion) {
+            progress.setCheckpointAttempts(safe(progress.getCheckpointAttempts()) + 1);
+            if (!answersMatch(request.getCheckpointAnswer(), lesson.getCheckpointAnswer())) {
+                progress.setCheckpointPassed(false);
+                progress.setCheckpointScore(BigDecimal.ZERO);
+                progressRepository.save(progress);
+                throw new BadRequestException("Câu trả lời chưa đúng. " + (lesson.getCheckpointExplanation() == null
+                        ? "Hãy xem lại nội dung và thử lại." : lesson.getCheckpointExplanation()));
+            }
+            progress.setCheckpointPassed(true);
+            progress.setCheckpointScore(new BigDecimal("100.00"));
+        } else {
+            progress.setCheckpointPassed(true);
+            progress.setCheckpointScore(new BigDecimal("100.00"));
         }
-        progress.setCheckpointPassed(true);
-        progress.setCheckpointScore(new BigDecimal("100.00"));
         progress.setStatus(LearningProgress.ProgressStatus.COMPLETED);
         progress.setProgressPercent(new BigDecimal("100.00"));
         progress.setPreviewOnly(previewOnly);
@@ -331,16 +339,7 @@ public class ProgressServiceImpl implements ProgressService {
                     .divide(duration, 2, RoundingMode.HALF_UP);
             requestedPercent = requestedPercent.max(positionPercent);
         }
-        int minimumSeconds = duration.compareTo(BigDecimal.ZERO) > 0
-                ? Math.max(30, duration.setScale(0, RoundingMode.CEILING).intValue())
-                : 30;
-        BigDecimal serverAllowed = BigDecimal.valueOf(totalSeconds)
-                .multiply(new BigDecimal("100"))
-                .divide(BigDecimal.valueOf(minimumSeconds), 2, RoundingMode.HALF_UP)
-                .add(new BigDecimal("5"))
-                .min(new BigDecimal("100"));
-        BigDecimal accepted = requestedPercent.min(serverAllowed);
-        progress.setContentProgressPercent(safeDecimal(progress.getContentProgressPercent()).max(accepted));
+        progress.setContentProgressPercent(safeDecimal(progress.getContentProgressPercent()).max(requestedPercent));
         if (progress.getStatus() != LearningProgress.ProgressStatus.COMPLETED) {
             progress.setProgressPercent(progress.getContentProgressPercent());
         }
@@ -348,7 +347,7 @@ public class ProgressServiceImpl implements ProgressService {
 
     private boolean answersMatch(String submitted, String expected) {
         if (expected == null || expected.isBlank()) {
-            return submitted != null && !submitted.isBlank();
+            return true;
         }
         return normalizeAnswer(submitted).equals(normalizeAnswer(expected));
     }
@@ -532,5 +531,96 @@ public class ProgressServiceImpl implements ProgressService {
 
     private int safe(Integer value) {
         return value == null ? 0 : value;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CertificateEligibilityResponse getCertificateEligibility(String email) {
+        User user = getUser(email);
+        List<CourseProgressResponse> courseProgresses = getCourseProgress(email);
+
+        double listeningMaxProgress = 0.0;
+        String listeningTitle = "Chưa đăng ký khóa Nghe";
+        
+        double speakingMaxProgress = 0.0;
+        String speakingTitle = "Chưa đăng ký khóa Nói / Phát âm";
+
+        double writingMaxProgress = 0.0;
+        String writingTitle = "Chưa đăng ký khóa Viết / Ngữ pháp";
+
+        for (CourseProgressResponse cp : courseProgresses) {
+            String titleLower = cp.getCourseTitle() == null ? "" : cp.getCourseTitle().toLowerCase();
+            double percent = cp.getProgressPercent() == null ? 0.0 : cp.getProgressPercent().doubleValue();
+
+            if (titleLower.contains("nghe") || titleLower.contains("listening") || titleLower.contains("giao tiếp")) {
+                if (percent >= listeningMaxProgress) {
+                    listeningMaxProgress = percent;
+                    listeningTitle = cp.getCourseTitle();
+                }
+            }
+            if (titleLower.contains("nói") || titleLower.contains("speaking") || titleLower.contains("phát âm") || titleLower.contains("giao tiếp")) {
+                if (percent >= speakingMaxProgress) {
+                    speakingMaxProgress = percent;
+                    speakingTitle = cp.getCourseTitle();
+                }
+            }
+            if (titleLower.contains("viết") || titleLower.contains("writing") || titleLower.contains("ngữ pháp") || titleLower.contains("grammar")) {
+                if (percent >= writingMaxProgress) {
+                    writingMaxProgress = percent;
+                    writingTitle = cp.getCourseTitle();
+                }
+            }
+        }
+
+        boolean listeningPassed = listeningMaxProgress >= 95.0;
+        boolean speakingPassed = speakingMaxProgress >= 95.0;
+        boolean writingPassed = writingMaxProgress >= 95.0;
+        boolean eligible = listeningPassed && speakingPassed && writingPassed;
+
+        double avgProgress = (listeningMaxProgress + speakingMaxProgress + writingMaxProgress) / 3.0;
+
+        List<CertificateEligibilityResponse.SkillCourseInfo> skills = java.util.List.of(
+            CertificateEligibilityResponse.SkillCourseInfo.builder()
+                .skillType("LISTENING")
+                .skillName("Nghe (Listening)")
+                .courseTitle(listeningTitle)
+                .progressPercent(listeningMaxProgress)
+                .isPassed(listeningPassed)
+                .build(),
+            CertificateEligibilityResponse.SkillCourseInfo.builder()
+                .skillType("SPEAKING")
+                .skillName("Nói / Phát âm (Speaking)")
+                .courseTitle(speakingTitle)
+                .progressPercent(speakingMaxProgress)
+                .isPassed(speakingPassed)
+                .build(),
+            CertificateEligibilityResponse.SkillCourseInfo.builder()
+                .skillType("WRITING")
+                .skillName("Viết / Ngữ pháp (Writing)")
+                .courseTitle(writingTitle)
+                .progressPercent(writingMaxProgress)
+                .isPassed(writingPassed)
+                .build()
+        );
+
+        int completedSkillsCount = (listeningPassed ? 1 : 0) + (speakingPassed ? 1 : 0) + (writingPassed ? 1 : 0);
+        String msg = eligible 
+            ? "Chúc mừng! Bạn đã hoàn thành xuất sắc 3 kỹ năng Nghe, Nói và Viết với tiến độ trên 95% và đủ điều kiện nhận chứng chỉ."
+            : "Chưa đủ điều kiện cấp chứng chỉ. Yêu cầu hoàn thành ≥ 95% khối lượng học tập cho cả 3 khóa kỹ năng Nghe, Nói và Viết.";
+
+        return CertificateEligibilityResponse.builder()
+                .eligible(eligible)
+                .listeningCompleted(listeningPassed)
+                .speakingCompleted(speakingPassed)
+                .writingCompleted(writingPassed)
+                .listeningProgress(listeningMaxProgress)
+                .speakingProgress(speakingMaxProgress)
+                .writingProgress(writingMaxProgress)
+                .averageProgress(avgProgress)
+                .completedSkillCoursesCount(completedSkillsCount)
+                .studentName(user.getFullName())
+                .message(msg)
+                .skillCourses(skills)
+                .build();
     }
 }

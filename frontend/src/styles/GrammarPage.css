@@ -1,0 +1,170 @@
+/* GrammarPage.css - Dedicated styling for English Grammar Hub */
+
+.grammar-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.grammar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+.grammar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.grammar-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  border-color: #0d9488;
+}
+
+.grammar-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.grammar-level-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grammar-level-badge.BEGINNER {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.grammar-level-badge.ELEMENTARY {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.grammar-level-badge.INTERMEDIATE {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+
+.grammar-level-badge.ADVANCED {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.grammar-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.grammar-card-desc {
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.grammar-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.88rem;
+}
+
+.grammar-box-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #0d9488;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.grammar-formula {
+  font-family: "Space Grotesk", monospace;
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.06);
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  font-size: 0.88rem;
+  word-break: break-word;
+}
+
+.grammar-example {
+  font-style: italic;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.grammar-note {
+  font-size: 0.82rem;
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+}
+
+/* Dark Mode Support for Grammar Page */
+[data-theme="dark"] .grammar-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .grammar-card-title {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .grammar-card-desc {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .grammar-box {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .grammar-formula {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .grammar-example {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .grammar-note {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  color: #fbbf24 !important;
+}

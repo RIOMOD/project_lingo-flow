@@ -1,24 +1,24 @@
-/* VocabularySession.css - Clean in-page quiz experience */
+/* VocabularySession.css - Compact single-screen quiz experience (No scrolling needed) */
 
 .vocab-session-page {
   width: 100%;
-  max-width: 900px;
+  max-width: 680px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   color: #1e293b;
   font-family: inherit;
-  padding: 1.5rem;
+  padding: 0.5rem;
 }
 
 .vocab-session-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   background: white;
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
@@ -27,10 +27,10 @@
   background: #f1f5f9;
   border: none;
   color: #64748b;
-  font-size: 1.2rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -45,8 +45,8 @@
 
 .vocab-session-progress {
   flex: 1;
-  margin: 0 1.5rem;
-  height: 10px;
+  margin: 0 1rem;
+  height: 8px;
   background: #e2e8f0;
   border-radius: 99px;
   overflow: hidden;
@@ -72,42 +72,55 @@
   width: 100%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 2.5rem;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   text-align: center;
 }
 
 .vocab-activity-type {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #0d9488;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 1.5rem;
+  letter-spacing: 1.2px;
+  margin-bottom: 0.5rem;
   font-weight: 700;
 }
 
 .vocab-question {
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 2rem;
-  line-height: 1.5;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
 }
 
+/* Compact image sizing to fit entire question on 1 screen */
+.vocab-image {
+  width: 100%;
+  max-height: 190px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 0.85rem;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 2x2 Grid Layout for 4 options to save vertical space */
 .vocab-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  width: 100%;
 }
 
 .vocab-option-btn {
   background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
   color: #334155;
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -135,14 +148,14 @@
 .vocab-input-box {
   width: 100%;
   background: #f8fafc;
-  border: 2px solid #cbd5e1;
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
   color: #0f172a;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .vocab-input-box:focus {
@@ -153,7 +166,7 @@
 }
 
 .vocab-footer {
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
   display: flex;
   justify-content: flex-end;
 }
@@ -162,23 +175,24 @@
   background: linear-gradient(135deg, #0d9488, #0f766e);
   color: white;
   border: none;
-  padding: 12px 28px;
-  border-radius: 12px;
+  padding: 10px 24px;
+  border-radius: 10px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .vocab-next-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.25);
 }
 
 .vocab-feedback {
-  margin-top: 1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
   font-weight: 600;
   animation: slideUp 0.3s ease;
 }
@@ -204,21 +218,61 @@
   text-align: center;
   animation: slideUp 0.5s ease;
   background: white;
-  padding: 3rem 2rem;
-  border-radius: 20px;
+  padding: 2.5rem 1.5rem;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
 .vocab-complete-screen h2 {
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: #0d9488;
   font-weight: 800;
   margin-bottom: 0.75rem;
 }
 
 .vocab-complete-screen p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #64748b;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Dark Mode Overrides for Vocabulary Session */
+[data-theme="dark"] .vocab-session-header {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .vocab-session-close {
+  background: #0f172a !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .vocab-activity-container,
+[data-theme="dark"] .vocab-complete-screen {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .vocab-question {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .vocab-option-btn {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .vocab-option-btn:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .vocab-input-box {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
 }

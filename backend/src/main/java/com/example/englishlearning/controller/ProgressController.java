@@ -46,6 +46,11 @@ public class ProgressController {
         return ApiResponse.success(progressService.getCourseProgress(authentication.getName()));
     }
 
+    @GetMapping("/progress/certificate-eligibility")
+    public ApiResponse<com.example.englishlearning.dto.progress.CertificateEligibilityResponse> getCertificateEligibility(Authentication authentication) {
+        return ApiResponse.success(progressService.getCertificateEligibility(authentication.getName()));
+    }
+
     @GetMapping("/progress/courses/{courseId}")
     public ApiResponse<CourseProgressResponse> getCourse(
             Authentication authentication,

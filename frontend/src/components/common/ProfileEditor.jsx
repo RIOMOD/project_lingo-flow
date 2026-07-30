@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getProfile, updateProfile } from "../../services/userService";
+import "../../styles/SettingsPage.css";
 
 const emptyForm = { fullName: "", phone: "", avatarUrl: "", learningGoal: "", bio: "" };
 
@@ -12,13 +13,18 @@ export default function ProfileEditor({ title }) {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    getProfile().then((profile) => {
-      setEmail(profile.email || "");
-      setForm({
-        fullName: profile.fullName || "", phone: profile.phone || "", avatarUrl: profile.avatarUrl || "",
-        learningGoal: profile.learningGoal || "", bio: profile.bio || "",
-      });
-    }).catch((err) => setError(err.message || "Không tải được hồ sơ."))
+    getProfile()
+      .then((profile) => {
+        setEmail(profile.email || "");
+        setForm({
+          fullName: profile.fullName || "",
+          phone: profile.phone || "",
+          avatarUrl: profile.avatarUrl || "",
+          learningGoal: profile.learningGoal || "",
+          bio: profile.bio || "",
+        });
+      })
+      .catch((err) => setError(err.message || "Không tải được hồ sơ cá nhân."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -29,15 +35,27 @@ export default function ProfileEditor({ title }) {
   async function submit(event) {
     event.preventDefault();
     if (saving || !form.fullName.trim()) return;
-    setSaving(true); setError(""); setSuccess("");
+    setSaving(true);
+    setError("");
+    setSuccess("");
     try {
       const profile = await updateProfile({ ...form, fullName: form.fullName.trim() });
-      setForm({ fullName: profile.fullName || "", phone: profile.phone || "", avatarUrl: profile.avatarUrl || "", learningGoal: profile.learningGoal || "", bio: profile.bio || "" });
-      setSuccess("Đã lưu hồ sơ. Dữ liệu sẽ được giữ sau khi tải lại trang.");
+      setForm({
+        fullName: profile.fullName || "",
+        phone: profile.phone || "",
+        avatarUrl: profile.avatarUrl || "",
+        learningGoal: profile.learningGoal || "",
+        bio: profile.bio || "",
+      });
+      setSuccess("✅ Đã cập nhật hồ sơ cá nhân thành công!");
     } catch (err) {
-      setError(err.message || "Không lưu được hồ sơ.");
-    } finally { setSaving(false); }
+      setError(err.message || "Không lưu được hồ sơ cá nhân.");
+    } finally {
+      setSaving(false);
+    }
   }
+
+  const initialAvatar = form.fullName ? form.fullName.charAt(0).toUpperCase() : "U";
 
   return (
     <div className="settings-page">
@@ -46,25 +64,50 @@ export default function ProfileEditor({ title }) {
           <div className="settings-card-header">
             <div className="settings-icon-badge">👤</div>
             <div>
-              <h3>{title}</h3>
-              <p>Quản lý thông tin cá nhân và hồ sơ người dùng</p>
+              <h3>{title || "Hồ sơ cá nhân"}</h3>
+              <p>Quản lý và cập nhật thông tin cá nhân của bạn</p>
             </div>
           </div>
 
           {loading ? (
-            <p className="auth-state">Đang tải hồ sơ...</p>
+            <div className="settings-alert default-alert">
+              ⏳ Đang tải thông tin hồ sơ...
+            </div>
           ) : (
             <form className="settings-form" onSubmit={submit}>
-              {error && <div className="settings-alert error" role="alert">{error}</div>}
+              {error && <div className="settings-alert error" role="alert">⚠️ {error}</div>}
               {success && <div className="settings-alert success" role="status">{success}</div>}
+
+              {/* Avatar Preview Card */}
+              <div className="profile-avatar-card">
+                {form.avatarUrl ? (
+                  <img
+                    src={form.avatarUrl}
+                    alt={form.fullName}
+                    className="profile-avatar-img"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="profile-avatar-fallback">
+                    {initialAvatar}
+                  </div>
+                )}
+                <div className="profile-avatar-info">
+                  <h4>{form.fullName || "Học viên LingoFlow"}</h4>
+                  <span>✉️ {email || "student@example.com"}</span>
+                </div>
+              </div>
 
               <div className="settings-grid-2">
                 <div className="settings-field">
-                  <label htmlFor="profileEmail">Địa chỉ Email</label>
-                  <input id="profileEmail" value={email} disabled style={{ opacity: 0.7, cursor: "not-allowed" }} />
+                  <label htmlFor="profileEmail">Địa chỉ Email (Đã xác minh)</label>
+                  <input id="profileEmail" value={email} disabled className="disabled-input" />
                 </div>
+
                 <div className="settings-field">
-                  <label htmlFor="profileFullName">Họ và tên</label>
+                  <label htmlFor="profileFullName">Họ và tên *</label>
                   <input
                     id="profileFullName"
                     name="fullName"
@@ -79,16 +122,17 @@ export default function ProfileEditor({ title }) {
 
               <div className="settings-grid-2">
                 <div className="settings-field">
-                  <label htmlFor="profilePhone">Số điện thoại</label>
+                  <label htmlFor="profilePhone">Số điện thoại liên hệ</label>
                   <input
                     id="profilePhone"
                     name="phone"
                     value={form.phone}
                     onChange={change}
                     maxLength="30"
-                    placeholder="Nhập số điện thoại..."
+                    placeholder="Ví dụ: 0900000000"
                   />
                 </div>
+
                 <div className="settings-field">
                   <label htmlFor="profileAvatarUrl">Ảnh đại diện (URL)</label>
                   <input
@@ -98,39 +142,33 @@ export default function ProfileEditor({ title }) {
                     value={form.avatarUrl}
                     onChange={change}
                     maxLength="500"
-                    placeholder="https://example.com/avatar.png"
+                    placeholder="https://example.com/avatar.jpg"
                   />
                 </div>
               </div>
 
               <div className="settings-field">
-                <label htmlFor="profileGoal">Mục tiêu học tập</label>
+                <label htmlFor="profileGoal">Mục tiêu học tập cá nhân</label>
                 <input
                   id="profileGoal"
                   name="learningGoal"
                   value={form.learningGoal}
                   onChange={change}
                   maxLength="255"
-                  placeholder="Ví dụ: Đạt IELTS 7.0 trong 6 tháng, Giao tiếp tự tin..."
+                  placeholder="Ví dụ: Đạt IELTS 7.0, Tự tin giao tiếp công việc..."
                 />
               </div>
 
               <div className="settings-field">
-                <label htmlFor="profileBio">Giới thiệu bản thân</label>
+                <label htmlFor="profileBio">Giới thiệu bản thân & Định hướng</label>
                 <textarea
                   id="profileBio"
                   name="bio"
                   rows="4"
                   value={form.bio}
                   onChange={change}
-                  placeholder="Mô tả ngắn gọn về bạn và định hướng học tập..."
-                  style={{
-                    padding: "0.75rem 1rem",
-                    borderRadius: "10px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "0.95rem",
-                    fontFamily: "inherit"
-                  }}
+                  placeholder="Viết đôi dòng giới thiệu bản thân..."
+                  className="profile-bio-textarea"
                 />
               </div>
 
@@ -140,7 +178,7 @@ export default function ProfileEditor({ title }) {
                   type="submit"
                   disabled={saving || !form.fullName.trim()}
                 >
-                  {saving ? "Đang lưu..." : "Lưu thay đổi hồ sơ"}
+                  {saving ? "⏳ Đang lưu thay đổi..." : "✨ Lưu Thay Đổi Hồ Sơ"}
                 </button>
               </div>
             </form>

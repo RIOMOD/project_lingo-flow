@@ -51,7 +51,7 @@ INSERT INTO lessons (
   position, duration_minutes, is_preview, status
 ) VALUES
   (1, 1, 'Chào hỏi và giới thiệu bản thân', 'MIXED', 'Hello, nice to meet you. My name is Linh. I am learning English for work.', NULL, 'https://www.youtube.com/watch?v=DywRyvzWoYY', 1, 15, TRUE, 'PUBLISHED'),
-  (2, 1, 'Hỏi thăm và phản hồi lịch sự', 'TEXT', 'How are you today? I am good, thank you. How about you?', NULL, NULL, 2, 18, FALSE, 'PUBLISHED'),
+  (2, 1, 'Hỏi thăm và phản hồi lịch sự', 'MIXED', 'Học các mẫu câu hỏi thăm sức khỏe, tâm trạng và cách phản hồi lịch sự trong tiếng Anh hằng ngày:\n\n1. How are you today? (Bạn hôm nay thế nào?)\n- I am doing great, thank you! (Tôi rất tốt, cảm ơn bạn!)\n- Pretty good, how about you? (Khá tốt, còn bạn thì sao?)\n- Not bad, thanks. (Không tệ, cảm ơn bạn.)\n\n2. How is it going? (Mọi chuyện thế nào rồi?)\n- Everything is fine! (Mọi thứ đều ổn!)\n- Couldn''t be better! (Không thể tốt hơn!)\n\n3. Luyện tập theo video bài giảng để nắm vững phát âm và ngữ điệu hội thoại tự nhiên.', NULL, 'https://www.youtube.com/watch?v=DywRyvzWoYY', 2, 18, FALSE, 'PUBLISHED'),
   (3, 2, 'Gọi món tại quán cà phê', 'TEXT', 'Can I have a latte, please? Would you like anything else?', NULL, NULL, 1, 20, FALSE, 'PUBLISHED'),
   (4, 2, 'Hỏi đường trong thành phố', 'AUDIO', 'Excuse me, how can I get to the nearest station?', 'https://www.oxfordonlineenglish.com/wp-content/uploads/2013/09/directions.mp3', NULL, 2, 22, FALSE, 'PUBLISHED'),
   (5, 3, 'Tổng quan IELTS', 'VIDEO', 'IELTS includes Listening, Reading, Writing and Speaking. Each skill needs a clear strategy.', NULL, 'https://www.youtube.com/embed?listType=user_uploads&list=IELTSofficial', 1, 25, TRUE, 'PUBLISHED'),

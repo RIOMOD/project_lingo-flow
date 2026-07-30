@@ -1,26 +1,44 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { navigationByRole, roleMeta, roleSwitches } from "../../config/navigation";
 import { isNavigationItemActive, resolveNavigationSection, resolvePageContext } from "../../config/pageContext";
 import { useAuth } from "../../hooks/useAuth";
+import { useClickOutside } from "../../hooks/useClickOutside";
 import ErrorBoundary from "./ErrorBoundary";
+import NotificationDropdown from "./NotificationDropdown";
 import "../../styles/Navbar.css";
 import {
   IconBell,
+  IconBot,
   IconCart,
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronUp,
+  IconCourses,
   IconLogOut,
   IconMoon,
+  IconPath,
+  IconProgress,
   IconSearch,
   IconSun,
+  IconWriting,
   renderNavIcon,
 } from "./SidebarIcons";
 
 function initials(name = "Học viên") {
   return name.split(/\s+/).filter(Boolean).slice(-2).map((part) => part[0]).join("").toUpperCase();
+}
+
+function renderSectionIcon(title) {
+  if (!title) return null;
+  const t = title.toUpperCase();
+  if (t.includes("HỌC TẬP") || t.includes("NỘI DUNG")) return <IconCourses className="w-4 h-4" />;
+  if (t.includes("ÔN LUYỆN")) return <IconWriting className="w-4 h-4" />;
+  if (t.includes("CÔNG CỤ AI")) return <IconBot className="w-4 h-4" />;
+  if (t.includes("TIẾN ĐỘ") || t.includes("QUẢN TRỊ")) return <IconProgress className="w-4 h-4" />;
+  if (t.includes("VẬN HÀNH") || t.includes("THƯƠNG MẠI") || t.includes("KHÓA HỌC")) return <IconPath className="w-4 h-4" />;
+  return null;
 }
 
 export default function AppShell({ roleKey = "student" }) {
@@ -38,6 +56,15 @@ export default function AppShell({ roleKey = "student" }) {
   const showDevSwitch = import.meta.env.DEV && !isStudent;
 
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [showNotif, setShowNotif] = useState(false);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+
+  const accountMenuRef = useRef(null);
+  const roleDropdownRef = useRef(null);
+
+  useClickOutside(accountMenuRef, () => setShowAccountDropdown(false));
+  useClickOutside(roleDropdownRef, () => setShowRoleDropdown(false));
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -73,111 +100,175 @@ export default function AppShell({ roleKey = "student" }) {
       <button type="button" className={`app-sidebar-overlay ${isSidebarOpen ? "is-visible" : ""}`} onClick={() => setIsSidebarOpen(false)} aria-hidden={!isSidebarOpen} tabIndex={isSidebarOpen ? 0 : -1} />
 
       <aside className={`app-sidebar ${isSidebarOpen ? "is-open" : ""}`}>
-        {/* Untitled UI Top Banner Header */}
-        <div className="app-sidebar-header-banner">
-          <Link to={role.homePath} className="app-brand-card">
-            <span className="app-brand-logo-box">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        {/* Untitled UI Header Card */}
+        <div className="app-sidebar-top-header">
+          <div className="app-brand-card">
+            <button 
+              type="button" 
+              className="app-brand-logo-box" 
+              onClick={() => setIsCollapsed((value) => !value)}
+              title={isCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
+              aria-label="Thu gọn/Mở rộng thanh bên"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                 <line x1="12" y1="22.08" x2="12" y2="12" />
               </svg>
-            </span>
-            <div className="app-brand-info app-label">
-              <strong>Lingo Flow</strong>
-              <small>{user?.email || "student@example.com"}</small>
-            </div>
-          </Link>
-          <button
-            className="app-collapse-button"
-            type="button"
-            onClick={() => setIsCollapsed((value) => !value)}
-            aria-label={isCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
-            title={isCollapsed ? "Mở rộng" : "Thu gọn"}
-          >
-            <span aria-hidden="true">{isCollapsed ? <IconChevronRight /> : <IconChevronLeft />}</span>
-          </button>
-        </div>
-
-        {/* Untitled UI Workspace Bar */}
-        <div className="app-sidebar-workspace-bar app-label">
-          <span>{role.title || "Lingo Flow Admins"}</span>
-          <button className="app-workspace-add-btn" type="button">+ Create team</button>
-        </div>
-
-        {/* Untitled UI Sidebar Search Box */}
-        <div className="app-sidebar-search-box app-label">
-          <IconSearch className="app-sidebar-search-icon" />
-          <input placeholder="Search..." name="sidebar-search" />
-        </div>
-
-        <nav className="app-navigation" aria-label="Điều hướng chính">
-          {sections.map((section) => {
-            const isOpen = openGroups[section.title] !== false;
-            const hasActiveChild = section.items.some((item) => isNavigationItemActive(item, location.pathname));
-
-            return (
-              <section key={section.title} className="app-nav-section">
-                <button
-                  type="button"
-                  className={`app-nav-group ${hasActiveChild ? "is-parent-active" : ""}`}
-                  onClick={() => setOpenGroups((groups) => ({ ...groups, [section.title]: !isOpen }))}
-                  aria-expanded={isOpen}
-                  title={section.title}
-                >
-                  <span className="app-nav-icon" aria-hidden="true">{renderNavIcon(section.title)}</span>
-                  <span className="app-label">{section.title}</span>
-                  <span className="app-group-chevron app-label" aria-hidden="true">
-                    {isOpen ? <IconChevronUp /> : <IconChevronDown />}
-                  </span>
-                </button>
-                {isOpen && (
-                  <div className="app-nav-list">
-                    {section.items.map((item) => {
-                      const active = isNavigationItemActive(item, location.pathname);
-                      return (
-                        <NavLink
-                          key={`${section.title}-${item.to}-${item.label}`}
-                          to={item.to}
-                          title={item.label}
-                          className={`app-nav-item ${active ? "is-active" : ""}`}
-                        >
-                          <span className="app-nav-icon" aria-hidden="true">
-                            {active ? <span className="app-active-dot">•</span> : renderNavIcon(item.label)}
-                          </span>
-                          <span className="app-label">{item.label}</span>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            );
-          })}
-        </nav>
-
-        <div className="app-sidebar-footer">
-          <div className="app-account-card">
-            <span className="app-avatar">{initials(accountName)}</span>
-            <div className="app-account-copy app-label">
-              <strong>{accountName}</strong>
-              <div className="app-account-links">
-                <Link to="/student/profile">Hồ sơ</Link> · <Link to="/student/settings">Cài đặt</Link>
-              </div>
-            </div>
-            <button className="app-logout" onClick={handleLogout} type="button" aria-label="Đăng xuất" title="Đăng xuất">
-              <IconLogOut />
             </button>
+            <div className="app-brand-info app-label">
+              <Link 
+                to={role.homePath} 
+                className="app-brand-title"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                title="Trở về đầu trang chủ"
+              >
+                Lingo Flow
+              </Link>
+              <span className="app-brand-domain">lingoflow.com</span>
+            </div>
           </div>
-          {showDevSwitch && (
-            <div className="app-dev-switch">
-              <p className="app-sidebar-caption">Development roles</p>
-              <div className="app-switch-pills">
-                {roleSwitches.map((item) => <Link key={item.to} to={item.to} className="app-switch-pill">{item.label}</Link>)}
-              </div>
+        </div>
+
+        {/* Switch Bar */}
+        <div className="app-sidebar-switch-wrapper app-label" ref={roleDropdownRef}>
+          <button
+            type="button"
+            className="app-sidebar-switch-bar"
+            onClick={() => setShowRoleDropdown((v) => !v)}
+            title="Chuyển đổi vai trò / Không gian làm việc"
+            aria-expanded={showRoleDropdown}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 7h-9"/><path d="M14 4l3 3-3 3"/><path d="M4 17h9"/><path d="M10 20l-3-3 3-3"/></svg>
+            <span>{role.label || "Workspace"}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: "auto" }}><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+
+          {showRoleDropdown && (
+            <div className="app-role-dropdown">
+              <div className="app-role-dropdown-header">Chuyển vai trò</div>
+              {roleSwitches.map((item) => {
+                const isActive = item.label.toLowerCase() === roleKey;
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className={`app-role-dropdown-item ${isActive ? "is-active" : ""}`}
+                    onClick={() => {
+                      setShowRoleDropdown(false);
+                      navigate(item.to);
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    {isActive && <span className="app-role-check">✓</span>}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
+
+        <nav className="app-navigation" aria-label="Điều hướng chính">
+          <div className="app-nav-list">
+            {isCollapsed
+              ? sections
+                  .flatMap((sec) => (sec.items ? sec.items : [sec]))
+                  .map((item) => {
+                    const active = isNavigationItemActive(item, location.pathname);
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        title={item.label}
+                        className={`app-nav-item ${active ? "is-active" : ""}`}
+                      >
+                        <span className="app-nav-icon" aria-hidden="true">
+                          {renderNavIcon(item.label)}
+                        </span>
+                      </NavLink>
+                    );
+                  })
+              : sections.map((section) => {
+                  if (section.to && section.label) {
+                    const active = isNavigationItemActive(section, location.pathname);
+                    return (
+                      <NavLink
+                        key={section.to}
+                        to={section.to}
+                        title={section.label}
+                        className={`app-nav-item is-top-level ${active ? "is-active" : ""}`}
+                      >
+                        <span className="app-nav-item-left">
+                          <span className="app-nav-icon" aria-hidden="true">
+                            {renderNavIcon(section.label)}
+                          </span>
+                          <span className="app-label">{section.label}</span>
+                        </span>
+                      </NavLink>
+                    );
+                  }
+
+                  const isOpen = openGroups[section.title] !== false;
+                  const hasActiveChild = section.items?.some((item) => isNavigationItemActive(item, location.pathname));
+
+                  return (
+                    <section key={section.title} className="app-nav-section">
+                      <button
+                        type="button"
+                        className={`app-nav-group ${hasActiveChild ? "is-parent-active" : ""} ${isOpen ? "is-open" : ""}`}
+                        onClick={() => setOpenGroups((groups) => ({ ...groups, [section.title]: !isOpen }))}
+                        aria-expanded={isOpen}
+                        title={section.title}
+                      >
+                        <span className="app-nav-group-left">
+                          <span className="app-nav-icon app-label" aria-hidden="true">
+                            {renderSectionIcon(section.title)}
+                          </span>
+                          <span className="app-label">{section.title}</span>
+                        </span>
+                        <span className="app-group-action-plus app-label" aria-hidden="true">
+                          +
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="app-nav-sub-list">
+                          {section.items?.map((item) => {
+                            const active = isNavigationItemActive(item, location.pathname);
+                            return (
+                              <NavLink
+                                key={`${section.title}-${item.to}-${item.label}`}
+                                to={item.to}
+                                title={item.label}
+                                className={`app-nav-item is-sub-item ${active ? "is-active" : ""}`}
+                              >
+                                <span className="app-nav-item-left">
+                                  <span className="app-nav-icon" aria-hidden="true">
+                                    {renderNavIcon(item.label)}
+                                  </span>
+                                  <span className="app-label">{item.label}</span>
+                                </span>
+                              </NavLink>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+          </div>
+
+          {/* Untitled UI Footer Bottom Actions */}
+          <div className="app-sidebar-footer">
+            <button type="button" className="app-footer-btn" title="Phản hồi & Hỗ trợ" onClick={() => navigate("/student/chatbot")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span className="app-label">Support</span>
+            </button>
+            <button type="button" className="app-footer-btn" title="Cài đặt hệ thống" onClick={() => navigate("/student/settings")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span className="app-label">Settings</span>
+            </button>
+          </div>
+        </nav>
       </aside>
 
       <div className="app-content">
@@ -209,38 +300,74 @@ export default function AppShell({ roleKey = "student" }) {
                 <IconCart />
                 <span className="app-badge-dot">2</span>
               </Link>
-              <button className="app-icon-button app-badge-button" type="button" aria-label="Thông báo" title="Thông báo">
-                <IconBell />
-                <span className="app-badge-pulse" />
-              </button>
-              <details className="app-account-menu">
-                <summary aria-label="Mở menu tài khoản">
+              <div style={{ position: "relative" }}>
+                <button 
+                  className="app-icon-button app-badge-button" 
+                  type="button" 
+                  aria-label="Thông báo" 
+                  title="Thông báo"
+                  onClick={() => setShowNotif((v) => !v)}
+                >
+                  <IconBell />
+                  <span className="app-badge-pulse" />
+                </button>
+                {showNotif && <NotificationDropdown onClose={() => setShowNotif(false)} />}
+              </div>
+              <div className="app-account-menu" ref={accountMenuRef} style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAccountDropdown((v) => !v)}
+                  aria-label="Mở menu tài khoản"
+                  aria-expanded={showAccountDropdown}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                >
                   <span className="app-avatar">{initials(accountName)}</span>
-                </summary>
-                <div className="app-menu-dropdown">
-                  <div className="app-menu-header">
-                    <strong>{accountName}</strong>
-                    <small>{user?.email || "student@example.com"}</small>
+                </button>
+                {showAccountDropdown && (
+                  <div className="app-menu-dropdown">
+                    <div className="app-menu-header">
+                      <strong>{accountName}</strong>
+                      <small>{user?.email || "student@example.com"}</small>
+                    </div>
+                    <div className="app-menu-divider" />
+                    <Link
+                      to="/student/profile"
+                      className="app-menu-item"
+                      onClick={() => setShowAccountDropdown(false)}
+                    >
+                      <span>👤 Hồ sơ cá nhân</span>
+                      <kbd className="app-kbd">⌘P</kbd>
+                    </Link>
+                    <Link
+                      to="/student/settings"
+                      className="app-menu-item"
+                      onClick={() => setShowAccountDropdown(false)}
+                    >
+                      <span>⚙️ Cài đặt tài khoản</span>
+                      <kbd className="app-kbd">⌘S</kbd>
+                    </Link>
+                    <Link
+                      to="/student/orders"
+                      className="app-menu-item"
+                      onClick={() => setShowAccountDropdown(false)}
+                    >
+                      <span>🛒 Lịch sử mua hàng</span>
+                    </Link>
+                    <div className="app-menu-divider" />
+                    <button
+                      type="button"
+                      className="app-menu-item is-logout"
+                      onClick={() => {
+                        setShowAccountDropdown(false);
+                        handleLogout();
+                      }}
+                    >
+                      <span>🚪 Đăng xuất</span>
+                      <kbd className="app-kbd">⌥Q</kbd>
+                    </button>
                   </div>
-                  <div className="app-menu-divider" />
-                  <Link to="/student/profile" className="app-menu-item">
-                    <span>👤 Hồ sơ cá nhân</span>
-                    <kbd className="app-kbd">⌘P</kbd>
-                  </Link>
-                  <Link to="/student/settings" className="app-menu-item">
-                    <span>⚙️ Cài đặt tài khoản</span>
-                    <kbd className="app-kbd">⌘S</kbd>
-                  </Link>
-                  <Link to="/student/orders" className="app-menu-item">
-                    <span>🛒 Lịch sử mua hàng</span>
-                  </Link>
-                  <div className="app-menu-divider" />
-                  <button type="button" className="app-menu-item is-logout" onClick={handleLogout}>
-                    <span>🚪 Đăng xuất</span>
-                    <kbd className="app-kbd">⌥Q</kbd>
-                  </button>
-                </div>
-              </details>
+                )}
+              </div>
             </div>
           )}
         </header>

@@ -28,24 +28,31 @@ export default function VocabularyPage() {
     async function loadProgress() {
       try {
         const data = await getProgressDashboard();
-        if (isMounted && data) {
-          setDashboard({
-            reviewDueCount: data.dueReviewWords || 0,
-            totalMastered: data.rememberedWords || 0,
-            learnedWords: data.learnedWords || 0
+        const storedTopicProgress = JSON.parse(localStorage.getItem("vocab_topic_progress") || "{}");
+
+        if (isMounted) {
+          const norm = (s) => (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
+
+          const updatedTopics = DEFAULT_TOPICS.map((t) => {
+            const matchingKey = Object.keys(storedTopicProgress).find((k) => norm(k) === norm(t.name));
+            const rawCount = matchingKey ? storedTopicProgress[matchingKey] : storedTopicProgress[t.name];
+            const mastered = Math.min(t.totalWords, Number(rawCount) || 0);
+
+            return {
+              ...t,
+              masteredWords: mastered,
+              status: mastered >= t.totalWords ? "COMPLETED" : mastered > 0 ? "IN_PROGRESS" : "NOT_STARTED",
+            };
           });
-          
-          // If student has mastered words, reflect in topic list
-          if (data.learnedWords > 0) {
-            setTopics(prev => prev.map(t => {
-              const mastered = Math.min(t.totalWords, Math.floor((data.learnedWords / 4)));
-              return {
-                ...t,
-                masteredWords: mastered,
-                status: mastered >= t.totalWords ? "COMPLETED" : mastered > 0 ? "IN_PROGRESS" : "NOT_STARTED"
-              };
-            }));
-          }
+
+          const totalWordsMastered = updatedTopics.reduce((acc, curr) => acc + curr.masteredWords, 0);
+
+          setTopics(updatedTopics);
+          setDashboard({
+            reviewDueCount: data?.dueReviewWords || 0,
+            totalMastered: totalWordsMastered,
+            learnedWords: totalWordsMastered,
+          });
         }
       } catch (err) {
         console.warn("Could not load vocabulary progress metrics:", err);

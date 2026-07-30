@@ -43,3 +43,7 @@ export async function recordVocabularyProgress(masteredCount = 5) {
     body: JSON.stringify({ masteredCount }),
   }));
 }
+
+export async function getCertificateEligibility() {
+  return unwrap(await apiRequest("/progress/certificate-eligibility"));
+}

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import AssessmentQuestion from "../../components/student/AssessmentQuestion";
+import ConfirmModal from "../../components/common/ConfirmModal";
 import { getAttempt, getAttempts, getTests, saveAnswer, startTest, submitAttempt } from "../../services/assessmentService";
+import { exportDocumentToPDF } from "../../utils/pdfExporter";
 
 function answered(answer) { 
-  return Boolean(answer && (answer.selectedOptionId || (answer.selectedOptionIds && answer.selectedOptionIds !== "[]") || answer.answerText?.trim() || answer.answerJson)); 
+  return Boolean(answer && (answer.selectedOptionId || (answer.selectedOptionIds && answer.selectedOptionIds !== "[]" && answer.selectedOptionIds.length > 0) || answer.answerText?.trim() || answer.answerJson)); 
 }
 
 function clock(seconds) { 
@@ -13,7 +15,7 @@ function clock(seconds) {
 }
 
 const buildMockAttempt = (testId) => ({
-  id: `attempt-${Date.now()}`,
+  id: Date.now(),
   targetId: testId,
   title: testId.includes("toeic") ? "TOEIC Full Listening & Reading Mock Test" : "IELTS Academic Reading Practice Test 1",
   status: "IN_PROGRESS",
@@ -21,7 +23,7 @@ const buildMockAttempt = (testId) => ({
   questions: [
     {
       id: 101,
-      type: "MULTIPLE_CHOICE",
+      type: "SINGLE_CHOICE",
       prompt: "Select the word that best completes the sentence: 'The team will _____ the new project next week.'",
       options: [
         { id: "a", content: "launch", correct: true },
@@ -32,7 +34,7 @@ const buildMockAttempt = (testId) => ({
     },
     {
       id: 102,
-      type: "MULTIPLE_CHOICE",
+      type: "SINGLE_CHOICE",
       prompt: "Choose the correct synonym for 'METICULOUS':",
       options: [
         { id: "a", content: "Careless" },
@@ -43,7 +45,7 @@ const buildMockAttempt = (testId) => ({
     },
     {
       id: 103,
-      type: "MULTIPLE_CHOICE",
+      type: "SINGLE_CHOICE",
       prompt: "What is the main advantage of dynamic code splitting in modern web development?",
       options: [
         { id: "a", content: "Reduces initial bundle load time and optimizes network performance", correct: true },
@@ -66,6 +68,7 @@ export default function TestPage() {
   const [savingId, setSavingId] = useState(null);
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const autoSubmitted = useRef(false);
 
   async function load() {
@@ -169,7 +172,7 @@ export default function TestPage() {
         const correctCount = (prev.questions || []).filter((q) => {
           const userAns = userAnswers.find((a) => a.questionId === q.id);
           const correctOpt = (q.options || []).find((o) => o.correct || o.isCorrect);
-          return userAns && correctOpt && (userAns.selectedOptionId === correctOpt.id || userAns.selectedOptionId === String(correctOpt.id));
+          return userAns && correctOpt && (userAns.selectedOptionId === correctOpt.id || userAns.selectedOptionId === String(correctOpt.id) || (userAns.selectedOptionIds && userAns.selectedOptionIds.includes(correctOpt.id)));
         }).length;
         const total = (prev.questions || []).length;
         const finalScore = total > 0 ? Math.round((correctCount / total) * 100) : 100;
@@ -243,12 +246,53 @@ export default function TestPage() {
   const missingCount = questions.length - answeredCount;
 
   return (
-    <div className="assessment-page focused-assessment">
-      <header className="assessment-run-header">
+    <div 
+      className="assessment-page focused-assessment"
+      style={{
+        height: "680px",
+        minHeight: "680px",
+        maxHeight: "680px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        boxSizing: "border-box",
+        overflow: "hidden"
+      }}
+    >
+      <div style={{ flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button
+          type="button"
+          onClick={() => {
+            if (attempt?.status === "IN_PROGRESS") {
+              setShowExitModal(true);
+            } else {
+              setAttempt(null);
+            }
+          }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.45rem 0.9rem",
+            borderRadius: "10px",
+            border: "1px solid #cbd5e1",
+            background: "#ffffff",
+            color: "#0f172a",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            cursor: "pointer",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)"
+          }}
+        >
+          ← Quay lại danh sách bài kiểm tra
+        </button>
+      </div>
+
+      <header className="assessment-run-header" style={{ flexShrink: 0, height: "85px", boxSizing: "border-box" }}>
         <div>
           <span className="page-badge">Bài kiểm tra</span>
-          <h2>{attempt.title}</h2>
-          <p>{submitted ? "Xem lại từng câu và nội dung cần ôn." : `${answeredCount}/${questions.length} câu đã trả lời`}</p>
+          <h2 style={{ fontSize: "1.25rem", margin: "0.2rem 0" }}>{attempt.title}</h2>
+          <p style={{ fontSize: "0.88rem" }}>{submitted ? "Xem lại từng câu và nội dung cần ôn." : `${answeredCount}/${questions.length} câu đã trả lời`}</p>
         </div>
         {!submitted && (
           <div className={`assessment-timer ${remaining !== null && remaining <= 300 ? "is-warning" : ""}`}>
@@ -259,33 +303,49 @@ export default function TestPage() {
       </header>
 
       {submitted && (
-        <section className={`assessment-result-banner ${passed ? "is-pass" : "is-fail"}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.2rem 1.5rem", borderRadius: "16px", background: passed ? "#f0fdf4" : "#fef2f2", border: passed ? "1px solid #bbf7d0" : "1px solid #fecaca", marginBottom: "1.5rem" }}>
+        <section className={`assessment-result-banner ${passed ? "is-pass" : "is-fail"}`} style={{ flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.25rem", borderRadius: "14px", background: passed ? "#f0fdf4" : "#fef2f2", border: passed ? "1px solid #bbf7d0" : "1px solid #fecaca" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ width: "40px", height: "40px", borderRadius: "50%", background: passed ? "#22c55e" : "#ef4444", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", fontWeight: "bold" }}>
+            <span style={{ width: "36px", height: "36px", borderRadius: "50%", background: passed ? "#22c55e" : "#ef4444", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: "bold" }}>
               {passed ? "✓" : "↻"}
             </span>
             <div>
-              <h3 style={{ margin: 0, fontSize: "1.2rem", color: passed ? "#15803d" : "#b91c1c", fontWeight: "700" }}>
+              <h3 style={{ margin: 0, fontSize: "1.1rem", color: passed ? "#15803d" : "#b91c1c", fontWeight: "700" }}>
                 {passed ? "Bạn đã đạt yêu cầu" : "Bạn chưa đạt yêu cầu"}
               </h3>
-              <p style={{ margin: "0.2rem 0 0 0", color: "#475569", fontSize: "0.92rem" }}>
+              <p style={{ margin: "0.15rem 0 0 0", color: "#475569", fontSize: "0.88rem" }}>
                 Điểm {attempt.score}/{attempt.totalPoints || 100} ({percent.toFixed(0)}%) · Đúng {attempt.correctAnswers || 0} · Sai {attempt.incorrectAnswers || 0} · Thời gian {clock(attempt.elapsedSeconds || 180)}
               </p>
             </div>
           </div>
-          <button 
-            type="button" 
-            onClick={() => begin(attempt.targetId || "mock-toeic-1")}
-            style={{ padding: "0.6rem 1.2rem", background: "#0d9488", color: "#ffffff", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}
-          >
-            Làm lại
-          </button>
+          <div style={{ display: "flex", gap: "0.6rem" }}>
+            <button 
+              type="button" 
+              onClick={() => exportDocumentToPDF({ title: `Bao_Cao_${attempt.title.replaceAll(" ", "_")}` })}
+              style={{ padding: "0.55rem 1.1rem", background: "#ffffff", color: "#0d9488", border: "1px solid #0d9488", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}
+            >
+              📄 Tải báo cáo PDF
+            </button>
+            <button 
+              type="button" 
+              onClick={() => begin(attempt.targetId || "mock-toeic-1")}
+              style={{ padding: "0.55rem 1.1rem", background: "#0d9488", color: "#ffffff", border: "none", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}
+            >
+              Làm lại
+            </button>
+            <button 
+              type="button" 
+              onClick={() => setAttempt(null)}
+              style={{ padding: "0.55rem 1.1rem", background: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "10px", fontWeight: "700", cursor: "pointer" }}
+            >
+              Danh sách bài test
+            </button>
+          </div>
         </section>
       )}
 
-      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.5rem", alignItems: "start" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#ffffff", padding: "0.9rem 1.25rem", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+      <div className="assessment-workspace" style={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.25rem", alignItems: "stretch", overflow: "hidden" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.75rem", height: "100%", minHeight: 0, boxSizing: "border-box", justifyContent: "space-between", padding: "1.25rem", overflow: "hidden" }}>
+          <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "0.65rem 0.9rem", borderRadius: "10px", border: "1px solid #e2e8f0", flexShrink: 0 }}>
             <span style={{ fontWeight: "700", color: "#0f172a" }}>Câu {current + 1} / {questions.length}</span>
             {!submitted && (
               <button 
@@ -309,12 +369,12 @@ export default function TestPage() {
             />
           )}
 
-          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexShrink: 0, margin: 0 }}>
             <button 
               type="button" 
               disabled={current === 0} 
               onClick={() => setCurrent((v) => v - 1)}
-              style={{ padding: "0.65rem 1.25rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", fontWeight: "600", cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.5 : 1 }}
+              style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", fontWeight: "600", cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.5 : 1 }}
             >
               Câu trước
             </button>
@@ -323,7 +383,7 @@ export default function TestPage() {
               <button 
                 type="button" 
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.65rem 1.25rem", borderRadius: "10px", border: "1px solid #0d9488", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}
+                style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", border: "1px solid #0d9488", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}
               >
                 Câu tiếp theo
               </button>
@@ -333,7 +393,7 @@ export default function TestPage() {
                   className="primary" 
                   type="button" 
                   onClick={() => setShowConfirmModal(true)}
-                  style={{ padding: "0.65rem 1.5rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}
+                  style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}
                 >
                   Nộp bài
                 </button>
@@ -342,42 +402,44 @@ export default function TestPage() {
           </div>
 
           {submitted && (
-            <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-              <Link to="/student/exercises" style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", background: "#f1f5f9", color: "#0f172a", textDecoration: "none", fontWeight: "600" }}>Ôn bài liên quan</Link>
-              <Link to="/student/courses" style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", background: "#0d9488", color: "#ffffff", textDecoration: "none", fontWeight: "600" }}>Tiếp tục học</Link>
+            <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", flexShrink: 0 }}>
+              <Link to="/student/exercises" style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#f1f5f9", color: "#0f172a", textDecoration: "none", fontWeight: "600" }}>Ôn bài liên quan</Link>
+              <Link to="/student/courses" style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#0d9488", color: "#ffffff", textDecoration: "none", fontWeight: "600" }}>Tiếp tục học</Link>
             </div>
           )}
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          <h3 style={{ margin: 0, fontSize: "1.05rem", color: "#0f172a", fontWeight: "700" }}>Danh sách câu</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
-            {questions.map((item, index) => {
-              const isCurrent = index === current;
-              const isAns = answered(answers.get(item.id));
-              const isFlag = flags.has(item.id);
+        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", height: "100%", minHeight: 0, boxSizing: "border-box", justifyContent: "space-between", overflow: "hidden" }}>
+          <div>
+            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.05rem", color: "#0f172a", fontWeight: "700" }}>Danh sách câu</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
+              {questions.map((item, index) => {
+                const isCurrent = index === current;
+                const isAns = answered(answers.get(item.id));
+                const isFlag = flags.has(item.id);
 
-              return (
-                <button 
-                  type="button" 
-                  key={item.id}
-                  onClick={() => setCurrent(index)} 
-                  style={{
-                    height: "42px",
-                    borderRadius: "10px",
-                    border: isCurrent ? "2px solid #0d9488" : "1px solid #e2e8f0",
-                    background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#ffffff",
-                    color: isCurrent ? "#0d9488" : "#334155",
-                    fontWeight: isCurrent || isAns ? "700" : "500",
-                    position: "relative",
-                    cursor: "pointer"
-                  }}
-                >
-                  {index + 1}
-                  {isFlag && <span style={{ position: "absolute", top: "2px", right: "4px", fontSize: "0.65rem" }}>⚑</span>}
-                </button>
-              );
-            })}
+                return (
+                  <button 
+                    type="button" 
+                    key={item.id}
+                    onClick={() => setCurrent(index)} 
+                    style={{
+                      height: "40px",
+                      borderRadius: "10px",
+                      border: isCurrent ? "2px solid #0d9488" : "1px solid #e2e8f0",
+                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#ffffff",
+                      color: isCurrent ? "#0d9488" : "#334155",
+                      fontWeight: isCurrent || isAns ? "700" : "500",
+                      position: "relative",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {index + 1}
+                    {isFlag && <span style={{ position: "absolute", top: "2px", right: "4px", fontSize: "0.65rem" }}>⚑</span>}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           
           {!submitted && (
@@ -385,7 +447,7 @@ export default function TestPage() {
               className="assessment-submit" 
               type="button" 
               onClick={() => setShowConfirmModal(true)}
-              style={{ width: "100%", padding: "0.8rem", borderRadius: "12px", background: "#0d9488", color: "#ffffff", border: "none", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem" }}
+              style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "#0d9488", color: "#ffffff", border: "none", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem" }}
             >
               Nộp bài
             </button>
@@ -444,6 +506,21 @@ export default function TestPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={showExitModal}
+        title="Rời khỏi bài kiểm tra?"
+        icon="⚠️"
+        message="Bài kiểm tra đang tính giờ. Nếu rời khỏi bây giờ, tiến độ và kết quả lượt làm bài hiện tại chưa nộp sẽ không được lưu. Bạn có chắc chắn muốn rời khỏi?"
+        confirmText="Rời khỏi bài test"
+        cancelText="Tiếp tục làm bài"
+        variant="warning"
+        onConfirm={() => {
+          setShowExitModal(false);
+          setAttempt(null);
+        }}
+        onCancel={() => setShowExitModal(false)}
+      />
     </div>
   );
 }

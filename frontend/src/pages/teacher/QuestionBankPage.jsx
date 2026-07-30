@@ -6,6 +6,7 @@ export default function QuestionBankPage() {
   const [questionId, setQuestionId] = useState("");
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [question, setQuestion] = useState({
     exerciseId: "",
     questionType: "MULTIPLE_CHOICE",
@@ -48,7 +49,7 @@ export default function QuestionBankPage() {
   async function submitExercise() {
     try {
       await createExercise({ ...assessment, courseId: Number(assessment.courseId), status: "PUBLISHED", exerciseType: "MIXED" });
-      window.alert("Da tao bai tap");
+      setNotice("Đã tạo bài tập thành công!");
     } catch (err) {
       setError(err.message || "Khong tao duoc bai tap");
     }
@@ -57,7 +58,7 @@ export default function QuestionBankPage() {
   async function submitTest() {
     try {
       await createTest({ ...assessment, courseId: Number(assessment.courseId), status: "PUBLISHED", questionIds: questionId ? [Number(questionId)] : [] });
-      window.alert("Da tao bai kiem tra");
+      setNotice("Đã tạo bài kiểm tra thành công!");
     } catch (err) {
       setError(err.message || "Khong tao duoc bai kiem tra");
     }

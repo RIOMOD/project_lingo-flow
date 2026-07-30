@@ -103,6 +103,7 @@ export default function AppRoutes() {
                 <Route path="orders/:orderCode" element={<OrderDetailPage />} />
                 <Route path="orders/:orderCode/invoice" element={<InvoicePage />} />
                 <Route path="payment/:status" element={<PaymentStatusPage />} />
+                <Route path="payment-status" element={<PaymentStatusPage />} />
                 <Route element={<CourseAccessRoute />}>
                   <Route path="learn/:courseId/:lessonId?" element={<CourseLearningPage />} />
                 </Route>

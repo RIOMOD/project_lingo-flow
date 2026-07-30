@@ -269,3 +269,249 @@
   accent-color: #0d9488;
   cursor: pointer;
 }
+
+/* Order History Modern Styles */
+.order-history-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+}
+
+.order-history-hero {
+  background: #ffffff;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  margin-bottom: 1.25rem;
+}
+
+.order-hero-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.order-hero-icon {
+  font-size: 1.75rem;
+}
+
+.order-hero-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.order-hero-sub {
+  margin: 2px 0 0 0;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.order-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.order-empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.order-empty-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.order-empty-state h4 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.order-empty-state p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.order-card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 1.1rem 1.35rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
+}
+
+.order-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  border-color: #cbd5e1;
+}
+
+.order-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-card-code-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.order-code-text {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.order-amount-text {
+  font-size: 0.88rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.order-amount-text strong {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.order-status-badge {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+}
+
+.order-status-badge.is-success {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.order-status-badge.is-pending {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.order-status-badge.is-canceled {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.order-status-badge.is-default {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.order-detail-btn {
+  padding: 0.55rem 1.1rem;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.order-detail-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* Profile Avatar Card & Utility Styles */
+.profile-avatar-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 0.5rem;
+}
+
+.profile-avatar-img {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.profile-avatar-fallback {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.profile-avatar-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.profile-avatar-info span {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.disabled-input {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f1f5f9 !important;
+}
+
+.profile-bio-textarea {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: #f8fafc;
+  outline: none;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.profile-bio-textarea:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.default-alert {
+  background: #f8fafc;
+  color: #64748b;
+}

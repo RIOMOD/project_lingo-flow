@@ -65,6 +65,10 @@ export async function createPayment(orderCode) {
   return unwrap(await apiRequest(`/payments/${orderCode}/create`, { method: "POST" }));
 }
 
+export async function simulatePayment(orderCode) {
+  return unwrap(await apiRequest(`/payments/${orderCode}/simulate`, { method: "POST" }));
+}
+
 export async function getPaymentStatus(orderCode) {
   return unwrap(await apiRequest(`/payments/${orderCode}/status`));
 }

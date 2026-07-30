@@ -256,8 +256,9 @@ export function resolveNavigationSection(roleKey, pathname) {
   const sections = navigationByRole[roleKey] ?? [];
 
   return (
-    sections.find((section) =>
-      (section?.items ?? []).some((item) => isNavigationItemActive(item, pathname)),
-    ) ?? null
+    sections.find((section) => {
+      if (section?.to && isNavigationItemActive(section, pathname)) return true;
+      return (section?.items ?? []).some((item) => isNavigationItemActive(item, pathname));
+    }) ?? null
   );
 }

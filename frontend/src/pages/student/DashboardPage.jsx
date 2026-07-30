@@ -56,14 +56,14 @@ export default function StudentDashboardPage() {
 
   const current = dashboard?.continueLearning;
   const stats = useMemo(() => [
-    ["📚", "Khóa đang học", dashboard?.activeCourses ?? 0],
-    ["🎯", "Bài đã hoàn thành", dashboard?.completedLessons ?? 0],
-    ["⏱️", "Tổng thời gian học", formatMinutes(dashboard?.studyTimeMinutes ?? 0)],
-    ["🔥", "Chuỗi ngày học", `${dashboard?.streakDays ?? 0} ngày`],
-    ["📝", "Bài tập đã làm", dashboard?.completedExercises ?? 0],
-    ["⭐", "Điểm trung bình", `${Number(dashboard?.averageScore ?? 0).toFixed(1)}`],
-    ["🧠", "Từ vựng đã học", dashboard?.learnedWords ?? 0],
-    ["🔄", "Từ cần ôn", dashboard?.dueReviewWords ?? 0],
+    { icon: "📚", label: "Khóa đang học", value: dashboard?.activeCourses ?? 0, link: "/student/courses" },
+    { icon: "🎯", label: "Bài đã hoàn thành", value: dashboard?.completedLessons ?? 0, link: "/student/progress" },
+    { icon: "⏱️", label: "Tổng thời gian học", value: formatMinutes(dashboard?.studyTimeMinutes ?? 0), link: "/student/progress" },
+    { icon: "🔥", label: "Chuỗi ngày học", value: `${dashboard?.streakDays ?? 0} ngày`, link: "/student/progress" },
+    { icon: "📝", label: "Bài tập đã làm", value: dashboard?.completedExercises ?? 0, link: "/student/exercises" },
+    { icon: "⭐", label: "Điểm trung bình", value: `${Number(dashboard?.averageScore ?? 0).toFixed(1)}`, link: "/student/progress" },
+    { icon: "🧠", label: "Từ vựng đã học", value: dashboard?.learnedWords ?? 0, link: "/student/vocabulary" },
+    { icon: "🔄", label: "Từ cần ôn", value: dashboard?.dueReviewWords ?? 0, link: "/student/vocabulary" },
   ], [dashboard]);
 
   return <div className="stu-dashboard-container">
@@ -86,11 +86,18 @@ export default function StudentDashboardPage() {
     {dashboard && <>
       {current ? 
         <section className="stu-continue-card">
-          <img className="stu-continue-image" src={current.thumbnailUrl || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"} alt="" />
+          <img className="stu-continue-image" src={current.thumbnailUrl || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"} alt="Course thumbnail" loading="lazy" decoding="async" width="280" height="180" />
           <div className="stu-continue-content">
-            <span className="stu-badge">Tiếp tục học</span>
+            <div className="stu-continue-header-tags">
+              <span className="stu-badge">Tiếp tục học</span>
+              <span className="stu-tag">{current.categoryName || "Giao tiếp tiếng Anh"}</span>
+              {current.level && <span className="stu-tag alt">{current.level}</span>}
+            </div>
             <h3>{current.courseTitle}</h3>
-            <p>{current.nextChapterTitle} · <strong>{current.nextLessonTitle}</strong></p>
+            <div className="stu-next-lesson">
+              <span>Bài tiếp theo: </span>
+              <strong>{current.nextChapterTitle}</strong> · <em>{current.nextLessonTitle}</em>
+            </div>
             
             <div className="stu-progress-container">
               <div className="stu-progress-bar">
@@ -100,11 +107,12 @@ export default function StudentDashboardPage() {
             </div>
             
             <div className="stu-continue-meta">
-              <span>⏱️ Đã học {formatMinutes(current.studyTimeMinutes)}</span>
-              <span>📅 Truy cập {formatAccess(current.lastAccessedAt)}</span>
+              <span>⏱️ Đã học: {formatMinutes(current.studyTimeMinutes)}</span>
+              <span>📅 Lần cuối: {formatAccess(current.lastAccessedAt)}</span>
+              <span>🎯 Đã xong: {path.filter(p => p.progressStatus === 'COMPLETED').length}/{path.length || 4} bài</span>
             </div>
             
-            <Link className="stu-btn-primary" to={`/student/learn/${current.courseId}/${current.nextLessonId}`}>Tiếp tục đúng bài</Link>
+            <Link className="stu-btn-primary" to={`/student/learn/${current.courseId}/${current.nextLessonId}`}>Tiếp tục bài học →</Link>
           </div>
         </section>
         : 
@@ -116,14 +124,20 @@ export default function StudentDashboardPage() {
       }
 
       <section className="stu-stats-grid">
-        {stats.map(([icon, label, value]) => (
-          <article className="stu-stat-card" key={label}>
+        {stats.map(({ icon, label, value, link }) => (
+          <Link
+            to={link}
+            className="stu-stat-card is-interactive"
+            key={label}
+            title={`Xem chi tiết: ${label}`}
+          >
             <div className="stu-stat-icon" aria-hidden="true">{icon}</div>
             <div className="stu-stat-info">
               <span>{label}</span>
               <strong>{value}</strong>
             </div>
-          </article>
+            <span className="stu-stat-arrow" aria-hidden="true">→</span>
+          </Link>
         ))}
       </section>
 
