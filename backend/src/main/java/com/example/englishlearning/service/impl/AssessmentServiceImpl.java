@@ -8,6 +8,7 @@ import com.example.englishlearning.exception.ResourceNotFoundException;
 import com.example.englishlearning.exception.UnauthorizedException;
 import com.example.englishlearning.repository.*;
 import com.example.englishlearning.service.AssessmentService;
+import com.example.englishlearning.service.LearningRecommendationService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     private final UserRepository userRepository;
     private final CourseOwnershipRepository ownershipRepository;
     private final ObjectMapper objectMapper;
+    private final LearningRecommendationService recommendationService;
 
     public AssessmentServiceImpl(
             ExerciseRepository exerciseRepository,
@@ -52,7 +54,8 @@ public class AssessmentServiceImpl implements AssessmentService {
             LessonRepository lessonRepository,
             UserRepository userRepository,
             CourseOwnershipRepository ownershipRepository,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            LearningRecommendationService recommendationService
     ) {
         this.exerciseRepository = exerciseRepository;
         this.questionRepository = questionRepository;
@@ -66,11 +69,13 @@ public class AssessmentServiceImpl implements AssessmentService {
         this.userRepository = userRepository;
         this.ownershipRepository = ownershipRepository;
         this.objectMapper = objectMapper;
+        this.recommendationService = recommendationService;
     }
 
     @Override
     public QuestionResponse createQuestion(String email, QuestionRequest request) {
         User teacher = getUser(email);
+        validateQuestionRequest(request);
         Question question = new Question();
         question.setOwner(teacher);
         applyQuestion(question, request, teacher);
@@ -82,6 +87,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Override
     public QuestionResponse updateQuestion(String email, Long id, QuestionRequest request) {
         User teacher = getUser(email);
+        validateQuestionRequest(request);
         Question question = getQuestion(id);
         ensureTeacherOwnsQuestion(teacher, question);
         applyQuestion(question, request, teacher);
@@ -312,9 +318,53 @@ public class AssessmentServiceImpl implements AssessmentService {
         question.setQuestionType(request.getQuestionType());
         question.setQuestionText(request.getQuestionText().trim());
         question.setExplanation(request.getExplanation());
+        question.setSkillType(request.getSkillType());
+        question.setTopic(request.getTopic() == null || request.getTopic().isBlank() ? null : request.getTopic().trim());
+        Lesson recommendedLesson = request.getRecommendedLessonId() == null ? null
+                : lessonRepository.findById(request.getRecommendedLessonId())
+                .orElseThrow(() -> new ResourceNotFoundException("Recommended lesson not found"));
+        if (recommendedLesson != null) {
+            getTeacherCourse(teacher, recommendedLesson.getChapter().getCourse().getId());
+            if (exercise != null && !exercise.getCourse().getId().equals(recommendedLesson.getChapter().getCourse().getId())) {
+                throw new BadRequestException("Recommended lesson must belong to the question course");
+            }
+        }
+        question.setRecommendedLesson(recommendedLesson);
         question.setPoints(request.getPoints() == null ? BigDecimal.ONE : request.getPoints());
         question.setCorrectAnswer(request.getCorrectAnswer());
         question.setPosition(request.getPosition() == null ? 1 : request.getPosition());
+    }
+
+    private void validateQuestionRequest(QuestionRequest request) {
+        BigDecimal points = request.getPoints() == null ? BigDecimal.ONE : request.getPoints();
+        if (points.signum() <= 0) {
+            throw new BadRequestException("Question points must be greater than zero");
+        }
+        if (request.getPosition() != null && request.getPosition() <= 0) {
+            throw new BadRequestException("Question position must be greater than zero");
+        }
+
+        boolean choiceQuestion = switch (request.getQuestionType()) {
+            case SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE, LISTENING_MULTIPLE_CHOICE -> true;
+            default -> false;
+        };
+        List<AnswerOptionRequest> options = request.getOptions() == null ? List.of() : request.getOptions();
+        if (choiceQuestion) {
+            if (options.size() < 2) {
+                throw new BadRequestException("Choice questions require at least two options");
+            }
+            long correctOptions = options.stream().filter(option -> Boolean.TRUE.equals(option.getCorrect())).count();
+            if (correctOptions == 0) {
+                throw new BadRequestException("Choice questions require a correct option");
+            }
+            if (request.getQuestionType() != Question.QuestionType.MULTIPLE_CHOICE && correctOptions != 1) {
+                throw new BadRequestException("This question type requires exactly one correct option");
+            }
+        }
+        if (request.getQuestionType() == Question.QuestionType.FILL_IN_THE_BLANK
+                && (request.getCorrectAnswer() == null || request.getCorrectAnswer().isBlank())) {
+            throw new BadRequestException("Fill-in-the-blank questions require a correct answer");
+        }
     }
 
     private void applyExercise(Exercise exercise, Course course, AssessmentRequest request) {
@@ -340,6 +390,7 @@ public class AssessmentServiceImpl implements AssessmentService {
 
     private void replaceOptions(Question question, List<AnswerOptionRequest> options) {
         optionRepository.deleteByQuestionId(question.getId());
+        if (options == null) return;
         for (AnswerOptionRequest request : options) {
             AnswerOption option = new AnswerOption();
             option.setQuestion(question);
@@ -474,7 +525,7 @@ public class AssessmentServiceImpl implements AssessmentService {
             throw new BadRequestException("Attempt snapshot is missing");
         }
         try {
-            return objectMapper.readValue(attempt.getTestSnapshot(), new TypeReference<List<QuestionResponse>>() {})
+            return readSnapshot(attempt.getTestSnapshot())
                     .stream().filter(question -> question.getId().equals(questionId)).findFirst()
                     .orElseThrow(() -> new BadRequestException("Question does not belong to this attempt snapshot"));
         } catch (BadRequestException exception) {
@@ -484,29 +535,40 @@ public class AssessmentServiceImpl implements AssessmentService {
         }
     }
 
+    private List<QuestionResponse> readSnapshot(String snapshot) throws Exception {
+        com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(snapshot);
+        if (root.isTextual()) {
+            root = objectMapper.readTree(root.textValue());
+        }
+        return objectMapper.convertValue(root, new TypeReference<List<QuestionResponse>>() {});
+    }
+
     private QuestionResponse hideAnswers(QuestionResponse question) {
         return QuestionResponse.builder()
                 .id(question.getId()).exerciseId(question.getExerciseId()).questionType(question.getQuestionType())
-                .questionText(question.getQuestionText()).points(question.getPoints()).position(question.getPosition())
+                .questionText(question.getQuestionText()).skillType(question.getSkillType()).topic(question.getTopic())
+                .recommendedLessonId(question.getRecommendedLessonId())
+                .recommendedLessonTitle(question.getRecommendedLessonTitle())
+                .points(question.getPoints()).position(question.getPosition())
                 .options(question.getOptions().stream().map(option -> OptionResponse.builder()
                         .id(option.getId()).optionText(option.getOptionText()).position(option.getPosition()).build()).toList())
                 .build();
     }
 
     private AssessmentResponse toExercise(Exercise exercise, boolean includeAnswers) {
-        return AssessmentResponse.builder().id(exercise.getId()).type("EXERCISE").courseId(exercise.getCourse().getId()).lessonId(exercise.getLesson() == null ? null : exercise.getLesson().getId()).title(exercise.getTitle()).description(exercise.getDescription()).durationMinutes(exercise.getDurationMinutes()).maxAttempts(exercise.getMaxAttempts()).status(exercise.getStatus()).questions(questionRepository.findByExerciseIdAndDeletedAtIsNullOrderByPositionAsc(exercise.getId()).stream().map(q -> toQuestion(q, includeAnswers)).toList()).build();
+        return AssessmentResponse.builder().id(exercise.getId()).type("EXERCISE").exerciseType(exercise.getExerciseType()).courseId(exercise.getCourse().getId()).lessonId(exercise.getLesson() == null ? null : exercise.getLesson().getId()).title(exercise.getTitle()).description(exercise.getDescription()).durationMinutes(exercise.getDurationMinutes()).maxAttempts(exercise.getMaxAttempts()).status(exercise.getStatus()).questions(questionRepository.findByExerciseIdAndDeletedAtIsNullOrderByPositionAsc(exercise.getId()).stream().map(q -> toQuestion(q, includeAnswers)).toList()).build();
     }
     private AssessmentResponse toTest(Test test, boolean includeAnswers) {
         return AssessmentResponse.builder().id(test.getId()).type("TEST").courseId(test.getCourse().getId()).title(test.getTitle()).description(test.getDescription()).durationMinutes(test.getDurationMinutes()).maxAttempts(test.getMaxAttempts()).passScore(test.getPassScore()).status(test.getStatus()).questions(testQuestionRepository.findByTestIdOrderByPositionAsc(test.getId()).stream().map(tq -> toQuestion(tq.getQuestion(), includeAnswers)).toList()).build();
     }
     private QuestionResponse toQuestion(Question question, boolean includeAnswers) {
-        return QuestionResponse.builder().id(question.getId()).exerciseId(question.getExercise() == null ? null : question.getExercise().getId()).questionType(question.getQuestionType()).questionText(question.getQuestionText()).explanation(includeAnswers ? question.getExplanation() : null).points(question.getPoints()).correctAnswer(includeAnswers ? question.getCorrectAnswer() : null).position(question.getPosition()).options(optionRepository.findByQuestionIdOrderByPositionAsc(question.getId()).stream().map(o -> OptionResponse.builder().id(o.getId()).optionText(o.getOptionText()).correct(includeAnswers ? o.getCorrect() : null).position(o.getPosition()).build()).toList()).build();
+        return QuestionResponse.builder().id(question.getId()).exerciseId(question.getExercise() == null ? null : question.getExercise().getId()).questionType(question.getQuestionType()).questionText(question.getQuestionText()).explanation(includeAnswers ? question.getExplanation() : null).skillType(question.getSkillType()).topic(question.getTopic()).recommendedLessonId(question.getRecommendedLesson() == null ? null : question.getRecommendedLesson().getId()).recommendedLessonTitle(question.getRecommendedLesson() == null ? null : question.getRecommendedLesson().getTitle()).points(question.getPoints()).correctAnswer(includeAnswers ? question.getCorrectAnswer() : null).position(question.getPosition()).options(optionRepository.findByQuestionIdOrderByPositionAsc(question.getId()).stream().map(o -> OptionResponse.builder().id(o.getId()).optionText(o.getOptionText()).correct(includeAnswers ? o.getCorrect() : null).position(o.getPosition()).build()).toList()).build();
     }
     private AttemptResponse toAttemptResponse(TestAttempt attempt) {
         List<QuestionResponse> questions = null;
         if (attempt.getTestSnapshot() != null) {
             try {
-                questions = objectMapper.readValue(attempt.getTestSnapshot(), new TypeReference<List<QuestionResponse>>() {});
+                questions = readSnapshot(attempt.getTestSnapshot());
             } catch (Exception e) {}
         }
         if (questions == null) {
@@ -516,6 +578,19 @@ public class AssessmentServiceImpl implements AssessmentService {
         boolean includeAnswers = attempt.getStatus() != TestAttempt.AttemptStatus.IN_PROGRESS;
         if (!includeAnswers) questions = questions.stream().map(this::hideAnswers).toList();
         List<UserAnswer> savedAnswers = answerRepository.findByAttemptId(attempt.getId());
+        long correctAnswerCount = includeAnswers
+                ? savedAnswers.stream().filter(answer -> Boolean.TRUE.equals(answer.getCorrect())).count()
+                : 0;
+        Set<Long> correctlyAnsweredQuestionIds = savedAnswers.stream()
+                .filter(answer -> Boolean.TRUE.equals(answer.getCorrect()))
+                .map(answer -> answer.getQuestion().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        long incorrectAnswerCount = includeAnswers
+                ? questions.stream()
+                .filter(question -> question.getQuestionType() != Question.QuestionType.WRITING)
+                .filter(question -> !correctlyAnsweredQuestionIds.contains(question.getId()))
+                .count()
+                : 0;
         BigDecimal totalPoints = questions.stream().map(QuestionResponse::getPoints).filter(java.util.Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal passScore = attempt.getExercise() == null ? attempt.getTest().getPassScore() : BigDecimal.ZERO;
@@ -533,8 +608,8 @@ public class AssessmentServiceImpl implements AssessmentService {
                 .passScore(passScore).totalPoints(totalPoints)
                 .scorePercent(scorePercent)
                 .passed(includeAnswers ? scorePercent.compareTo(requiredPercent) >= 0 : null)
-                .correctAnswers(includeAnswers ? savedAnswers.stream().filter(a -> Boolean.TRUE.equals(a.getCorrect())).count() : 0)
-                .incorrectAnswers(includeAnswers ? savedAnswers.stream().filter(a -> Boolean.FALSE.equals(a.getCorrect())).count() : 0)
+                .correctAnswers(correctAnswerCount)
+                .incorrectAnswers(incorrectAnswerCount)
                 .elapsedSeconds(java.time.Duration.between(attempt.getStartedAt(),
                         attempt.getSubmittedAt() == null ? LocalDateTime.now() : attempt.getSubmittedAt()).getSeconds())
                 .startedAt(attempt.getStartedAt()).dueAt(attempt.getDueAt()).submittedAt(attempt.getSubmittedAt())
@@ -545,6 +620,7 @@ public class AssessmentServiceImpl implements AssessmentService {
                         .selectedOptionIds(a.getSelectedOptionIds()).answerText(a.getAnswerText()).answerJson(a.getAnswerJson())
                         .correct(includeAnswers ? a.getCorrect() : null).pointsEarned(includeAnswers ? a.getPointsEarned() : null)
                         .build()).toList())
+                .recommendations(includeAnswers ? recommendationService.recommendForAttempt(attempt) : List.of())
                 .build();
     }
 }

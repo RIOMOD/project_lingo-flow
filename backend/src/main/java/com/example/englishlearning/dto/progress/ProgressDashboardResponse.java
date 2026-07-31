@@ -27,4 +27,5 @@ public class ProgressDashboardResponse {
     private BigDecimal averageScore;
     private long dueReviewWords;
     private CourseProgressResponse continueLearning;
+    private List<LearningRecommendationResponse> recommendations;
 }

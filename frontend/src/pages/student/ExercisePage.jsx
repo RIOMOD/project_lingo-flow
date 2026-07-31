@@ -586,6 +586,8 @@ export default function ExercisePage() {
   const [error, setError] = useState("");
   const [localAnswers, setLocalAnswers] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const requestedExerciseId = new URLSearchParams(window.location.search).get("exerciseId");
+  const requestedSkill = new URLSearchParams(window.location.search).get("skill");
 
   useEffect(() => {
     getExercises({ size: 20 })
@@ -595,8 +597,12 @@ export default function ExercisePage() {
         } else {
           setItems(DEFAULT_EXERCISES);
         }
+        if (requestedExerciseId) begin(Number(requestedExerciseId));
       })
-      .catch(() => setItems(DEFAULT_EXERCISES));
+      .catch(() => {
+        setItems(DEFAULT_EXERCISES);
+        if (requestedExerciseId) begin(Number(requestedExerciseId));
+      });
   }, []);
 
   useEffect(() => {
@@ -628,6 +634,10 @@ export default function ExercisePage() {
   const questions = attempt?.questions ?? [];
   const question = questions[current];
   const answeredCount = questions.filter((item) => answered(answers.get(item.id))).length;
+  const skillItems = requestedSkill
+    ? items.filter((item) => (item.exerciseType || item.type) === requestedSkill)
+    : items;
+  const displayedItems = skillItems.length > 0 ? skillItems : items;
 
   async function begin(id) {
     try {
@@ -744,9 +754,9 @@ export default function ExercisePage() {
         {error && <p className="auth-error">{error}</p>}
 
         <section className="assessment-library">
-          {items.map((item) => (
+          {displayedItems.map((item) => (
             <article key={item.id}>
-              <span>{item.type || "EXERCISE"}</span>
+              <span>{item.exerciseType || item.type || "EXERCISE"}</span>
               <h3>{item.title}</h3>
               <p>{item.description}</p>
               <small>

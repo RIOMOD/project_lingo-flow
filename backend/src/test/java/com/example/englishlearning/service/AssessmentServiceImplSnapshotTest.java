@@ -33,13 +33,14 @@ class AssessmentServiceImplSnapshotTest {
     @Mock LessonRepository lessonRepository;
     @Mock UserRepository userRepository;
     @Mock CourseOwnershipRepository ownershipRepository;
+    @Mock LearningRecommendationService recommendationService;
 
     @Test
     void gradesMultipleChoiceFromStartSnapshotAfterLiveQuestionChanges() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         AssessmentServiceImpl service = new AssessmentServiceImpl(exerciseRepository, questionRepository, optionRepository,
                 testRepository, testQuestionRepository, attemptRepository, answerRepository, courseRepository,
-                lessonRepository, userRepository, ownershipRepository, mapper);
+                lessonRepository, userRepository, ownershipRepository, mapper, recommendationService);
 
         Role role = new Role();
         role.setCode("STUDENT");
@@ -56,6 +57,10 @@ class AssessmentServiceImplSnapshotTest {
                 .questionType(Question.QuestionType.MULTIPLE_CHOICE).questionText("Pick both")
                 .points(new BigDecimal("2.00")).position(1)
                 .options(List.of(snapshotOption(1L, true), snapshotOption(2L, true), snapshotOption(3L, false))).build();
+        QuestionResponse unansweredSnapshot = QuestionResponse.builder().id(21L)
+                .questionType(Question.QuestionType.SINGLE_CHOICE).questionText("Unanswered")
+                .points(new BigDecimal("2.00")).position(2)
+                .options(List.of(snapshotOption(4L, true), snapshotOption(5L, false))).build();
         com.example.englishlearning.entity.Test test = new com.example.englishlearning.entity.Test();
         test.setId(30L);
         test.setTitle("Snapshot test");
@@ -65,7 +70,8 @@ class AssessmentServiceImplSnapshotTest {
         attempt.setTest(test);
         attempt.setStatus(TestAttempt.AttemptStatus.IN_PROGRESS);
         attempt.setStartedAt(LocalDateTime.now());
-        attempt.setTestSnapshot(mapper.writeValueAsString(List.of(snapshot)));
+        String serializedSnapshot = mapper.writeValueAsString(List.of(snapshot, unansweredSnapshot));
+        attempt.setTestSnapshot(mapper.writeValueAsString(serializedSnapshot));
         UserAnswer answer = new UserAnswer();
         answer.setAttempt(attempt);
         answer.setQuestion(liveQuestion);
@@ -79,9 +85,12 @@ class AssessmentServiceImplSnapshotTest {
 
         AttemptResponse response = service.submitAttempt("student@example.com", 40L);
 
-        assertEquals(new BigDecimal("2.00"), response.getScore());
+        assertEquals(0, new BigDecimal("2.00").compareTo(response.getScore()));
         assertTrue(answer.getCorrect());
-        assertEquals(new BigDecimal("2.00"), answer.getPointsEarned());
+        assertEquals(0, new BigDecimal("2.00").compareTo(answer.getPointsEarned()));
+        assertEquals(1, response.getCorrectAnswers());
+        assertEquals(1, response.getIncorrectAnswers());
+        assertEquals(new BigDecimal("50.00"), response.getScorePercent());
         verify(answerRepository).save(answer);
     }
 

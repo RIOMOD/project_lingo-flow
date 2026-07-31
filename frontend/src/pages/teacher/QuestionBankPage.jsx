@@ -9,9 +9,12 @@ export default function QuestionBankPage() {
   const [notice, setNotice] = useState("");
   const [question, setQuestion] = useState({
     exerciseId: "",
-    questionType: "MULTIPLE_CHOICE",
+    questionType: "SINGLE_CHOICE",
     questionText: "",
     explanation: "",
+    skillType: "GRAMMAR",
+    topic: "",
+    recommendedLessonId: "",
     points: 1,
     correctAnswer: "",
     position: 1,
@@ -38,15 +41,26 @@ export default function QuestionBankPage() {
 
   async function submitQuestion(event) {
     event.preventDefault();
+    setError("");
+    setNotice("");
     try {
-      const saved = await createQuestion({ ...question, exerciseId: question.exerciseId ? Number(question.exerciseId) : null, points: Number(question.points), position: Number(question.position) });
+      const saved = await createQuestion({
+        ...question,
+        exerciseId: question.exerciseId ? Number(question.exerciseId) : null,
+        recommendedLessonId: question.recommendedLessonId ? Number(question.recommendedLessonId) : null,
+        points: Number(question.points),
+        position: Number(question.position),
+      });
       setQuestionId(saved.id);
+      setNotice(`Đã tạo câu hỏi #${saved.id} thành công.`);
     } catch (err) {
       setError(err.message || "Khong tao duoc cau hoi");
     }
   }
 
   async function submitExercise() {
+    setError("");
+    setNotice("");
     try {
       await createExercise({ ...assessment, courseId: Number(assessment.courseId), status: "PUBLISHED", exerciseType: "MIXED" });
       setNotice("Đã tạo bài tập thành công!");
@@ -56,6 +70,8 @@ export default function QuestionBankPage() {
   }
 
   async function submitTest() {
+    setError("");
+    setNotice("");
     try {
       await createTest({ ...assessment, courseId: Number(assessment.courseId), status: "PUBLISHED", questionIds: questionId ? [Number(questionId)] : [] });
       setNotice("Đã tạo bài kiểm tra thành công!");
@@ -72,11 +88,17 @@ export default function QuestionBankPage() {
         <p className="page-description">Tao cau hoi, dap an, bai tap, bai kiem tra va xem ket qua hoc vien.</p>
       </section>
       {error && <p className="auth-error">{error}</p>}
+      {notice && <p className="auth-success">{notice}</p>}
       <form className="page-panel-card course-form" onSubmit={submitQuestion}>
         <input value={question.exerciseId} onChange={(event) => setQuestion({ ...question, exerciseId: event.target.value })} placeholder="Exercise ID neu gan truc tiep" />
         <select value={question.questionType} onChange={(event) => setQuestion({ ...question, questionType: event.target.value })}>
-          {["MULTIPLE_CHOICE", "TRUE_FALSE", "FILL_IN_THE_BLANK", "SENTENCE_ORDERING", "MATCHING", "LISTENING_MULTIPLE_CHOICE", "WRITING"].map((type) => <option key={type}>{type}</option>)}
+          {["SINGLE_CHOICE", "MULTIPLE_CHOICE", "TRUE_FALSE", "FILL_IN_THE_BLANK", "SENTENCE_ORDERING", "MATCHING", "LISTENING_MULTIPLE_CHOICE", "WRITING"].map((type) => <option key={type}>{type}</option>)}
         </select>
+        <select value={question.skillType} onChange={(event) => setQuestion({ ...question, skillType: event.target.value })}>
+          {["VOCABULARY", "GRAMMAR", "LISTENING", "READING", "WRITING", "SPEAKING", "PRONUNCIATION", "MIXED"].map((type) => <option key={type}>{type}</option>)}
+        </select>
+        <input value={question.topic} onChange={(event) => setQuestion({ ...question, topic: event.target.value })} placeholder="Chủ đề, ví dụ: Past Simple" required />
+        <input value={question.recommendedLessonId} onChange={(event) => setQuestion({ ...question, recommendedLessonId: event.target.value })} placeholder="Lesson ID nên ôn (không bắt buộc)" type="number" min="1" />
         <textarea value={question.questionText} onChange={(event) => setQuestion({ ...question, questionText: event.target.value })} placeholder="Noi dung cau hoi" required />
         <textarea value={question.explanation} onChange={(event) => setQuestion({ ...question, explanation: event.target.value })} placeholder="Giai thich dap an" />
         {question.options.map((option, index) => (
@@ -94,7 +116,7 @@ export default function QuestionBankPage() {
             <option value="">-- Chọn khóa học --</option>
             {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
-          <input value={assessment.title} onChange={(event) => setAssessment({ ...assessment, title: event.target.value })} placeholder="Ten bai" />
+          <input value={assessment.title} onChange={(event) => setAssessment({ ...assessment, title: event.target.value })} placeholder="Ten bai" required />
           <input value={assessment.durationMinutes} onChange={(event) => setAssessment({ ...assessment, durationMinutes: Number(event.target.value) })} type="number" />
         </div>
         <div className="page-actions">

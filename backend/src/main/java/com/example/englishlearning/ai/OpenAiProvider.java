@@ -83,8 +83,8 @@ public class OpenAiProvider implements AiProvider {
         String text = extractText(node);
         return AiProviderResult.builder()
                 .text(text)
-                .promptTokens(extractUsage(node, "prompt_tokens"))
-                .completionTokens(extractUsage(node, "completion_tokens"))
+                .promptTokens(extractUsage(node, "input_tokens"))
+                .completionTokens(extractUsage(node, "output_tokens"))
                 .totalTokens(extractUsage(node, "total_tokens"))
                 .fallback(false)
                 .build();
@@ -130,8 +130,8 @@ public class OpenAiProvider implements AiProvider {
                     .coherenceScore(decimal(data, "coherenceScore"))
                     .taskResponseScore(decimal(data, "taskResponseScore"))
                     .suggestedLessons(list(data, "suggestedLessons"))
-                    .promptTokens(extractUsage(node, "prompt_tokens"))
-                    .completionTokens(extractUsage(node, "completion_tokens"))
+                    .promptTokens(extractUsage(node, "input_tokens"))
+                    .completionTokens(extractUsage(node, "output_tokens"))
                     .totalTokens(extractUsage(node, "total_tokens"))
                     .fallback(false)
                     .build();
@@ -149,10 +149,11 @@ public class OpenAiProvider implements AiProvider {
             try {
                 Map<String, Object> body = new LinkedHashMap<>();
                 body.put("model", model);
-                body.put("messages", messages);
-                body.put("max_tokens", 900);
+                body.put("input", messages);
+                body.put("max_output_tokens", 900);
+                body.put("store", false);
                 String response = restClient.post()
-                        .uri("/chat/completions")
+                        .uri("/responses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + apiKey)
                         .body(body)
@@ -181,15 +182,25 @@ public class OpenAiProvider implements AiProvider {
     }
 
     private String extractText(JsonNode node) {
-        JsonNode choices = node.path("choices");
-        if (choices.isArray() && !choices.isEmpty()) {
-            JsonNode messageNode = choices.get(0).path("message");
-            JsonNode contentNode = messageNode.path("content");
-            if (contentNode.isTextual() && !contentNode.asText().isBlank()) {
-                return contentNode.asText().trim();
+        JsonNode outputText = node.path("output_text");
+        if (outputText.isTextual() && !outputText.asText().isBlank()) {
+            return outputText.asText().trim();
+        }
+        JsonNode output = node.path("output");
+        if (output.isArray()) {
+            for (JsonNode item : output) {
+                JsonNode content = item.path("content");
+                if (!content.isArray()) continue;
+                for (JsonNode part : content) {
+                    JsonNode text = part.path("text");
+                    if ("output_text".equals(part.path("type").asText())
+                            && text.isTextual() && !text.asText().isBlank()) {
+                        return text.asText().trim();
+                    }
+                }
             }
         }
-        throw new BadRequestException("AI response does not contain choices text");
+        throw new BadRequestException("AI response does not contain output text");
     }
 
     private boolean isRetryableStatus(int status) {

@@ -35,6 +35,17 @@ public class Question {
     @Column(columnDefinition = "TEXT")
     private String explanation;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "skill_type", length = 30)
+    private SkillType skillType;
+
+    @Column(length = 120)
+    private String topic;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recommended_lesson_id")
+    private Lesson recommendedLesson;
+
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal points = BigDecimal.ONE;
 
@@ -74,5 +85,16 @@ public class Question {
         MATCHING,
         LISTENING_MULTIPLE_CHOICE,
         WRITING
+    }
+
+    public enum SkillType {
+        VOCABULARY,
+        GRAMMAR,
+        LISTENING,
+        READING,
+        WRITING,
+        SPEAKING,
+        PRONUNCIATION,
+        MIXED
     }
 }

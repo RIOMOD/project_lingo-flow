@@ -458,6 +458,57 @@
   background: #eff6ff;
 }
 
+.student-suggestion-list .student-learning-recommendation {
+  align-items: flex-start;
+}
+
+.student-suggestion-list .student-learning-recommendation > span {
+  width: 24px;
+  flex: 0 0 24px;
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+
+.student-suggestion-list .student-recommendation-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.student-recommendation-copy strong,
+.student-recommendation-copy small {
+  overflow-wrap: anywhere;
+}
+
+.student-recommendation-copy small {
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.student-recommendation-meter {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #e2e8f0;
+}
+
+.student-recommendation-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #d97706;
+}
+
+.student-learning-recommendation > a {
+  flex: 0 0 auto;
+  align-self: center;
+  white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .stu-bottom-grid {
@@ -485,5 +536,11 @@
   .stu-continue-content .stu-badge,
   .stu-btn-primary {
     align-self: center;
+  }
+  .student-learning-recommendation {
+    flex-wrap: wrap;
+  }
+  .student-learning-recommendation > a {
+    margin-left: 36px;
   }
 }

@@ -13,6 +13,7 @@ public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> 
     long countByUserIdAndExerciseId(Long userId, Long exerciseId);
     Page<TestAttempt> findByUserIdOrderByStartedAtDesc(Long userId, Pageable pageable);
     List<TestAttempt> findByUserIdAndSubmittedAtIsNotNull(Long userId);
+    List<TestAttempt> findTop10ByUserIdAndSubmittedAtIsNotNullOrderBySubmittedAtDesc(Long userId);
     @Query("select count(distinct a.exercise.id) from TestAttempt a where a.user.id = :userId and a.exercise is not null and a.submittedAt is not null")
     long countByUserIdAndExerciseIsNotNullAndSubmittedAtIsNotNull(Long userId);
     Page<TestAttempt> findByTestCourseTeacherIdOrExerciseCourseTeacherIdOrderByStartedAtDesc(Long testTeacherId, Long exerciseTeacherId, Pageable pageable);

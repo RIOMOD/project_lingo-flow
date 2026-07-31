@@ -4063,6 +4063,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .assessment-result-banner.is-fail { border-color: #efd7c4; background: #fff6ed; }
 .assessment-result-actions { display: flex; gap: 10px; margin-top: 14px; }
 .assessment-result-actions a { padding: 10px 12px; border-radius: 9px; background: #edf5f4; color: #087f7b; font-weight: 700; }
+.assessment-question-map > .assessment-recommendations { display: block; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+.assessment-recommendations-heading { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.assessment-recommendations-heading strong { color: #0f172a; font-size: .95rem; }
+.assessment-recommendations-heading span { color: #64748b; font-size: .72rem; }
+.assessment-recommendation-list { display: grid; gap: 8px; }
+.assessment-recommendation-list article { display: grid; gap: 2px; padding: 9px; border-left: 3px solid #d97706; border-radius: 6px; background: #fffbeb; }
+.assessment-recommendation-list article > span { color: #92400e; font-size: .68rem; font-weight: 750; text-transform: uppercase; }
+.assessment-recommendation-list article > strong { color: #1e293b; font-size: .84rem; overflow-wrap: anywhere; }
+.assessment-recommendation-list article > small { color: #64748b; font-size: .7rem; }
+.assessment-recommendation-list article > a { width: fit-content; margin-top: 5px; color: #087f7b; font-size: .75rem; font-weight: 750; }
 
 @media (max-width: 1100px) {
   .student-stat-grid-v2 { grid-template-columns: repeat(2,minmax(0,1fr)); }

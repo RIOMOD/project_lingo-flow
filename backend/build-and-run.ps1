@@ -22,9 +22,8 @@ $envExamplePath = Join-Path $baseDir ".env.example"
 
 if (-not (Test-Path $envPath)) {
     if (Test-Path $envExamplePath) {
-        Write-Host "LỖI: backend/.env is missing." -ForegroundColor Red
-        Write-Host "Copy backend/.env.example to backend/.env and configure the required values." -ForegroundColor Yellow
-        exit 1
+        Write-Host "backend/.env is missing; using application.yml defaults with local H2 database." -ForegroundColor Yellow
+        Write-Host "Copy backend/.env.example to backend/.env if you want to run with MySQL/Docker." -ForegroundColor Yellow
     }
 }
 

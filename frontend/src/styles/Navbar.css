@@ -173,6 +173,29 @@
   border-top-color: #27272a;
 }
 
+.app-shell.is-modern .app-footer-logout {
+  color: #b42318;
+}
+
+.app-shell.is-modern .app-footer-logout:hover {
+  color: #912018;
+  background: #fff1f0;
+}
+
+.app-shell.is-modern .app-footer-logout:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+[data-theme="dark"] .app-shell.is-modern .app-footer-logout,
+[data-theme="dark"] .app-shell.is-modern .app-footer-logout:hover {
+  color: #fda29b;
+}
+
+[data-theme="dark"] .app-shell.is-modern .app-footer-logout:hover {
+  background: #3b1111;
+}
+
 .app-shell.is-modern .app-account-card {
   display: flex;
   align-items: center;

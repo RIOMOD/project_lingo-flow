@@ -9,7 +9,10 @@ async function parseResponse(response) {
   const body = contentType.includes("application/json") ? await response.json() : null;
 
   if (!response.ok) {
-    const message = body?.message || body?.error?.message || "Request failed";
+    const validationDetails = body?.error?.details;
+    const message = Array.isArray(validationDetails) && validationDetails.length > 0
+      ? validationDetails.map((detail) => `${detail.field}: ${detail.message}`).join("; ")
+      : body?.message || body?.error?.message || "Request failed";
     const error = new Error(message);
     error.status = response.status;
     error.body = body;

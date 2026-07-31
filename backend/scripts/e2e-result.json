@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "runId": "20260731145644853",
+  "testAccount": {
+    "email": "recommendation.test@example.com",
+    "password": "Password123!"
+  },
+  "created": {
+    "testId": 16,
+    "attemptId": 6,
+    "questionIds": [
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163,
+      164,
+      165
+    ]
+  },
+  "result": {
+    "score": 8,
+    "scorePercent": 53.33,
+    "correctAnswers": 8,
+    "incorrectAnswers": 7,
+    "recommendations": [
+      {
+        "skillType": "GRAMMAR",
+        "skillLabel": "Ngữ pháp",
+        "topic": "Past Simple",
+        "accuracyPercent": 20,
+        "attemptCount": 1,
+        "totalQuestions": 5,
+        "incorrectAnswers": 4,
+        "reason": "Bạn trả lời sai 4/5 câu về Past Simple trong 1 lượt làm gần đây.",
+        "courseId": 1,
+        "courseTitle": "Giao tiếp tiếng Anh cho người mới bắt đầu",
+        "lessonId": 2,
+        "lessonTitle": "Hỏi thăm và phản hồi lịch sự",
+        "exerciseId": null
+      },
+      {
+        "skillType": "VOCABULARY",
+        "skillLabel": "Từ vựng",
+        "topic": "Travel Vocabulary",
+        "accuracyPercent": 40,
+        "attemptCount": 1,
+        "totalQuestions": 5,
+        "incorrectAnswers": 3,
+        "reason": "Bạn trả lời sai 3/5 câu về Travel Vocabulary trong 1 lượt làm gần đây.",
+        "courseId": 1,
+        "courseTitle": "Giao tiếp tiếng Anh cho người mới bắt đầu",
+        "lessonId": 3,
+        "lessonTitle": "Gọi món tại quán cà phê",
+        "exerciseId": null
+      }
+    ]
+  }
+}

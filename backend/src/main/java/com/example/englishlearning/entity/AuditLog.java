@@ -16,7 +16,7 @@ public class AuditLog {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false)
+    @JoinColumn(name = "actor_user_id")
     private User admin;
 
     @Column(nullable = false, length = 100)
@@ -40,7 +40,7 @@ public class AuditLog {
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(name = "user_agent", length = 255)
+    @Column(name = "user_agent", length = 500)
     private String userAgent;
 
     @Column(name = "created_at", nullable = false, updatable = false)

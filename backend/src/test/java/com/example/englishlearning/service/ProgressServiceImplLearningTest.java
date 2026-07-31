@@ -62,7 +62,8 @@ class ProgressServiceImplLearningTest {
                 mock(VocabularyProgressRepository.class),
                 mock(com.example.englishlearning.repository.VocabularyRepository.class),
                 userRepository,
-                mock(UserProfileRepository.class)
+                mock(UserProfileRepository.class),
+                mock(LearningRecommendationService.class)
         );
 
         Role role = new Role(); role.setCode("STUDENT");

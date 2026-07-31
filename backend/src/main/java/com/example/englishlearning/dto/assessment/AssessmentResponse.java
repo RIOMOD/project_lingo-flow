@@ -12,6 +12,7 @@ import java.util.List;
 public class AssessmentResponse {
     private Long id;
     private String type;
+    private Exercise.ExerciseType exerciseType;
     private Long courseId;
     private Long lessonId;
     private String title;

@@ -24,6 +24,12 @@ function formatAccess(value) {
   );
 }
 
+function recommendationPath(item) {
+  if (item?.courseId && item?.lessonId) return `/student/learn/${item.courseId}/${item.lessonId}`;
+  if (item?.exerciseId) return `/student/exercises?exerciseId=${item.exerciseId}`;
+  return `/student/exercises?skill=${item?.skillType || "MIXED"}`;
+}
+
 function MiniBarChart({ items = [] }) {
   const hasData = items.some((item) => Number(item.value) > 0);
   if (!hasData) return <div className="student-empty-state"><span aria-hidden="true">◔</span><strong>Tuần này đang chờ dấu ấn đầu tiên</strong><p>Học một bài hôm nay để biểu đồ tiến độ bắt đầu chuyển động.</p></div>;
@@ -55,6 +61,7 @@ export default function StudentDashboardPage() {
   }, []);
 
   const current = dashboard?.continueLearning;
+  const recommendations = dashboard?.recommendations ?? [];
   const stats = useMemo(() => [
     { icon: "📚", label: "Khóa đang học", value: dashboard?.activeCourses ?? 0, link: "/student/courses" },
     { icon: "🎯", label: "Bài đã hoàn thành", value: dashboard?.completedLessons ?? 0, link: "/student/progress" },
@@ -190,13 +197,27 @@ export default function StudentDashboardPage() {
                   <Link to="/student/vocabulary">Ôn ngay</Link>
                 </div>
               </li>
-              <li>
-                <span>📝</span>
-                <div>
-                  <strong>Luyện kỹ năng {dashboard.weakestSkill?.skill || "nền tảng"}</strong>
-                  <Link to="/student/exercises">Làm bài tập</Link>
-                </div>
-              </li>
+              {recommendations.length > 0 ? recommendations.map((item) => (
+                <li className="student-learning-recommendation" key={`${item.skillType}-${item.topic}`}>
+                  <span aria-hidden="true">◎</span>
+                  <div className="student-recommendation-copy">
+                    <strong>{item.skillLabel}: {item.topic}</strong>
+                    <small>{item.reason}</small>
+                    <div className="student-recommendation-meter" aria-label={`Độ chính xác ${Number(item.accuracyPercent || 0).toFixed(0)}%`}>
+                      <i style={{ width: `${Math.min(100, Math.max(0, Number(item.accuracyPercent || 0)))}%` }} />
+                    </div>
+                  </div>
+                  <Link to={recommendationPath(item)}>{item.lessonId ? "Học bài này" : "Luyện ngay"}</Link>
+                </li>
+              )) : (
+                <li>
+                  <span aria-hidden="true">✓</span>
+                  <div>
+                    <strong>Chưa phát hiện chủ đề yếu</strong>
+                    <Link to="/student/tests">Làm bài đánh giá</Link>
+                  </div>
+                </li>
+              )}
             </ul>
           </article>
         </div>

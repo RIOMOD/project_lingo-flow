@@ -21,7 +21,7 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
   if (!question) return null;
 
   const rawType = question.questionType || question.type || "SINGLE_CHOICE";
-  const qType = rawType === "MULTIPLE_CHOICE" && question.options?.filter(o => o.correct || o.isCorrect).length <= 1 ? "SINGLE_CHOICE" : rawType;
+  const qType = rawType;
   const qText = question.questionText || question.prompt || "Nội dung câu hỏi";
   const points = question.points || 1;
   const options = question.options ?? [];

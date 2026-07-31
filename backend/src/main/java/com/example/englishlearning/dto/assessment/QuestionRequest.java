@@ -20,6 +20,9 @@ public class QuestionRequest {
     @NotBlank
     private String questionText;
     private String explanation;
+    private Question.SkillType skillType;
+    private String topic;
+    private Long recommendedLessonId;
     private BigDecimal points = BigDecimal.ONE;
     private String correctAnswer;
     private Integer position = 1;

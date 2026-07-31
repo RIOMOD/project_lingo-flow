@@ -4,6 +4,7 @@ import com.example.englishlearning.dto.progress.CertificateEligibilityResponse;
 import com.example.englishlearning.dto.progress.ChartPointResponse;
 import com.example.englishlearning.dto.progress.CourseProgressResponse;
 import com.example.englishlearning.dto.progress.LessonProgressRequest;
+import com.example.englishlearning.dto.progress.LearningRecommendationResponse;
 import com.example.englishlearning.dto.progress.ProgressDashboardResponse;
 import com.example.englishlearning.dto.progress.SkillProgressResponse;
 import com.example.englishlearning.entity.Course;
@@ -31,6 +32,7 @@ import com.example.englishlearning.repository.UserProfileRepository;
 import com.example.englishlearning.repository.VocabularyProgressRepository;
 import com.example.englishlearning.repository.VocabularyRepository;
 import com.example.englishlearning.service.ProgressService;
+import com.example.englishlearning.service.LearningRecommendationService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +62,7 @@ public class ProgressServiceImpl implements ProgressService {
     private final VocabularyRepository vocabularyRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final LearningRecommendationService recommendationService;
 
     public ProgressServiceImpl(
             LearningProgressRepository progressRepository,
@@ -71,7 +74,8 @@ public class ProgressServiceImpl implements ProgressService {
             VocabularyProgressRepository vocabularyProgressRepository,
             VocabularyRepository vocabularyRepository,
             UserRepository userRepository,
-            UserProfileRepository userProfileRepository
+            UserProfileRepository userProfileRepository,
+            LearningRecommendationService recommendationService
     ) {
         this.progressRepository = progressRepository;
         this.enrollmentRepository = enrollmentRepository;
@@ -83,6 +87,7 @@ public class ProgressServiceImpl implements ProgressService {
         this.vocabularyRepository = vocabularyRepository;
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
+        this.recommendationService = recommendationService;
     }
 
     @Override
@@ -92,6 +97,7 @@ public class ProgressServiceImpl implements ProgressService {
         List<CourseProgressResponse> courses = getCourseProgress(email);
         List<LearningProgress> progress = progressRepository.findByUserIdOrderByLastAccessedAtDesc(user.getId());
         List<TestAttempt> attempts = attemptRepository.findByUserIdAndSubmittedAtIsNotNull(user.getId());
+        List<LearningRecommendationResponse> recommendations = recommendationService.recommendForUser(user.getId());
         return ProgressDashboardResponse.builder()
                 .studentName(user.getFullName())
                 .learningGoal(userProfileRepository.findByUserId(user.getId()).map(profile -> profile.getLearningGoal()).orElse(null))
@@ -115,7 +121,15 @@ public class ProgressServiceImpl implements ProgressService {
                         .max(Comparator.comparing(CourseProgressResponse::getLastAccessedAt,
                                 Comparator.nullsFirst(Comparator.naturalOrder())))
                         .orElse(courses.stream().filter(course -> !course.isCompleted()).findFirst().orElse(null)))
+                .recommendations(recommendations)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LearningRecommendationResponse> getRecommendations(String email) {
+        User user = getUser(email);
+        return recommendationService.recommendForUser(user.getId());
     }
 
     @Override

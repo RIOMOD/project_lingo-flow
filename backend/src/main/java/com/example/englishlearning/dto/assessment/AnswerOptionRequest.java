@@ -10,6 +10,7 @@ import lombok.Setter;
 public class AnswerOptionRequest {
     @NotBlank
     private String optionText;
+    @com.fasterxml.jackson.annotation.JsonProperty("correct")
     private Boolean correct = false;
     @NotNull
     private Integer position;

@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.englishlearning.dto.progress.LearningRecommendationResponse;
 
 @Getter
 @Builder
@@ -31,4 +32,5 @@ public class AttemptResponse {
     private TestAttempt.AttemptStatus status;
     private List<QuestionResponse> questions;
     private List<AnswerResultResponse> answers;
+    private List<LearningRecommendationResponse> recommendations;
 }

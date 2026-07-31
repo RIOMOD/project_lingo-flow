@@ -1,33 +1,35 @@
 # Lingo Flow
 
-## Run after clone
+## Run locally on Windows
 
 Requirements:
 
 - Java 21
 - Node.js
-- Docker Desktop
+- Docker Desktop only if you want to run MySQL instead of the default local H2 database
 
-Start the backend:
-
-```powershell
-cd backend
-npm run dev
-```
-
-Open another terminal and start the frontend:
+Install JavaScript dependencies:
 
 ```powershell
-cd frontend
-npm run dev
+npm.cmd run install:all
 ```
 
-The backend dev script creates `backend/.env` from `.env.example` when missing,
-starts MySQL 8 with Docker Compose, waits for the MySQL healthcheck, and runs
-Spring Boot through the Maven Wrapper. Flyway creates the schema and seed data.
+Start backend and frontend together:
 
-The frontend dev script runs `npm install` only when `frontend/node_modules` is
-missing, then starts Vite. Vite proxies `/api` to `http://localhost:8080`.
+```powershell
+npm.cmd run dev
+```
+
+Use `npm.cmd` in PowerShell if `npm` is blocked by the Windows execution policy.
+
+By default, the backend runs with the H2 file database configured in
+`backend/src/main/resources/application.yml`. To run with MySQL, copy
+`backend/.env.example` to `backend/.env`, start MySQL from `backend/docker-compose.yml`,
+and then run `npm.cmd run dev`.
+
+Frontend: http://localhost:5173
+
+Backend health check: http://localhost:8080/api/health
 
 Demo accounts use password `Password123!`:
 

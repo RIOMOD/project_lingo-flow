@@ -19,6 +19,10 @@ public class QuestionResponse {
     private Question.QuestionType questionType;
     private String questionText;
     private String explanation;
+    private Question.SkillType skillType;
+    private String topic;
+    private Long recommendedLessonId;
+    private String recommendedLessonTitle;
     private BigDecimal points;
     private String correctAnswer;
     private Integer position;

@@ -14,6 +14,12 @@ function clock(seconds) {
   return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`; 
 }
 
+function recommendationPath(item) {
+  if (item?.courseId && item?.lessonId) return `/student/learn/${item.courseId}/${item.lessonId}`;
+  if (item?.exerciseId) return `/student/exercises?exerciseId=${item.exerciseId}`;
+  return `/student/exercises?skill=${item?.skillType || "MIXED"}`;
+}
+
 const buildMockAttempt = (testId) => ({
   id: Date.now(),
   targetId: testId,
@@ -244,6 +250,7 @@ export default function TestPage() {
   const percent = Number(attempt.scorePercent || 0); 
   const passed = Boolean(attempt.passed);
   const missingCount = questions.length - answeredCount;
+  const recommendations = attempt.recommendations ?? [];
 
   return (
     <div 
@@ -403,13 +410,33 @@ export default function TestPage() {
 
           {submitted && (
             <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", flexShrink: 0 }}>
-              <Link to="/student/exercises" style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#f1f5f9", color: "#0f172a", textDecoration: "none", fontWeight: "600" }}>Ôn bài liên quan</Link>
+              <Link to={recommendations.length ? recommendationPath(recommendations[0]) : "/student/exercises"} style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#f1f5f9", color: "#0f172a", textDecoration: "none", fontWeight: "600" }}>
+                {recommendations.length ? `Ôn ${recommendations[0].topic}` : "Ôn bài liên quan"}
+              </Link>
               <Link to="/student/courses" style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#0d9488", color: "#ffffff", textDecoration: "none", fontWeight: "600" }}>Tiếp tục học</Link>
             </div>
           )}
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", height: "100%", minHeight: 0, boxSizing: "border-box", justifyContent: "space-between", overflow: "hidden" }}>
+        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", height: "100%", minHeight: 0, boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", overflowY: "auto" }}>
+          {submitted && recommendations.length > 0 && (
+            <div className="assessment-recommendations">
+              <div className="assessment-recommendations-heading">
+                <strong>Nội dung nên ôn</strong>
+                <span>Từ câu sai và câu bỏ trống</span>
+              </div>
+              <div className="assessment-recommendation-list">
+                {recommendations.map((item) => (
+                  <article key={`${item.skillType}-${item.topic}`}>
+                    <span>{item.skillLabel} · {Number(item.accuracyPercent || 0).toFixed(0)}%</span>
+                    <strong>{item.topic}</strong>
+                    <small>{item.incorrectAnswers}/{item.totalQuestions} câu cần củng cố</small>
+                    <Link to={recommendationPath(item)}>{item.lessonId ? "Mở bài học" : "Luyện ngay"}</Link>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.05rem", color: "#0f172a", fontWeight: "700" }}>Danh sách câu</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>

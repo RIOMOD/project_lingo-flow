@@ -204,7 +204,6 @@ export const navigationByRole = {
       items: [
         { label: "Quản lý khóa học", to: demoPaths.teacherCourses },
         { label: "Tạo khóa học", to: demoPaths.teacherCourseCreate },
-        { label: "Sửa khóa học", to: demoPaths.teacherCourseEdit },
         { label: "Lesson builder", to: demoPaths.teacherLessonBuilder },
         { label: "Từ vựng", to: demoPaths.teacherVocabulary },
         { label: "Ngữ pháp", to: demoPaths.teacherGrammar },

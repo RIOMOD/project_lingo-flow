@@ -8,6 +8,10 @@ export async function getProgressDashboard() {
   return unwrap(await apiRequest("/progress/dashboard"));
 }
 
+export async function getLearningRecommendations() {
+  return unwrap(await apiRequest("/progress/recommendations"));
+}
+
 export async function getCourseProgress() {
   return unwrap(await apiRequest("/progress/courses"));
 }

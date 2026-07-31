@@ -4,6 +4,7 @@ import com.example.englishlearning.dto.common.ApiResponse;
 import com.example.englishlearning.dto.progress.CourseProgressResponse;
 import com.example.englishlearning.dto.progress.LessonProgressRequest;
 import com.example.englishlearning.dto.progress.ProgressDashboardResponse;
+import com.example.englishlearning.dto.progress.LearningRecommendationResponse;
 import com.example.englishlearning.service.ProgressService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +40,11 @@ public class ProgressController {
     @GetMapping("/progress/dashboard")
     public ApiResponse<ProgressDashboardResponse> getStudentDashboard(Authentication authentication) {
         return ApiResponse.success(progressService.getStudentDashboard(authentication.getName()));
+    }
+
+    @GetMapping("/progress/recommendations")
+    public ApiResponse<List<LearningRecommendationResponse>> getRecommendations(Authentication authentication) {
+        return ApiResponse.success(progressService.getRecommendations(authentication.getName()));
     }
 
     @GetMapping("/progress/courses")
