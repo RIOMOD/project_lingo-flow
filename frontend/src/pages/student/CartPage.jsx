@@ -143,7 +143,7 @@ export default function CartPage() {
             Hãy khám phá các khóa học tiếng Anh giao tiếp & luyện thi rực rỡ để bổ sung vào lộ trình học tập của bạn.
           </p>
           <Link
-            to="/student/courses"
+            to="/student/courses?tab=catalog"
             className="stu-btn-primary"
             style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", borderRadius: "12px", background: "linear-gradient(135deg, #2563eb, #4f46e5)", color: "#fff", textDecoration: "none", fontWeight: 700 }}
           >

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AddToCartButton from "../../components/common/AddToCartButton";
 import CertificateModal from "../../components/student/CertificateModal";
 import { useToast } from "../../context/ToastContext";
@@ -13,6 +13,13 @@ const fallbackImages = [
   "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
 ];
+
+function isRequiredCourse(course) {
+  if (!course) return false;
+  const id = Number(course.id);
+  const slug = (course.slug || "").toLowerCase();
+  return id === 2 || id === 3 || id === 4 || slug.includes("ielts-foundation") || slug.includes("phat-am") || slug.includes("business-english");
+}
 
 function formatDate(value) {
   if (!value) return "Mới cấp quyền";
@@ -49,10 +56,18 @@ function hasSale(course) {
 export default function MyCoursesPage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
 
-  const [activeTab, setActiveTab] = useState("my"); // "my" | "catalog"
+  const [activeTab, setActiveTab] = useState(tabParam === "catalog" ? "catalog" : "my"); // "my" | "catalog"
   const [courses, setCourses] = useState([]);
   const [catalogCourses, setCatalogCourses] = useState([]);
+
+  useEffect(() => {
+    if (tabParam === "catalog") {
+      setActiveTab("catalog");
+    }
+  }, [tabParam]);
   const [cartCourseIds, setCartCourseIds] = useState(new Set());
   const [progressByCourse, setProgressByCourse] = useState({});
   const [loading, setLoading] = useState(true);
@@ -324,7 +339,30 @@ export default function MyCoursesPage() {
 
                 return (
                   <article key={course.id} className="my-course-card catalog-item" style={{ display: "flex", flexDirection: "column" }}>
-                    <div className="my-course-media">
+                    <div className="my-course-media" style={{ position: "relative" }}>
+                      {isRequiredCourse(course) && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "10px",
+                            left: "10px",
+                            background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                            color: "#ffffff",
+                            fontSize: "0.75rem",
+                            fontWeight: 900,
+                            padding: "4px 10px",
+                            borderRadius: "999px",
+                            boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)",
+                            letterSpacing: "0.05em",
+                            zIndex: 3,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "3px",
+                          }}
+                        >
+                          🔥 BẮT BUỘC
+                        </span>
+                      )}
                       <Link to={`/student/courses/${course.slug || course.id}`}>
                         <CourseImage course={course} index={index} />
                       </Link>
