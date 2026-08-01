@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LoadingState } from "../../components/common/UiState";
 import { getProgressDashboard } from "../../services/progressService";
 
@@ -8,13 +8,25 @@ function percent(value) {
 
 export default function ProgressPage() {
   const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    getProgressDashboard()
-      .then(setDashboard)
-      .catch((err) => setError(err.message || "Không tải được tiến độ"));
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getProgressDashboard();
+      setDashboard(data);
+    } catch (err) {
+      setError(err.message || "Không thể kết nối tới máy chủ");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   return (
     <div className="student-page">
@@ -26,10 +38,23 @@ export default function ProgressPage() {
         </div>
       </section>
 
-      {error && <p className="auth-error">{error}</p>}
-      {!dashboard && !error && <LoadingState title="Đang tải tiến độ..." />}
+      {error && (
+        <div className="student-error-state" role="alert" style={{ margin: "1.5rem 0", padding: "1.5rem", borderRadius: "16px" }}>
+          <strong>Lỗi kết nối dữ liệu:</strong>
+          <p style={{ margin: "6px 0 1rem 0" }}>{error}</p>
+          <button
+            type="button"
+            onClick={loadDashboard}
+            style={{ padding: "9px 20px", borderRadius: "10px", background: "#0d9488", color: "#ffffff", border: "none", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(13,148,136,0.3)" }}
+          >
+            🔄 Thử tải lại ngay
+          </button>
+        </div>
+      )}
 
-      {dashboard && (
+      {loading && !error && <LoadingState title="Đang tải tiến độ học tập..." />}
+
+      {!loading && dashboard && (
         <section className="student-progress-layout">
           <article className="student-panel">
             <div className="student-panel-head">
@@ -88,4 +113,3 @@ export default function ProgressPage() {
     </div>
   );
 }
-
