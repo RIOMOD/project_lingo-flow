@@ -1,20 +1,71 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { cancelOrder, createPayment, getOrder } from "../../services/commerceService";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
+import { useAuth } from "../../hooks/useAuth";
+import { cancelOrder, getOrder } from "../../services/commerceService";
+
+const fallbackImages = [
+  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
+];
 
 const money = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" });
 
+function formatDate(value) {
+  if (!value) return "Vừa tạo";
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function CourseImage({ item, index = 0 }) {
+  const idx = typeof index === "number" ? index : 0;
+  const fallback = fallbackImages[idx % fallbackImages.length];
+  const [src, setSrc] = useState(item?.thumbnailUrl || fallback);
+
+  return (
+    <img
+      src={src || fallback}
+      alt={item?.title || "Khóa học"}
+      onError={() => setSrc(fallback)}
+      style={{
+        width: "76px",
+        height: "60px",
+        borderRadius: "10px",
+        objectFit: "cover",
+        flexShrink: 0,
+      }}
+    />
+  );
+}
+
 export default function OrderDetailPage() {
   const { orderCode } = useParams();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { user } = useAuth();
+
   const [order, setOrder] = useState(null);
-  const [paymentUrl, setPaymentUrl] = useState("");
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [canceling, setCanceling] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function loadOrder() {
+    setLoading(true);
+    setError("");
     try {
-      setOrder(await getOrder(orderCode));
+      const data = await getOrder(orderCode);
+      setOrder(data);
     } catch (err) {
-      setError(err.message || "Không tải được đơn hàng");
+      setError(err.message || "Không tải được thông tin đơn hàng");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -22,52 +73,325 @@ export default function OrderDetailPage() {
     loadOrder();
   }, [orderCode]);
 
-  async function handlePay() {
-    try {
-      const payment = await createPayment(orderCode);
-      setPaymentUrl(payment.paymentUrl);
-    } catch (err) {
-      setError(err.message || "Không tạo được thanh toán");
-    }
-  }
+  const handleCopyCode = () => {
+    if (!orderCode) return;
+    navigator.clipboard.writeText(orderCode);
+    setCopied(true);
+    toast.success("Đã sao chép mã đơn hàng!");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   async function handleCancel() {
+    if (!window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
     try {
-      setOrder(await cancelOrder(orderCode));
+      setCanceling(true);
+      const updated = await cancelOrder(orderCode);
+      setOrder(updated);
+      toast.success("Đã hủy đơn hàng thành công");
     } catch (err) {
-      setError(err.message || "Không hủy được đơn hàng");
+      toast.error(err.message || "Không thể hủy đơn hàng");
+    } finally {
+      setCanceling(false);
     }
   }
 
+  const isPaid = order?.status === "PAID";
+  const isPending = order?.status === "PENDING_PAYMENT";
+  const isCancelled = order?.status === "CANCELLED";
+  const items = order?.items ?? [];
+
   return (
-    <div className="course-page">
-      <section className="page-hero">
-        <span className="page-badge">Order detail</span>
-        <h2 className="page-title">{orderCode}</h2>
-        <p className="page-description">Thông tin chi tiết khóa học và hóa đơn được lưu trữ bảo mật theo đơn hàng.</p>
-      </section>
-      {error && <p className="auth-error">{error}</p>}
-      {order && (
-        <section className="page-panel-card">
-          <p>Trạng thái: <strong>{order.status}</strong></p>
-          <p>Tổng tiền: <strong>{money.format(order.totalAmount || 0)}</strong></p>
-          <div className="course-table">
-            {(order.items ?? []).map((item) => (
-              <div className="course-table-row" key={item.courseId}>
+    <div className="settings-container" style={{ width: "100%", margin: "0 auto", padding: "1.5rem" }}>
+      {/* Breadcrumbs */}
+      <nav style={{ display: "flex", gap: "8px", fontSize: "0.88rem", color: "#64748b", marginBottom: "1.2rem" }}>
+        <Link to="/" style={{ color: "#64748b", textDecoration: "none" }}>Trang chủ</Link>
+        <span>/</span>
+        <Link to="/student/orders" style={{ color: "#64748b", textDecoration: "none" }}>Lịch sử mua hàng</Link>
+        <span>/</span>
+        <span style={{ color: "#0f172a", fontWeight: 600 }}>Đơn hàng #{orderCode}</span>
+      </nav>
+
+      {/* Header Panel */}
+      <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.5rem 1.8rem", border: "1px solid #e2e8f0", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+              Đơn hàng #{orderCode}
+            </h1>
+            <button
+              type="button"
+              onClick={handleCopyCode}
+              style={{ background: "#f1f5f9", border: "none", color: "#475569", borderRadius: "6px", padding: "4px 8px", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600 }}
+            >
+              {copied ? "✓ Đã chép" : "📋 Sao chép"}
+            </button>
+          </div>
+          <p style={{ margin: "4px 0 0 0", color: "#64748b", fontSize: "0.88rem" }}>
+            Ngày đặt hàng: {formatDate(order?.createdAt)}
+          </p>
+        </div>
+
+        {/* Status Tag */}
+        <div>
+          {isPaid && (
+            <span style={{ background: "#dcfce7", color: "#15803d", fontSize: "0.88rem", fontWeight: 800, padding: "8px 16px", borderRadius: "999px", border: "1px solid #86efac", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              ✓ ĐÃ THANH TOÁN & KÍCH HOẠT
+            </span>
+          )}
+          {isPending && (
+            <span style={{ background: "#fef3c7", color: "#d97706", fontSize: "0.88rem", fontWeight: 800, padding: "8px 16px", borderRadius: "999px", border: "1px solid #fde68a", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              ⏳ CHỜ THANH TOÁN
+            </span>
+          )}
+          {isCancelled && (
+            <span style={{ background: "#fee2e2", color: "#b91c1c", fontSize: "0.88rem", fontWeight: 800, padding: "8px 16px", borderRadius: "999px", border: "1px solid #fca5a5", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              ✕ ĐÃ HỦY ĐƠN HÀNG
+            </span>
+          )}
+        </div>
+      </div>
+
+      {loading && (
+        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+          <div className="auth-state">Đang tải chi tiết đơn hàng...</div>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="student-error-state" role="alert" style={{ marginBottom: "1.5rem" }}>
+          <strong>Lỗi đơn hàng:</strong> {error}
+        </div>
+      )}
+
+      {!loading && order && (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.15fr) minmax(0, 0.85fr)", gap: "1.8rem", alignItems: "start" }}>
+          {/* Left Column: Purchased Courses & Billing Profile */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {/* Registered Courses List */}
+            <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
+              <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>📚 Khóa học trong đơn hàng ({items.length})</h3>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                {items.map((item, idx) => (
+                  <div
+                    key={item.courseId || idx}
+                    style={{
+                      display: "flex",
+                      gap: "14px",
+                      alignItems: "center",
+                      padding: "0.9rem 1rem",
+                      background: "#f8fafc",
+                      borderRadius: "14px",
+                      border: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <CourseImage item={item} index={idx} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Link
+                        to={`/student/courses/${item.slug || item.courseId}`}
+                        style={{ display: "block", fontSize: "0.98rem", fontWeight: 700, color: "#0f172a", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                      >
+                        {item.title}
+                      </Link>
+                      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "4px" }}>
+                        {item.originalPrice && item.finalPrice && item.finalPrice < item.originalPrice && (
+                          <span style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.82rem" }}>
+                            {money.format(item.originalPrice)}
+                          </span>
+                        )}
+                        <span style={{ fontSize: "0.95rem", color: "#2563eb", fontWeight: 800 }}>
+                          {money.format(item.finalPrice || item.price || 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {isPaid && (
+                      <Link
+                        to={`/student/learn/${item.courseId}`}
+                        style={{
+                          padding: "8px 14px",
+                          borderRadius: "10px",
+                          background: "linear-gradient(135deg, #16a34a, #15803d)",
+                          color: "#ffffff",
+                          fontWeight: 700,
+                          fontSize: "0.82rem",
+                          textDecoration: "none",
+                          flexShrink: 0,
+                          boxShadow: "0 2px 8px rgba(22,163,74,0.25)",
+                        }}
+                      >
+                        🎓 Vào học →
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Buyer Info Profile */}
+            <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
+              <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>👤 Thông tin học viên đăng ký</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", fontSize: "0.92rem" }}>
                 <div>
-                  <strong>{item.title}</strong>
-                  <p>{money.format(item.finalPrice || 0)}</p>
+                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Họ và tên</span>
+                  <strong style={{ color: "#1e293b" }}>{user?.fullName || "Học viên LingoFlow"}</strong>
+                </div>
+                <div>
+                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Email nhận kích hoạt</span>
+                  <strong style={{ color: "#1e293b" }}>{user?.email || "student@example.com"}</strong>
+                </div>
+                <div>
+                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Mã đơn hàng</span>
+                  <strong style={{ color: "#2563eb" }}>{orderCode}</strong>
+                </div>
+                <div>
+                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Thời gian khởi tạo</span>
+                  <strong style={{ color: "#1e293b" }}>{formatDate(order?.createdAt)}</strong>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-          <div className="page-actions">
-            {order.status === "PENDING_PAYMENT" && <button className="page-action page-action-primary" onClick={handlePay}>Thanh toán</button>}
-            {order.status === "PENDING_PAYMENT" && <button className="page-action page-action-secondary" onClick={handleCancel}>Hủy đơn</button>}
-            {paymentUrl && <a className="page-action page-action-primary" href={paymentUrl}>Mở cổng thanh toán</a>}
-            {order.invoice && <Link className="page-action page-action-secondary" to={`/student/orders/${order.orderCode}/invoice`}>Hóa đơn</Link>}
+
+          {/* Right Column: Order Summary & Actions */}
+          <div style={{ position: "sticky", top: "2rem" }}>
+            <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.8rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+              <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#0f172a" }}>Chi tiết thanh toán</h3>
+
+              {/* Invoice Breakdown */}
+              <div style={{ background: "#f8fafc", borderRadius: "14px", padding: "1.2rem", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.7rem", fontSize: "0.9rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+                  <span>Tạm tính ({items.length} khóa):</span>
+                  <strong style={{ color: "#1e293b" }}>{money.format(order?.subtotalAmount || order?.totalAmount || 0)}</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+                  <span>Giảm giá voucher:</span>
+                  <strong style={{ color: order?.discountAmount > 0 ? "#16a34a" : "#64748b" }}>
+                    -{money.format(order?.discountAmount || 0)}
+                  </strong>
+                </div>
+
+                {order?.couponCode && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#64748b" }}>Mã ưu đãi đã dùng:</span>
+                    <span style={{ background: "#dcfce7", color: "#15803d", fontWeight: 800, fontSize: "0.78rem", padding: "2px 8px", borderRadius: "6px" }}>
+                      🏷️ {order.couponCode}
+                    </span>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "0.7rem", borderTop: "1px solid #e2e8f0", fontSize: "1.05rem" }}>
+                  <span style={{ fontWeight: 700, color: "#0f172a" }}>Tổng thanh toán:</span>
+                  <strong style={{ fontSize: "1.55rem", fontWeight: 800, color: "#2563eb" }}>
+                    {money.format(order?.totalAmount || 0)}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {isPaid && (
+                  <>
+                    <Link
+                      to="/student/courses"
+                      style={{
+                        display: "block",
+                        textAlign: "center",
+                        padding: "13px",
+                        borderRadius: "12px",
+                        background: "linear-gradient(135deg, #16a34a, #15803d)",
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        textDecoration: "none",
+                        boxShadow: "0 4px 14px rgba(22,163,74,0.3)",
+                      }}
+                    >
+                      🎓 Vào học các khóa học ngay
+                    </Link>
+
+                    {order.invoice && (
+                      <Link
+                        to={`/student/orders/${order.orderCode}/invoice`}
+                        style={{
+                          display: "block",
+                          textAlign: "center",
+                          padding: "11px",
+                          borderRadius: "12px",
+                          background: "#f8fafc",
+                          color: "#334155",
+                          border: "1px solid #cbd5e1",
+                          fontWeight: 600,
+                          fontSize: "0.92rem",
+                          textDecoration: "none",
+                        }}
+                      >
+                        📄 Xem & Tải Hóa đơn VAT
+                      </Link>
+                    )}
+                  </>
+                )}
+
+                {isPending && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/student/checkout")}
+                      style={{
+                        width: "100%",
+                        padding: "13px",
+                        borderRadius: "12px",
+                        background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                        color: "#ffffff",
+                        border: "none",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 14px rgba(37,99,235,0.3)",
+                      }}
+                    >
+                      ⚡ Thanh toán đơn hàng ngay (VietQR)
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={canceling}
+                      onClick={handleCancel}
+                      style={{
+                        width: "100%",
+                        padding: "11px",
+                        borderRadius: "12px",
+                        background: "#fef2f2",
+                        color: "#dc2626",
+                        border: "1px solid #fecaca",
+                        fontWeight: 700,
+                        fontSize: "0.92rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {canceling ? "Đang hủy đơn..." : "❌ Hủy đơn hàng này"}
+                    </button>
+                  </>
+                )}
+
+                <Link
+                  to="/student/orders"
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                    padding: "10px",
+                    color: "#64748b",
+                    fontSize: "0.88rem",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
+                  ← Quay lại Lịch sử mua hàng
+                </Link>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
