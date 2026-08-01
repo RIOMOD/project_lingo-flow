@@ -30,14 +30,16 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function CourseImage({ course, index }) {
-  const [src, setSrc] = useState(course.thumbnailUrl || fallbackImages[index % fallbackImages.length]);
+function CourseImage({ course, index = 0 }) {
+  const idx = typeof index === "number" ? index : 0;
+  const fallback = fallbackImages[idx % fallbackImages.length] || fallbackImages[0];
+  const [src, setSrc] = useState(course?.thumbnailUrl || fallback);
 
   return (
     <img
-      src={src}
-      alt={course.title}
-      onError={() => setSrc(fallbackImages[index % fallbackImages.length])}
+      src={src || fallback}
+      alt={course?.title || "Khóa học"}
+      onError={() => setSrc(fallback)}
     />
   );
 }
