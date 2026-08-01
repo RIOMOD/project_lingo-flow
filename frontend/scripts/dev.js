@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import react from "@vitejs/plugin-react";
 import { createServer } from "vite";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -42,23 +41,15 @@ function runInstallIfNeeded() {
 async function startVite() {
   console.log("[frontend:dev] Starting Vite dev server...");
 
+  const portArgIdx = process.argv.indexOf("--port");
+  const port = portArgIdx !== -1 && process.argv[portArgIdx + 1] ? parseInt(process.argv[portArgIdx + 1], 10) : 5173;
+
   const server = await createServer({
     root: rootDir,
-    configFile: false,
-    plugins: [react()],
+    configFile: join(rootDir, "vite.config.js"),
     server: {
       host: "localhost",
-      proxy: {
-        "/api": {
-          target: "http://localhost:8080",
-          changeOrigin: true,
-          configure(proxy) {
-            proxy.on("proxyReq", (proxyRequest) => {
-              proxyRequest.removeHeader("origin");
-            });
-          },
-        },
-      },
+      port: port,
     },
   });
 
