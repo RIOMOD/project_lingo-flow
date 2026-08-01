@@ -251,40 +251,79 @@ export default function CartPage() {
                     </button>
                   </div>
                 ) : (
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <input
-                      type="text"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="Nhập mã (VD: CHAO2026)"
-                      style={{
-                        flex: 1,
-                        padding: "8px 12px",
-                        borderRadius: "8px",
-                        border: "1px solid #cbd5e1",
-                        fontSize: "0.9rem",
-                        textTransform: "uppercase",
-                        fontWeight: 600,
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={actionLoading || !couponCode.trim()}
-                      onClick={() => runAction(() => applyCoupon(couponCode), "Áp dụng mã giảm giá thành công!")}
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "8px",
-                        background: "linear-gradient(135deg, #2563eb, #4f46e5)",
-                        color: "#fff",
-                        border: "none",
-                        fontWeight: 700,
-                        fontSize: "0.88rem",
-                        cursor: couponCode.trim() ? "pointer" : "not-allowed",
-                        opacity: couponCode.trim() ? 1 : 0.6,
-                      }}
-                    >
-                      Áp mã
-                    </button>
+                  <div>
+                    <div style={{ display: "flex", gap: "8px", marginBottom: "0.75rem" }}>
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Nhập mã (VD: CHAO2026, GIAM50)"
+                        style={{
+                          flex: 1,
+                          padding: "8px 12px",
+                          borderRadius: "8px",
+                          border: "1px solid #cbd5e1",
+                          fontSize: "0.9rem",
+                          textTransform: "uppercase",
+                          fontWeight: 600,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={actionLoading || !couponCode.trim()}
+                        onClick={() => runAction(() => applyCoupon(couponCode), "Áp dụng mã giảm giá thành công!")}
+                        style={{
+                          padding: "8px 16px",
+                          borderRadius: "8px",
+                          background: "linear-gradient(135deg, #2563eb, #4f46e5)",
+                          color: "#fff",
+                          border: "none",
+                          fontWeight: 700,
+                          fontSize: "0.88rem",
+                          cursor: couponCode.trim() ? "pointer" : "not-allowed",
+                          opacity: couponCode.trim() ? 1 : 0.6,
+                        }}
+                      >
+                        Áp mã
+                      </button>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                      <small style={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600, width: "100%", marginBottom: "2px" }}>
+                        Gợi ý mã hot:
+                      </small>
+                      {[
+                        { code: "CHAO2026", label: "-20%" },
+                        { code: "GIAM10", label: "-10%" },
+                        { code: "GIAM30", label: "-30%" },
+                        { code: "GIAM50", label: "-50%" },
+                        { code: "SUPER90", label: "-90%" },
+                      ].map((v) => (
+                        <button
+                          key={v.code}
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => {
+                            setCouponCode(v.code);
+                            runAction(() => applyCoupon(v.code), `Đã áp dụng mã ${v.code} (${v.label})`);
+                          }}
+                          style={{
+                            background: "#eff6ff",
+                            color: "#1d4ed8",
+                            border: "1px solid #bfdbfe",
+                            borderRadius: "6px",
+                            padding: "3px 8px",
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            transition: "all 0.15s",
+                          }}
+                          title={`Thử mã ${v.code} giảm ${v.label}`}
+                        >
+                          🏷️ {v.code} ({v.label})
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
