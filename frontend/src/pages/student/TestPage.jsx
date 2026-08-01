@@ -59,6 +59,83 @@ const buildMockAttempt = (testId) => ({
         { id: "c", content: "Eliminates the need for CSS styling" },
         { id: "d", content: "Disables JavaScript execution" }
       ]
+    },
+    {
+      id: 104,
+      type: "SINGLE_CHOICE",
+      prompt: "Which preposition correctly completes: 'She has been working here _____ 2020.'",
+      options: [
+        { id: "a", content: "since", correct: true },
+        { id: "b", content: "for" },
+        { id: "c", content: "during" },
+        { id: "d", content: "from" }
+      ]
+    },
+    {
+      id: 105,
+      type: "SINGLE_CHOICE",
+      prompt: "Choose the antonym of 'EXPAND':",
+      options: [
+        { id: "a", content: "Contract / Shrink", correct: true },
+        { id: "b", content: "Enlarge" },
+        { id: "c", content: "Grow" },
+        { id: "d", content: "Extend" }
+      ]
+    },
+    {
+      id: 106,
+      type: "SINGLE_CHOICE",
+      prompt: "Complete the conditional sentence: 'If I _____ more free time, I would learn Spanish.'",
+      options: [
+        { id: "a", content: "had", correct: true },
+        { id: "b", content: "have" },
+        { id: "c", content: "will have" },
+        { id: "d", content: "would have" }
+      ]
+    },
+    {
+      id: 107,
+      type: "SINGLE_CHOICE",
+      prompt: "Select the passive voice form of: 'They will deliver the parcel tomorrow.'",
+      options: [
+        { id: "a", content: "The parcel will be delivered tomorrow.", correct: true },
+        { id: "b", content: "The parcel is delivered tomorrow." },
+        { id: "c", content: "The parcel was delivered tomorrow." },
+        { id: "d", content: "The parcel has been delivered." }
+      ]
+    },
+    {
+      id: 108,
+      type: "SINGLE_CHOICE",
+      prompt: "What does the idiom 'Break the ice' mean?",
+      options: [
+        { id: "a", content: "Make people feel more comfortable in a social setting", correct: true },
+        { id: "b", content: "Freeze water into ice cubes" },
+        { id: "c", content: "Start a fight" },
+        { id: "d", content: "End a business partnership" }
+      ]
+    },
+    {
+      id: 109,
+      type: "SINGLE_CHOICE",
+      prompt: "Identify the correct relative pronoun: 'The professor _____ wrote the textbook is giving a lecture.'",
+      options: [
+        { id: "a", content: "who", correct: true },
+        { id: "b", content: "which" },
+        { id: "c", content: "where" },
+        { id: "d", optionText: "whose" }
+      ]
+    },
+    {
+      id: 110,
+      type: "SINGLE_CHOICE",
+      prompt: "Choose the correct spelling:",
+      options: [
+        { id: "a", content: "Accommodate", correct: true },
+        { id: "b", content: "Acommodate" },
+        { id: "c", content: "Accomodate" },
+        { id: "d", content: "Acomodate" }
+      ]
     }
   ],
   answers: []
