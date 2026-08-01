@@ -724,11 +724,12 @@ public class CommerceServiceImpl implements CommerceService {
     }
 
     private BigDecimal currentPrice(Course course) {
-        LocalDateTime now = LocalDateTime.now();
-        boolean saleActive = course.getSalePrice() != null
-                && (course.getSaleStartAt() == null || !course.getSaleStartAt().isAfter(now))
-                && (course.getSaleEndAt() == null || !course.getSaleEndAt().isBefore(now));
-        return saleActive ? course.getSalePrice() : zero(course.getOriginalPrice());
+        if (course.getSalePrice() != null
+                && course.getSalePrice().compareTo(BigDecimal.ZERO) > 0
+                && (course.getOriginalPrice() == null || course.getSalePrice().compareTo(course.getOriginalPrice()) < 0)) {
+            return course.getSalePrice();
+        }
+        return zero(course.getOriginalPrice());
     }
 
     private BigDecimal zero(BigDecimal value) {
