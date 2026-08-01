@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AddToCartButton from "../../components/common/AddToCartButton";
 import CertificateModal from "../../components/student/CertificateModal";
 import { useToast } from "../../context/ToastContext";
-import { addCartItem } from "../../services/commerceService";
+import { addCartItem, getCart } from "../../services/commerceService";
 import { enrollFree, getCourses } from "../../services/courseService";
 import { getCertificateEligibility, getCourseProgress } from "../../services/progressService";
 import { getMyCourses } from "../../services/userService";
@@ -53,6 +53,7 @@ export default function MyCoursesPage() {
   const [activeTab, setActiveTab] = useState("my"); // "my" | "catalog"
   const [courses, setCourses] = useState([]);
   const [catalogCourses, setCatalogCourses] = useState([]);
+  const [cartCourseIds, setCartCourseIds] = useState(new Set());
   const [progressByCourse, setProgressByCourse] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -65,14 +66,22 @@ export default function MyCoursesPage() {
     setLoading(true);
     setError("");
     try {
-      const [myRes, progRes, catRes] = await Promise.all([
+      const [myRes, progRes, catRes, cartRes] = await Promise.allSettled([
         getMyCourses({ size: 20 }),
         getCourseProgress(),
         getCourses({ size: 30 }),
+        getCart(),
       ]);
-      setCourses(myRes?.items ?? []);
-      setProgressByCourse(Object.fromEntries((progRes ?? []).map((item) => [item.courseId, item])));
-      setCatalogCourses(Array.isArray(catRes) ? catRes : Array.isArray(catRes?.items) ? catRes.items : []);
+
+      if (myRes.status === "fulfilled") setCourses(myRes.value?.items ?? []);
+      if (progRes.status === "fulfilled") setProgressByCourse(Object.fromEntries((progRes.value ?? []).map((item) => [item.courseId, item])));
+      if (catRes.status === "fulfilled") {
+        const cat = catRes.value;
+        setCatalogCourses(Array.isArray(cat) ? cat : Array.isArray(cat?.items) ? cat.items : []);
+      }
+      if (cartRes.status === "fulfilled" && cartRes.value?.items) {
+        setCartCourseIds(new Set(cartRes.value.items.map((item) => item.courseId)));
+      }
     } catch (err) {
       setError(err.message || "Không tải được danh sách khóa học");
     } finally {
@@ -371,7 +380,13 @@ export default function MyCoursesPage() {
                           </button>
                         ) : (
                           <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-                            <AddToCartButton courseId={course.id} variant="light" style={{ flex: "1", minWidth: "110px" }} />
+                            <AddToCartButton
+                              courseId={course.id}
+                              isInCart={cartCourseIds.has(course.id)}
+                              onSuccess={(cId) => setCartCourseIds((prev) => new Set([...prev, cId]))}
+                              variant="light"
+                              style={{ flex: "1", minWidth: "110px" }}
+                            />
                             <button
                               type="button"
                               disabled={isActing}

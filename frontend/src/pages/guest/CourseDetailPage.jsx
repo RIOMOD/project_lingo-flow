@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import AddToCartButton from "../../components/common/AddToCartButton";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../hooks/useAuth";
-import { addCartItem } from "../../services/commerceService";
+import { addCartItem, getCart } from "../../services/commerceService";
 import {
   enrollFree,
   getCourseAccess,
@@ -60,6 +60,7 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [access, setAccess] = useState(null);
+  const [isInCart, setIsInCart] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview"); // "overview" | "curriculum" | "instructor" | "reviews"
@@ -86,10 +87,18 @@ export default function CourseDetailPage() {
 
         if (isAuthenticated) {
           try {
-            const accessData = await getCourseAccess(data.id);
-            if (mounted) setAccess(accessData);
+            const [accessData, cartData] = await Promise.allSettled([
+              getCourseAccess(data.id),
+              getCart(),
+            ]);
+
+            if (mounted && accessData.status === "fulfilled") setAccess(accessData.value);
+            if (mounted && cartData.status === "fulfilled" && cartData.value?.items) {
+              const inCart = cartData.value.items.some((item) => item.courseId === data.id);
+              setIsInCart(inCart);
+            }
           } catch (accessErr) {
-            console.warn("Could not check course access:", accessErr);
+            console.warn("Could not check course access or cart:", accessErr);
           }
         }
       })
@@ -459,7 +468,14 @@ export default function CourseDetailPage() {
                     {isSubmitting ? "Đang xử lý..." : "⚡ Mua ngay"}
                   </button>
 
-                  <AddToCartButton courseId={course.id} text="Thêm vào giỏ hàng" variant="light" style={{ width: "100%" }} />
+                  <AddToCartButton
+                    courseId={course.id}
+                    isInCart={isInCart}
+                    onSuccess={() => setIsInCart(true)}
+                    text="Thêm vào giỏ hàng"
+                    variant="light"
+                    style={{ width: "100%" }}
+                  />
                 </>
               )}
 

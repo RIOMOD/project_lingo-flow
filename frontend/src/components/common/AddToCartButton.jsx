@@ -6,17 +6,47 @@ import { addCartItem } from "../../services/commerceService";
 
 export default function AddToCartButton({
   courseId,
+  isInCart = false,
   onSuccess,
-  text = "Giỏ hàng",
+  text = "+ Giỏ hàng",
   className = "",
   style = {},
   disabled = false,
-  variant = "primary", // "primary" | "secondary" | "dark"
+  variant = "primary", // "primary" | "secondary" | "light"
 }) {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+
+  if (isInCart) {
+    return (
+      <button
+        type="button"
+        className={`animated-cart-btn is-in-cart ${className}`}
+        style={{
+          background: "#dcfce7",
+          color: "#15803d",
+          border: "1px solid #86efac",
+          boxShadow: "none",
+          fontWeight: 700,
+          cursor: "pointer",
+          borderRadius: "10px",
+          padding: "8px 14px",
+          minWidth: "120px",
+          ...style,
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          navigate("/student/cart");
+        }}
+        title="Khóa học đã trong giỏ hàng. Nhấp để xem giỏ hàng."
+      >
+        <span style={{ paddingLeft: 0, marginLeft: 0, color: "#15803d" }}>✓ Đã trong giỏ</span>
+      </button>
+    );
+  }
 
   const handleClick = async (e) => {
     e.preventDefault();
@@ -49,7 +79,7 @@ export default function AddToCartButton({
     setTimeout(() => {
       setLoading(false);
       toast.success("Đã thêm khóa học vào giỏ hàng!");
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(courseId);
     }, 3400);
   };
 

@@ -5100,6 +5100,11 @@ html[data-theme="dark"] .app-shell {
 }
 
 /* ─── 3D Animated Add To Cart Button ────────────────────────────────────────── */
+.animated-cart-btn.is-in-cart span:before,
+.animated-cart-btn.is-in-cart span:after {
+  display: none !important;
+}
+
 .animated-cart-btn {
   --background: #2563eb;
   --text: #ffffff;
