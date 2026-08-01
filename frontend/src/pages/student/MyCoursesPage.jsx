@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AddToCartButton from "../../components/common/AddToCartButton";
 import CertificateModal from "../../components/student/CertificateModal";
 import { useToast } from "../../context/ToastContext";
 import { addCartItem } from "../../services/commerceService";
@@ -370,15 +371,7 @@ export default function MyCoursesPage() {
                           </button>
                         ) : (
                           <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-                            <button
-                              type="button"
-                              disabled={isActing}
-                              onClick={() => handleAddToCartCourse(course.id)}
-                              style={{ flex: "1", padding: "8px 10px", borderRadius: "8px", background: "#f1f5f9", color: "#334155", border: "1px solid #cbd5e1", fontWeight: 600, fontSize: "0.82rem", cursor: "pointer", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                              title="Thêm vào giỏ hàng"
-                            >
-                              🛒 Giỏ hàng
-                            </button>
+                            <AddToCartButton courseId={course.id} variant="light" style={{ flex: "1", minWidth: "110px" }} />
                             <button
                               type="button"
                               disabled={isActing}

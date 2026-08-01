@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import AddToCartButton from "../../components/common/AddToCartButton";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../hooks/useAuth";
 import { addCartItem } from "../../services/commerceService";
@@ -458,14 +459,7 @@ export default function CourseDetailPage() {
                     {isSubmitting ? "Đang xử lý..." : "⚡ Mua ngay"}
                   </button>
 
-                  <button
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={handleAddToCart}
-                    style={{ width: "100%", padding: "11px", borderRadius: "12px", background: "#f8fafc", color: "#334155", border: "1px solid #cbd5e1", fontWeight: 700, fontSize: "0.92rem", cursor: "pointer" }}
-                  >
-                    🛒 Thêm vào giỏ hàng
-                  </button>
+                  <AddToCartButton courseId={course.id} text="Thêm vào giỏ hàng" variant="light" style={{ width: "100%" }} />
                 </>
               )}
 
