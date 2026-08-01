@@ -19,9 +19,14 @@ function formatMinutes(minutes = 0) {
 
 function formatAccess(value) {
   if (!value) return "Chưa bắt đầu";
-  return new Intl.RelativeTimeFormat("vi", { numeric: "auto" }).format(
-    -Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 86400000)), "day",
-  );
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "Chưa bắt đầu";
+  const daysDiff = Math.max(0, Math.round((Date.now() - date.getTime()) / 86400000));
+  try {
+    return new Intl.RelativeTimeFormat("vi", { numeric: "auto" }).format(-daysDiff, "day");
+  } catch (e) {
+    return "Vừa xong";
+  }
 }
 
 function recommendationPath(item) {
@@ -30,11 +35,22 @@ function recommendationPath(item) {
   return `/student/exercises?skill=${item?.skillType || "MIXED"}`;
 }
 
+function formatDayLabel(label) {
+  if (!label) return "";
+  const date = new Date(label);
+  if (isNaN(date.getTime())) return String(label);
+  try {
+    return date.toLocaleDateString("vi-VN", { weekday: "short" });
+  } catch (e) {
+    return String(label);
+  }
+}
+
 function MiniBarChart({ items = [] }) {
-  const hasData = items.some((item) => Number(item.value) > 0);
+  const hasData = Array.isArray(items) && items.some((item) => Number(item?.value) > 0);
   if (!hasData) return <div className="student-empty-state"><span aria-hidden="true">◔</span><strong>Tuần này đang chờ dấu ấn đầu tiên</strong><p>Học một bài hôm nay để biểu đồ tiến độ bắt đầu chuyển động.</p></div>;
-  const max = Math.max(1, ...items.map((item) => item.value || 0));
-  return <div className="student-chart" aria-label="Hoạt động học trong 7 ngày">{items.map((item) => <div className="student-chart-row" key={item.label}><span>{new Date(item.label).toLocaleDateString("vi-VN", { weekday: "short" })}</span><div><i style={{ width: `${((item.value || 0) / max) * 100}%` }} /></div><strong>{item.value}</strong></div>)}</div>;
+  const max = Math.max(1, ...items.map((item) => Number(item?.value) || 0));
+  return <div className="student-chart" aria-label="Hoạt động học trong 7 ngày">{items.map((item, idx) => <div className="student-chart-row" key={item?.label || idx}><span>{formatDayLabel(item?.label)}</span><div><i style={{ width: `${((Number(item?.value) || 0) / max) * 100}%` }} /></div><strong>{item?.value ?? 0}</strong></div>)}</div>;
 }
 
 export default function StudentDashboardPage() {
@@ -156,11 +172,11 @@ export default function StudentDashboardPage() {
           </div>
           {path.length ? 
             <div className="stu-path-list">
-              {path.slice(0, 6).map((lesson) => { 
+              {path.slice(0, 6).map((lesson, idx) => { 
                 const state = lesson.progressStatus === "COMPLETED" ? "completed" : lesson.locked ? "locked" : lesson.progressStatus === "IN_PROGRESS" ? "current" : "ready"; 
                 const icon = state === "completed" ? "✓" : state === "locked" ? "🔒" : state === "current" ? "▶" : "📚";
                 return (
-                  <div className={`stu-path-item is-${state}`} key={lesson.id}>
+                  <div className={`stu-path-item is-${state}`} key={lesson?.id ?? idx}>
                     <div className="stu-path-icon" aria-hidden="true">{icon}</div>
                     <div className="stu-path-info">
                       <strong>{lesson.title}</strong>
@@ -197,8 +213,8 @@ export default function StudentDashboardPage() {
                   <Link to="/student/vocabulary">Ôn ngay</Link>
                 </div>
               </li>
-              {recommendations.length > 0 ? recommendations.map((item) => (
-                <li className="student-learning-recommendation" key={`${item.skillType}-${item.topic}`}>
+              {recommendations.length > 0 ? recommendations.map((item, idx) => (
+                <li className="student-learning-recommendation" key={`${item?.skillType || 'REC'}-${item?.topic || idx}`}>
                   <span aria-hidden="true">◎</span>
                   <div className="student-recommendation-copy">
                     <strong>{item.skillLabel}: {item.topic}</strong>
@@ -207,7 +223,7 @@ export default function StudentDashboardPage() {
                       <i style={{ width: `${Math.min(100, Math.max(0, Number(item.accuracyPercent || 0)))}%` }} />
                     </div>
                   </div>
-                  <Link to={recommendationPath(item)}>{item.lessonId ? "Học bài này" : "Luyện ngay"}</Link>
+                  <Link to={recommendationPath(item)}>{item.lessonId ? "Học bài me" : "Luyện ngay"}</Link>
                 </li>
               )) : (
                 <li>
