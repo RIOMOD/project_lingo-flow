@@ -27,7 +27,9 @@ public class LessonResponse {
     private String progressStatus;
     private java.math.BigDecimal contentProgressPercent;
     private java.math.BigDecimal mediaPositionSeconds;
+    private java.math.BigDecimal mediaDurationSeconds;
     private Boolean checkpointPassed;
     private String checkpointQuestion;
+    private String checkpointAnswer;
     private String checkpointExplanation;
 }

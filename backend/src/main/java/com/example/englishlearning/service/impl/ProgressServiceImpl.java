@@ -363,7 +363,13 @@ public class ProgressServiceImpl implements ProgressService {
         if (expected == null || expected.isBlank()) {
             return true;
         }
-        return normalizeAnswer(submitted).equals(normalizeAnswer(expected));
+        if (submitted == null || submitted.isBlank()) {
+            return false;
+        }
+        String normSub = normalizeAnswer(submitted);
+        String normExp = normalizeAnswer(expected);
+        if (normSub.isEmpty()) return false;
+        return normSub.equals(normExp) || normSub.contains(normExp) || normExp.contains(normSub);
     }
 
     private String normalizeAnswer(String value) {
@@ -412,8 +418,7 @@ public class ProgressServiceImpl implements ProgressService {
     }
 
     private boolean isFullCompletion(LearningProgress progress) {
-        return progress.getStatus() == LearningProgress.ProgressStatus.COMPLETED
-                && !Boolean.TRUE.equals(progress.getPreviewOnly());
+        return progress != null && progress.getStatus() == LearningProgress.ProgressStatus.COMPLETED;
     }
 
     private Integer calculateStreak(Long userId) {

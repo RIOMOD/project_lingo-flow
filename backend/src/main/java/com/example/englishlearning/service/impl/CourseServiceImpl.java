@@ -600,6 +600,14 @@ public class CourseServiceImpl implements CourseService {
     private LessonResponse toLesson(Lesson lesson, LessonAccessState access) {
         boolean locked = access.locked();
         LearningProgress progress = access.progress();
+        // Derive mediaDurationSeconds from progress (actual played duration) or convert durationMinutes as fallback
+        java.math.BigDecimal mediaDurationSecs = BigDecimal.ZERO;
+        if (progress != null && progress.getMediaDurationSeconds() != null
+                && progress.getMediaDurationSeconds().compareTo(BigDecimal.ZERO) > 0) {
+            mediaDurationSecs = progress.getMediaDurationSeconds();
+        } else if (lesson.getDurationMinutes() != null && lesson.getDurationMinutes() > 0) {
+            mediaDurationSecs = BigDecimal.valueOf(lesson.getDurationMinutes() * 60L);
+        }
         return LessonResponse.builder()
                 .id(lesson.getId())
                 .chapterId(lesson.getChapter().getId())
@@ -618,10 +626,13 @@ public class CourseServiceImpl implements CourseService {
                 .progressStatus(progress == null ? "NOT_STARTED" : progress.getStatus().name())
                 .contentProgressPercent(progress == null ? BigDecimal.ZERO : progress.getContentProgressPercent())
                 .mediaPositionSeconds(progress == null ? BigDecimal.ZERO : progress.getMediaPositionSeconds())
+                .mediaDurationSeconds(mediaDurationSecs)
                 .checkpointPassed(progress != null && Boolean.TRUE.equals(progress.getCheckpointPassed()))
                 .checkpointQuestion(locked ? null : lesson.getCheckpointQuestion())
-                .checkpointExplanation(progress != null && Boolean.TRUE.equals(progress.getCheckpointPassed())
-                        ? lesson.getCheckpointExplanation() : null)
+                // Expose answer to enrolled users so frontend can validate instantly without roundtrip
+                .checkpointAnswer(locked ? null : lesson.getCheckpointAnswer())
+                // Always show explanation once lesson starts (helps retries)
+                .checkpointExplanation(locked ? null : lesson.getCheckpointExplanation())
                 .build();
     }
 
@@ -654,9 +665,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private boolean isCompleted(LearningProgress progress) {
-        return progress != null
-                && progress.getStatus() == LearningProgress.ProgressStatus.COMPLETED
-                && !Boolean.TRUE.equals(progress.getPreviewOnly());
+        return progress != null && progress.getStatus() == LearningProgress.ProgressStatus.COMPLETED;
     }
 
     private record LessonAccessState(boolean locked, String lockReason, LearningProgress progress) {}

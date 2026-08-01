@@ -10,9 +10,19 @@ export function ToastProvider({ children }) {
   }, []);
 
   const showToast = useCallback((message, type = "success") => {
-    const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    setToasts((items) => [...items, { id, message, type }]);
-    window.setTimeout(() => removeToast(id), 3200);
+    if (!message) return;
+    setToasts((items) => {
+      // 1. Deduplicate identical messages to prevent toast spam
+      const exists = items.some((item) => item.message === message && item.type === type);
+      if (exists) return items;
+
+      const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      window.setTimeout(() => removeToast(id), 3000);
+
+      // 2. Keep maximum 2 toasts visible at a time
+      const next = [...items, { id, message, type }];
+      return next.slice(-2);
+    });
   }, [removeToast]);
 
   const value = useMemo(() => ({
@@ -48,4 +58,3 @@ export function useToast() {
   }
   return context;
 }
-
