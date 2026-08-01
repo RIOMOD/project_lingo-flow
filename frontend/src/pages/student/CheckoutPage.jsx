@@ -26,8 +26,8 @@ function CourseImage({ item, index }) {
       alt={item?.title}
       onError={() => setSrc(fallbackImages[index % fallbackImages.length])}
       style={{
-        width: "70px",
-        height: "55px",
+        width: "76px",
+        height: "60px",
         borderRadius: "10px",
         objectFit: "cover",
         flexShrink: 0,
@@ -61,7 +61,7 @@ export default function CheckoutPage() {
         if (!mounted) return;
         setCart(cartData);
 
-        // Auto-create order if cart has items and order isn't created yet
+        // Auto-create order if cart has items
         if (cartData?.items && cartData.items.length > 0) {
           try {
             setCreatingOrder(true);
@@ -82,7 +82,10 @@ export default function CheckoutPage() {
               setOrder({
                 orderCode: fallbackCode,
                 status: "PENDING_PAYMENT",
+                subtotalAmount: cartData?.subtotalAmount || 100000,
+                discountAmount: cartData?.discountAmount || 0,
                 totalAmount: cartData?.totalAmount || 100000,
+                items: cartData?.items || [],
               });
             }
           } finally {
@@ -91,7 +94,7 @@ export default function CheckoutPage() {
         }
       })
       .catch((err) => {
-        if (mounted) setError(err.message || "Không tải được giỏ hàng");
+        if (mounted) setError(err.message || "Không tải được thông tin đơn hàng");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -127,11 +130,15 @@ export default function CheckoutPage() {
     }
   }
 
-  const items = cart?.items ?? [];
+  // Derive course items & prices seamlessly from Order or Cart
+  const items = (order?.items && order.items.length > 0) ? order.items : (cart?.items ?? []);
+  const subtotalAmount = order?.subtotalAmount ?? cart?.subtotalAmount ?? 0;
+  const discountAmount = order?.discountAmount ?? cart?.discountAmount ?? 0;
+  const totalAmount = order?.totalAmount ?? cart?.totalAmount ?? 0;
   const transferContent = order ? `LINGOFLOW_${order.orderCode}` : "";
 
   return (
-    <div className="settings-container" style={{ maxWidth: "1180px", margin: "0 auto", padding: "1.5rem" }}>
+    <div className="settings-container" style={{ width: "100%", margin: "0 auto", padding: "1.5rem" }}>
       {/* Breadcrumbs */}
       <nav style={{ display: "flex", gap: "8px", fontSize: "0.88rem", color: "#64748b", marginBottom: "1rem" }}>
         <Link to="/" style={{ color: "#64748b", textDecoration: "none" }}>Trang chủ</Link>
@@ -141,15 +148,15 @@ export default function CheckoutPage() {
         <span style={{ color: "#0f172a", fontWeight: 600 }}>Xác nhận thanh toán</span>
       </nav>
 
-      {/* Checkout Step Progress Indicator */}
-      <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.2rem 1.8rem", border: "1px solid #e2e8f0", marginBottom: "2rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
+      {/* Step Progress Indicator */}
+      <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.2rem 1.8rem", border: "1px solid #e2e8f0", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {[
-            { step: 1, label: "Giỏ hàng", status: "completed", link: "/student/cart" },
+            { step: 1, label: "Giỏ hàng", status: "completed" },
             { step: 2, label: "Xác nhận & Thanh toán", status: "active" },
             { step: 3, label: "Hoàn tất & Nhận khóa học", status: "pending" },
           ].map((item, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", zIndex: 1 }}>
+            <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div
                 style={{
                   width: "36px",
@@ -176,19 +183,19 @@ export default function CheckoutPage() {
 
       {loading && (
         <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
-          <div className="auth-state">Đang khởi tạo hóa đơn thanh toán...</div>
+          <div className="auth-state">Đang tạo đơn hàng và tạo mã VietQR...</div>
         </div>
       )}
 
       {error && !loading && (
         <div className="student-error-state" role="alert" style={{ marginBottom: "1.5rem" }}>
-          <strong>Không khởi tạo được đơn hàng:</strong> {error}
+          <strong>Lỗi khởi tạo đơn:</strong> {error}
         </div>
       )}
 
       {!loading && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "start" }}>
-          {/* Left Column: Course Items & User Billing Card */}
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.15fr) minmax(0, 0.85fr)", gap: "1.8rem", alignItems: "start" }}>
+          {/* Left Column: Registered Courses & Billing Info */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             {/* User Account Info */}
             <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
@@ -205,7 +212,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Registered Courses Summary */}
+            {/* Registered Courses Summary List */}
             <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                 <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>📚 Khóa học đăng ký ({items.length})</h3>
@@ -214,36 +221,49 @@ export default function CheckoutPage() {
                 </Link>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                {items.map((item, idx) => (
-                  <div
-                    key={item.courseId}
-                    style={{
-                      display: "flex",
-                      gap: "12px",
-                      alignItems: "center",
-                      padding: "0.75rem",
-                      background: "#f8fafc",
-                      borderRadius: "12px",
-                      border: "1px solid #f1f5f9",
-                    }}
-                  >
-                    <CourseImage item={item} index={idx} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <strong style={{ display: "block", fontSize: "0.92rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {item.title}
-                      </strong>
-                      <span style={{ fontSize: "0.85rem", color: "#2563eb", fontWeight: 700 }}>
-                        {money.format(item.finalPrice || 0)}
-                      </span>
+              {items.length === 0 ? (
+                <div style={{ padding: "1rem", background: "#f8fafc", borderRadius: "12px", textAlign: "center", color: "#64748b", fontSize: "0.9rem" }}>
+                  Chưa có khóa học nào trong đơn hàng.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                  {items.map((item, idx) => (
+                    <div
+                      key={item.courseId || idx}
+                      style={{
+                        display: "flex",
+                        gap: "12px",
+                        alignItems: "center",
+                        padding: "0.8rem 1rem",
+                        background: "#f8fafc",
+                        borderRadius: "14px",
+                        border: "1px solid #f1f5f9",
+                      }}
+                    >
+                      <CourseImage item={item} index={idx} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <strong style={{ display: "block", fontSize: "0.95rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {item.title}
+                        </strong>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "2px" }}>
+                          {item.originalPrice && item.finalPrice && item.finalPrice < item.originalPrice && (
+                            <span style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.8rem" }}>
+                              {money.format(item.originalPrice)}
+                            </span>
+                          )}
+                          <span style={{ fontSize: "0.92rem", color: "#2563eb", fontWeight: 800 }}>
+                            {money.format(item.finalPrice || item.price || 0)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column: Order Summary & VietQR Transfer Card */}
+          {/* Right Column: Order Summary & VietQR Box */}
           <div style={{ position: "sticky", top: "2rem" }}>
             <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.8rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -257,53 +277,53 @@ export default function CheckoutPage() {
               <div style={{ background: "#f8fafc", borderRadius: "14px", padding: "1rem", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.9rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
                   <span>Tạm tính ({items.length} khóa):</span>
-                  <strong style={{ color: "#1e293b" }}>{money.format(cart?.subtotalAmount || 0)}</strong>
+                  <strong style={{ color: "#1e293b" }}>{money.format(subtotalAmount)}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
                   <span>Giảm giá voucher:</span>
-                  <strong style={{ color: cart?.discountAmount > 0 ? "#16a34a" : "#64748b" }}>
-                    -{money.format(cart?.discountAmount || 0)}
+                  <strong style={{ color: discountAmount > 0 ? "#16a34a" : "#64748b" }}>
+                    -{money.format(discountAmount)}
                   </strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "0.6rem", borderTop: "1px solid #e2e8f0", fontSize: "1.05rem" }}>
                   <span style={{ fontWeight: 700, color: "#0f172a" }}>Tổng thanh toán:</span>
-                  <strong style={{ fontSize: "1.5rem", fontWeight: 800, color: "#2563eb" }}>
-                    {money.format(cart?.totalAmount || 0)}
+                  <strong style={{ fontSize: "1.55rem", fontWeight: 800, color: "#2563eb" }}>
+                    {money.format(totalAmount)}
                   </strong>
                 </div>
               </div>
 
-              {/* VietQR Payment Box */}
+              {/* VietQR Payment Card */}
               <div style={{ background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)", borderRadius: "16px", padding: "1.2rem", border: "1px solid #bae6fd" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.8rem" }}>
                   <span style={{ fontSize: "1.3rem" }}>💳</span>
                   <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#0369a1" }}>Chuyển khoản VietQR / Mobile Banking</h4>
                 </div>
 
-                <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                   {/* QR Image */}
                   <div style={{ textAlign: "center", background: "#ffffff", padding: "8px", borderRadius: "14px", border: "1px solid #e0f2fe", boxShadow: "0 4px 12px rgba(3,105,161,0.08)" }}>
                     <img
-                      src={`https://img.vietqr.io/image/MB-999988886666-compact2.png?amount=${cart?.totalAmount || 100000}&addInfo=${transferContent}&accountName=LINGO_FLOW_ACADEMY`}
+                      src={`https://img.vietqr.io/image/MB-999988886666-compact2.png?amount=${totalAmount || 100000}&addInfo=${transferContent}&accountName=LINGO_FLOW_ACADEMY`}
                       alt="VietQR Payment Code"
-                      style={{ width: "140px", height: "140px", borderRadius: "8px", display: "block" }}
+                      style={{ width: "130px", height: "130px", borderRadius: "8px", display: "block" }}
                     />
-                    <small style={{ color: "#0369a1", fontWeight: 700, fontSize: "0.75rem", display: "block", marginTop: "4px" }}>
+                    <small style={{ color: "#0369a1", fontWeight: 700, fontSize: "0.72rem", display: "block", marginTop: "4px" }}>
                       MBBank QR Pay
                     </small>
                   </div>
 
                   {/* Transfer Details */}
-                  <div style={{ flex: 1, minWidth: "160px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.85rem" }}>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "5px", fontSize: "0.82rem" }}>
                     <div>
-                      <span style={{ color: "#64748b", fontSize: "0.78rem" }}>Ngân hàng thụ hưởng:</span>
+                      <span style={{ color: "#64748b", fontSize: "0.76rem" }}>Ngân hàng thụ hưởng:</span>
                       <strong style={{ display: "block", color: "#0f172a" }}>MBBank (Quân Đội)</strong>
                     </div>
 
                     <div>
-                      <span style={{ color: "#64748b", fontSize: "0.78rem" }}>Số tài khoản:</span>
+                      <span style={{ color: "#64748b", fontSize: "0.76rem" }}>Số tài khoản:</span>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <strong style={{ color: "#0d9488", fontSize: "0.98rem" }}>999988886666</strong>
+                        <strong style={{ color: "#0d9488", fontSize: "0.95rem" }}>999988886666</strong>
                         <button
                           type="button"
                           onClick={() => handleCopy("999988886666", "Số tài khoản")}
@@ -315,14 +335,14 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <span style={{ color: "#64748b", fontSize: "0.78rem" }}>Chủ tài khoản:</span>
+                      <span style={{ color: "#64748b", fontSize: "0.76rem" }}>Chủ tài khoản:</span>
                       <strong style={{ display: "block", color: "#0f172a" }}>LINGO FLOW ACADEMY</strong>
                     </div>
 
                     <div>
-                      <span style={{ color: "#64748b", fontSize: "0.78rem" }}>Nội dung chuyển khoản:</span>
+                      <span style={{ color: "#64748b", fontSize: "0.76rem" }}>Nội dung chuyển khoản:</span>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <strong style={{ color: "#2563eb", fontSize: "0.92rem" }}>{transferContent}</strong>
+                        <strong style={{ color: "#2563eb", fontSize: "0.9rem" }}>{transferContent}</strong>
                         <button
                           type="button"
                           onClick={() => handleCopy(transferContent, "Nội dung chuyển khoản")}
@@ -336,7 +356,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Instant Action Buttons */}
+              {/* Action Buttons */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
                   type="button"
@@ -453,7 +473,7 @@ export default function CheckoutPage() {
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ color: "#64748b" }}>Số tiền chuyển:</span>
-                      <strong style={{ color: "#dc2626", fontSize: "1.1rem" }}>{money.format(cart?.totalAmount || 0)}</strong>
+                      <strong style={{ color: "#dc2626", fontSize: "1.1rem" }}>{money.format(totalAmount)}</strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ color: "#64748b" }}>Nội dung:</span>
