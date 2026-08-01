@@ -151,7 +151,7 @@ public class CommerceServiceImpl implements CommerceService {
             throw new BadRequestException("You already own this course");
         }
         if (cartItemRepository.existsByCartIdAndCourseId(cart.getId(), courseId)) {
-            throw new BadRequestException("Course is already in cart");
+            return toCartResponse(cart);
         }
         CartItem item = new CartItem();
         item.setCart(cart);

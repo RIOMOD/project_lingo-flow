@@ -511,6 +511,13 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private Course getCourseBySlug(String slug) {
+        if (slug != null && slug.matches("\\d+")) {
+            Long id = Long.parseLong(slug);
+            return courseRepository.findById(id)
+                    .filter(c -> c.getDeletedAt() == null)
+                    .orElseGet(() -> courseRepository.findBySlugAndDeletedAtIsNull(slug)
+                            .orElseThrow(() -> new ResourceNotFoundException("Course not found")));
+        }
         return courseRepository.findBySlugAndDeletedAtIsNull(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
     }

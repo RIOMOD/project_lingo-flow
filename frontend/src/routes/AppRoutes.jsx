@@ -97,6 +97,7 @@ export default function AppRoutes() {
               <Route path="/student" element={<StudentLayout />}>
                 <Route index element={<StudentDashboardPage />} />
                 <Route path="courses" element={<MyCoursesPage />} />
+                <Route path="courses/:courseSlug" element={<CourseDetailPage />} />
                 <Route path="cart" element={<CartPage />} />
                 <Route path="checkout" element={<CheckoutPage />} />
                 <Route path="orders" element={<OrderHistoryPage />} />

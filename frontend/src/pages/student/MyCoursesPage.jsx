@@ -134,7 +134,11 @@ export default function MyCoursesPage() {
       await addCartItem(courseId);
       navigate("/student/checkout");
     } catch (err) {
-      toast.error(err.message || "Không tạo được thanh toán");
+      if (err?.message?.toLowerCase().includes("already in cart")) {
+        navigate("/student/checkout");
+      } else {
+        toast.error(err.message || "Không tạo được thanh toán");
+      }
     } finally {
       setActionCourseId(null);
     }
@@ -146,7 +150,11 @@ export default function MyCoursesPage() {
       await addCartItem(courseId);
       toast.success("Đã thêm khóa học vào giỏ hàng!");
     } catch (err) {
-      toast.error(err.message || "Không thêm được vào giỏ");
+      if (err?.message?.toLowerCase().includes("already in cart")) {
+        toast.info("Khóa học đã có sẵn trong giỏ hàng!");
+      } else {
+        toast.error(err.message || "Không thêm được vào giỏ");
+      }
     } finally {
       setActionCourseId(null);
     }
@@ -305,35 +313,50 @@ export default function MyCoursesPage() {
                 const isActing = actionCourseId === course.id;
 
                 return (
-                  <article className="my-course-card" key={course.id}>
+                  <article key={course.id} className="my-course-card catalog-item" style={{ display: "flex", flexDirection: "column" }}>
                     <div className="my-course-media">
-                      <CourseImage course={course} index={index} />
+                      <Link to={`/student/courses/${course.slug || course.id}`}>
+                        <CourseImage course={course} index={index} />
+                      </Link>
                       <span className={`my-course-type ${course.courseType?.toLowerCase()}`}>
                         {course.courseType}
                       </span>
                     </div>
 
-                    <div className="my-course-body">
+                    <div className="my-course-body" style={{ display: "flex", flexDirection: "column", flex: "1" }}>
                       <div className="course-card-meta">
                         <span>{course.level}</span>
                         <span>{isFree ? "Miễn phí" : "Khóa trả phí"}</span>
                       </div>
 
-                      <h3>{course.title}</h3>
+                      <h3 style={{ margin: "0.2rem 0 0.4rem 0" }}>
+                        <Link to={`/student/courses/${course.slug || course.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                          {course.title}
+                        </Link>
+                      </h3>
                       <p style={{ color: "#475569", fontSize: "0.86rem", lineHeight: 1.4, margin: "0 0 0.5rem 0", height: "2.8em", minHeight: "2.8em", maxHeight: "2.8em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                         {course.shortDescription || "Nâng cao kỹ năng tiếng Anh giao tiếp thông minh với bài giảng bài bản."}
                       </p>
 
                       <div style={{ marginTop: "auto", paddingTop: "0.75rem", borderTop: "1px solid #f1f5f9" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "24px", minHeight: "24px", marginBottom: "8px" }}>
-                          {hasSale(course) && (
-                            <span style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.8rem" }}>
-                              {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(course.originalPrice)}
-                            </span>
-                          )}
-                          <strong style={{ fontSize: "1.1rem", color: isFree ? "#16a34a" : "#2563eb", fontWeight: 700 }}>
-                            {priceText(course)}
-                          </strong>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: "24px", minHeight: "24px", marginBottom: "10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            {hasSale(course) && (
+                              <span style={{ textDecoration: "line-through", color: "#94a3b8", fontSize: "0.8rem" }}>
+                                {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(course.originalPrice)}
+                              </span>
+                            )}
+                            <strong style={{ fontSize: "1.1rem", color: isFree ? "#16a34a" : "#2563eb", fontWeight: 700 }}>
+                              {priceText(course)}
+                            </strong>
+                          </div>
+
+                          <Link
+                            to={`/student/courses/${course.slug || course.id}`}
+                            style={{ fontSize: "0.8rem", color: "#64748b", textDecoration: "none", fontWeight: 600 }}
+                          >
+                            👁️ Chi tiết
+                          </Link>
                         </div>
 
                         {isFree ? (
