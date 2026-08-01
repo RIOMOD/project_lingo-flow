@@ -67,6 +67,7 @@ export default function CartPage() {
       setError("");
       const updated = await action();
       setCart(updated);
+      window.dispatchEvent(new Event("cart-updated"));
       if (successMsg) toast.success(successMsg);
     } catch (err) {
       toast.error(err.message || "Thao tác thất bại");

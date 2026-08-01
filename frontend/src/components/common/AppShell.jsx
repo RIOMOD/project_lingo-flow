@@ -65,6 +65,7 @@ export default function AppShell({ roleKey = "student" }) {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   const accountMenuRef = useRef(null);
   const roleDropdownRef = useRef(null);
@@ -76,6 +77,29 @@ export default function AppShell({ roleKey = "student" }) {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (!isStudent) return;
+
+    let isMounted = true;
+    const fetchCartCount = () => {
+      getCart()
+        .then((cartData) => {
+          if (isMounted) setCartCount(cartData?.items?.length || 0);
+        })
+        .catch(() => {
+          if (isMounted) setCartCount(0);
+        });
+    };
+
+    fetchCartCount();
+
+    window.addEventListener("cart-updated", fetchCartCount);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("cart-updated", fetchCartCount);
+    };
+  }, [isStudent, location.pathname]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
@@ -323,7 +347,7 @@ export default function AppShell({ roleKey = "student" }) {
               </button>
               <Link className="app-icon-button app-badge-button" to="/student/cart" aria-label="Giỏ hàng" title="Giỏ hàng">
                 <IconCart />
-                <span className="app-badge-dot">2</span>
+                {cartCount > 0 && <span className="app-badge-dot">{cartCount}</span>}
               </Link>
               <div style={{ position: "relative" }}>
                 <button 

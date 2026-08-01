@@ -64,6 +64,7 @@ export default function AddToCartButton({
 
     try {
       await addCartItem(courseId);
+      window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
       const msg = err?.message || "";
       if (msg.toLowerCase().includes("already in cart")) {
