@@ -27,6 +27,8 @@ public interface UserManagementService {
 
     UserDetailResponse updateUserRole(Long userId, UpdateUserRoleRequest request);
 
+    void deleteUser(Long userId);
+
     PageResponse<UserOrderResponse> getUserOrders(Long userId, Pageable pageable);
 
     PageResponse<UserCourseResponse> getUserCourses(Long userId, Pageable pageable);

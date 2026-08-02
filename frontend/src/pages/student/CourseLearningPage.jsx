@@ -67,6 +67,7 @@ export default function CourseLearningPage() {
   const [isSwitching, setIsSwitching] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [activeTab, setActiveTab] = useState("content");
+  const [showHint, setShowHint] = useState(false);
 
   const contentRef = useRef(null);
   const latestProgressRef = useRef({ percent: 0, position: 0, duration: 0 });
@@ -76,11 +77,16 @@ export default function CourseLearningPage() {
   const activeLesson = lessons[activeIndex];
 
   // Calculate course completion % from roadmap
+  // Counts fully COMPLETED lessons; current in-progress lesson is tracked via contentPercent separately
+  const completedCount = useMemo(() => {
+    if (!lessons.length) return 0;
+    return lessons.filter((l) => l.progressStatus === "COMPLETED").length;
+  }, [lessons]);
+
   const calculatedCoursePct = useMemo(() => {
     if (!lessons.length) return 0;
-    const completedCount = lessons.filter((l) => l.progressStatus === "COMPLETED").length;
     return Math.round((completedCount / lessons.length) * 100);
-  }, [lessons]);
+  }, [completedCount, lessons.length]);
 
   // ── Load roadmap ──────────────────────────────────────────
   const loadRoadmap = useCallback(
@@ -249,6 +255,7 @@ export default function CourseLearningPage() {
   // ── Reading & Active time ticker progress ─────────────────
   useEffect(() => {
     if (!lesson) return undefined;
+    if (isMediaLesson(lesson)) return undefined; // ONLY apply to text lessons
 
     function measureReading() {
       const node = contentRef.current;
@@ -406,30 +413,40 @@ export default function CourseLearningPage() {
 
   const localReady = step1Done && step2Done;
 
-  // Display course progress % (take max of API response and calculated)
-  const displayCoursePct = Math.max(
-    Number(courseProgress?.progressPercent || 0),
-    calculatedCoursePct
-  );
+  // Display course progress %:
+  // = (completed lessons + current lesson fraction) / total lessons
+  // This ensures the ring grows continuously as user progresses through current lesson
+  const displayCoursePct = useMemo(() => {
+    const apiPct = Number(courseProgress?.progressPercent || 0);
+    if (!lessons.length) return apiPct;
+    // Current lesson's partial contribution (0..1 of 1 lesson)
+    const currentIsCompleted = activeLesson?.progressStatus === "COMPLETED";
+    const currentContribution = currentIsCompleted ? 1 : (contentPercent / 100);
+    const numerator = completedCount + currentContribution;
+    const computed = Math.round((numerator / lessons.length) * 100);
+    return Math.min(100, Math.max(apiPct, computed));
+  }, [courseProgress, lessons.length, completedCount, activeLesson, contentPercent]);
+
+  // ── Dispatch lesson context to AppShell header ──
+  useEffect(() => {
+    if (!lesson) return;
+    window.dispatchEvent(
+      new CustomEvent("lesson-context-update", {
+        detail: {
+          title: lesson.title || "",
+          chapterTitle: activeLesson?.chapterTitle || "",
+          percent: displayCoursePct,
+          courseId: courseId,
+          completedCount: completedCount,
+          totalCount: lessons.length,
+        },
+      })
+    );
+  }, [lesson, displayCoursePct, activeLesson, courseId, completedCount, lessons.length]);
 
   return (
     <div className="learning-room-v3">
-      {/* ── Hero Card ── */}
-      <section className="learning-hero-card">
-        <div className="hero-left">
-          <div className="hero-badge-pill">
-            <span>✨ PHÒNG HỌC LINGOFLOW</span>
-          </div>
-          <h2 className="hero-title">{lesson?.title || "Đang mở bài học..."}</h2>
-          <p className="hero-subtitle">
-            📚 {activeLesson?.chapterTitle || "Khóa học chính thức"}
-          </p>
-        </div>
-        <div className="hero-progress-ring">
-          <div className="hero-progress-value">{displayCoursePct}%</div>
-          <div className="hero-progress-label">Tiến độ khóa học</div>
-        </div>
-      </section>
+      {/* Hero card removed – lesson title & progress are now shown in the top header */}
 
       {error && (
         <div style={{ padding: "1rem 1.25rem", background: "#fef2f2", color: "#b91c1c", border: "1px solid #fca5a5", borderRadius: "14px", marginBottom: "1rem", fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.5 }}>
@@ -448,7 +465,7 @@ export default function CourseLearningPage() {
         <aside className="learning-sidebar-card">
           <div className="sidebar-heading">
             <span>📖 Lộ trình khóa học</span>
-            <small style={{ color: "#64748b", fontWeight: 600 }}>{lessons.length} bài</small>
+            <small className="sidebar-lesson-count">{lessons.length} bài</small>
           </div>
           <div>
             {chapters.map((chapter) => (
@@ -531,16 +548,16 @@ export default function CourseLearningPage() {
               <div className="tab-content-area">
                 {/* Tab 1: Content Body */}
                 {activeTab === "content" && (
-                  <div style={{ lineHeight: 1.75, color: "#334155" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
-                      <span style={{ padding: "4px 10px", background: "#e0f2fe", color: "#0284c7", borderRadius: "999px", fontSize: "0.78rem", fontWeight: 800 }}>
+                  <div className="lesson-content-body">
+                    <div className="lesson-content-header">
+                      <span className="lesson-type-pill">
                         {lesson.lessonType}
                       </span>
-                      <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "#0f172a" }}>
+                      <h3 className="lesson-content-title">
                         {lesson.title}
                       </h3>
                     </div>
-                    <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", whiteSpace: "pre-line", fontSize: "0.98rem" }}>
+                    <div className="lesson-content-text">
                       {lesson.content || "Nội dung bài giảng đang được cập nhật."}
                     </div>
                   </div>
@@ -548,14 +565,87 @@ export default function CourseLearningPage() {
 
                 {/* Tab 2: Interactive Quiz */}
                 {activeTab === "quiz" && hasQuestion && (
-                  <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "16px", padding: "1.5rem" }}>
-                    <h4 style={{ margin: "0 0 0.8rem 0", color: "#0369a1", fontSize: "1.05rem", fontWeight: 800 }}>
-                      ✍️ Thử thách kiểm tra bài học
-                    </h4>
-                    <p style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem", marginBottom: "1rem" }}>
+                  <div className="quiz-tab-card">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                      <h4 className="quiz-tab-heading" style={{ margin: 0 }}>
+                        ✍️ Thử thách kiểm tra bài học
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowHint((v) => !v)}
+                        style={{
+                          background: showHint ? "rgba(245, 158, 11, 0.15)" : "transparent",
+                          border: "1px solid rgba(245, 158, 11, 0.4)",
+                          color: "#d97706",
+                          padding: "4px 10px",
+                          borderRadius: "20px",
+                          fontSize: "0.8rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        💡 {showHint ? "Ẩn gợi ý" : "Gợi ý"}
+                      </button>
+                    </div>
+
+                    <p className="quiz-tab-question">
                       {lesson.checkpointQuestion}
                     </p>
-                    <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", width: "100%", boxSizing: "border-box" }}>
+
+                    {showHint && (
+                      <div style={{
+                        background: "rgba(245, 158, 11, 0.08)",
+                        borderLeft: "3px solid #f59e0b",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        fontSize: "0.85rem",
+                        color: "var(--text-secondary, #475569)",
+                        marginBottom: "1rem"
+                      }}>
+                        <strong>💡 Gợi ý:</strong> {lesson.checkpointExplanation || "Hãy chú ý đến thời gian hoặc ngữ cảnh câu lệnh trong bài giảng."}
+                      </div>
+                    )}
+
+                    {/* Choice pills for fast selection */}
+                    {lesson.checkpointAnswer && (
+                      <div style={{ marginBottom: "1rem" }}>
+                        <div style={{ fontSize: "0.78rem", color: "#64748b", fontWeight: 600, marginBottom: "6px" }}>
+                          LỰA CHỌN GỢI Ý (Bấm để chọn nhanh):
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                          {[
+                            lesson.checkpointAnswer,
+                            "Present simple",
+                            "Past simple",
+                            "Present continuous"
+                          ].filter((val, idx, self) => self.indexOf(val) === idx).map((choice) => (
+                            <button
+                              key={choice}
+                              type="button"
+                              onClick={() => handleAnswerInput(choice)}
+                              style={{
+                                background: checkpointAnswer === choice ? "#2563eb" : "var(--surface-soft, #f1f5f9)",
+                                color: checkpointAnswer === choice ? "#ffffff" : "var(--text-primary, #1e293b)",
+                                border: checkpointAnswer === choice ? "1px solid #2563eb" : "1px solid var(--border-color, #cbd5e1)",
+                                borderRadius: "8px",
+                                padding: "6px 12px",
+                                fontSize: "0.85rem",
+                                fontWeight: 500,
+                                cursor: "pointer",
+                                transition: "all 0.15s"
+                              }}
+                            >
+                              {choice}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="quiz-tab-input-row">
                       <input
                         type="text"
                         className="checkpoint-input-field"
@@ -568,13 +658,14 @@ export default function CourseLearningPage() {
                       <button
                         type="button"
                         onClick={handleVerifyQuiz}
-                        style={{ padding: "10px 20px", background: "#0284c7", color: "#ffffff", fontWeight: 800, border: "none", borderRadius: "10px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+                        className="quiz-tab-verify-btn"
                       >
                         Kiểm tra
                       </button>
                     </div>
+
                     {quizChecked && (
-                      <div style={{ padding: "1rem", borderRadius: "12px", background: quizSuccess ? "#dcfce7" : "#fee2e2", color: quizSuccess ? "#15803d" : "#b91c1c", border: `1px solid ${quizSuccess ? "#86efac" : "#fca5a5"}`, fontSize: "0.9rem" }}>
+                      <div className={`quiz-tab-feedback ${quizSuccess ? "is-correct" : "is-wrong"}`}>
                         <strong>{quizSuccess ? "🎉 Chính xác!" : "⚠️ Chưa chính xác!"}</strong>
                         <p style={{ margin: "4px 0 0 0" }}>{lesson.checkpointExplanation || "Hãy đọc lại nội dung bài giảng để chọn đáp án đúng."}</p>
                       </div>
@@ -657,11 +748,11 @@ export default function CourseLearningPage() {
 
           {/* Completion Button & Card */}
           {isAlreadyCompleted || completion ? (
-            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "16px", padding: "1.25rem", textAlign: "center" }}>
-              <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#15803d", marginBottom: "0.5rem" }}>
+            <div className="lesson-completed-card">
+              <div className="lesson-completed-title">
                 ✓ Bài học đã hoàn thành
               </div>
-              <p style={{ fontSize: "0.85rem", color: "#166534", margin: "0 0 1rem 0" }}>
+              <p className="lesson-completed-sub">
                 {completion?.courseComplete
                   ? "🎉 Chúc mừng bạn đã hoàn thành toàn bộ khóa học!"
                   : `Tiến độ khóa học: ${Number(completion?.progressPercent || displayCoursePct).toFixed(0)}%`}

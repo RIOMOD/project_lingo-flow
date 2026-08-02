@@ -125,7 +125,7 @@ export default function CartPage() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+        <div className="commerce-card" style={{ textAlign: "center", padding: "3rem 1rem", borderRadius: "18px" }}>
           <div className="auth-state">Đang tải giỏ hàng...</div>
         </div>
       )}
@@ -137,10 +137,10 @@ export default function CartPage() {
       )}
 
       {isEmpty && (
-        <div style={{ background: "#ffffff", borderRadius: "24px", padding: "3.5rem 2rem", textAlign: "center", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
+        <div className="commerce-card" style={{ borderRadius: "24px", padding: "3.5rem 2rem", textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>🛒</div>
-          <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem 0" }}>Giỏ hàng của bạn đang trống</h2>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", maxWidth: "450px", margin: "0 auto 1.8rem auto" }}>
+          <h2 className="commerce-card-title" style={{ fontSize: "1.4rem" }}>Giỏ hàng của bạn đang trống</h2>
+          <p className="commerce-label" style={{ fontSize: "0.95rem", maxWidth: "450px", margin: "0 auto 1.8rem auto" }}>
             Hãy khám phá các khóa học tiếng Anh giao tiếp & luyện thi rực rỡ để bổ sung vào lộ trình học tập của bạn.
           </p>
           <Link
@@ -162,11 +162,10 @@ export default function CartPage() {
               return (
                 <div
                   key={item.courseId}
+                  className="commerce-card"
                   style={{
-                    background: "#ffffff",
                     borderRadius: "18px",
                     padding: "1.2rem",
-                    border: "1px solid #e2e8f0",
                     boxShadow: "0 4px 16px rgba(0,0,0,0.02)",
                     display: "flex",
                     gap: "1rem",
@@ -177,7 +176,7 @@ export default function CartPage() {
                   <CourseImage item={item} index={index} />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ margin: "0 0 0.4rem 0", fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <h3 className="commerce-value" style={{ margin: "0 0 0.4rem 0", fontSize: "1.05rem", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       <Link to={`/student/courses/${item.slug || item.courseId}`} style={{ color: "inherit", textDecoration: "none" }}>
                         {item.title}
                       </Link>
@@ -230,12 +229,12 @@ export default function CartPage() {
 
           {/* Summary & Coupon Card (Right Side) */}
           <div style={{ position: "sticky", top: "2rem" }}>
-            <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.8rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#0f172a" }}>Tóm tắt đơn hàng</h3>
+            <div className="commerce-card" style={{ borderRadius: "20px", padding: "1.8rem", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <h3 className="commerce-card-title">Tóm tắt đơn hàng</h3>
 
               {/* Coupon Box */}
-              <div style={{ background: "#f8fafc", borderRadius: "14px", padding: "1rem", border: "1px solid #e2e8f0" }}>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#475569", marginBottom: "0.5rem" }}>
+              <div className="commerce-summary-box" style={{ borderRadius: "14px", padding: "1rem" }}>
+                <label className="commerce-label" style={{ marginBottom: "0.5rem" }}>
                   🎁 Mã giảm giá / Voucher
                 </label>
 
@@ -330,23 +329,22 @@ export default function CartPage() {
               </div>
 
               {/* Price Breakdown */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1rem", fontSize: "0.95rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div className="commerce-summary-box" style={{ borderRadius: "14px", paddingBottom: "1rem" }}>
+                <div className="commerce-summary-row">
                   <span>Tạm tính ({items.length} khóa học):</span>
-                  <strong style={{ color: "#1e293b" }}>{money.format(cart?.subtotalAmount || 0)}</strong>
+                  <strong className="commerce-value">{money.format(cart?.subtotalAmount || 0)}</strong>
                 </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+                <div className="commerce-summary-row">
                   <span>Giảm giá voucher:</span>
-                  <strong style={{ color: cart?.discountAmount > 0 ? "#16a34a" : "#64748b" }}>
+                  <strong style={{ color: cart?.discountAmount > 0 ? "#16a34a" : undefined }}>
                     -{money.format(cart?.discountAmount || 0)}
                   </strong>
                 </div>
               </div>
 
               {/* Total Amount */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a" }}>Tổng thanh toán:</span>
+              <div className="commerce-summary-total" style={{ alignItems: "baseline" }}>
+                <span>Tổng thanh toán:</span>
                 <strong style={{ fontSize: "1.6rem", fontWeight: 800, color: "#2563eb" }}>
                   {money.format(cart?.totalAmount || 0)}
                 </strong>

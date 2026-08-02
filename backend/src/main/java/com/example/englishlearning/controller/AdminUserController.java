@@ -79,6 +79,14 @@ public class AdminUserController {
         return ApiResponse.success("User updated successfully", userManagementService.updateUser(userId, request));
     }
 
+    @Operation(summary = "Delete user", security = @SecurityRequirement(name = "bearerAuth"))
+    @PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.web.bind.annotation.DeleteMapping("/{userId}")
+    public ApiResponse<Void> deleteUser(@PathVariable Long userId) {
+        userManagementService.deleteUser(userId);
+        return ApiResponse.success("User deleted successfully", null);
+    }
+
     @Operation(summary = "Update user status", security = @SecurityRequirement(name = "bearerAuth"))
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{userId}/status")

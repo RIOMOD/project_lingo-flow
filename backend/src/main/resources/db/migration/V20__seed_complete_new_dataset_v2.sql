@@ -234,19 +234,19 @@ INSERT INTO lessons (chapter_id, title, lesson_type, content, audio_url, video_u
 (@ch3_1, 'Bus and Train Announcements', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Nghe số tuyến và sân ga
 - Nhận biết giờ khởi hành
-- Hiểu thông báo chậm trễ', NULL, 'https://www.youtube.com/watch?v=s5vODFbMlO4', 'Delayed có nghĩa là gì?', 'Bị trì hoãn', 'Delayed thông báo phương tiện khởi hành muộn hơn dự kiến.', 1, 20, TRUE, 'PUBLISHED'),
+- Hiểu thông báo chậm trễ', NULL, 'https://www.youtube.com/watch?v=t_Wd4G9zZms', 'Delayed có nghĩa là gì?', 'Bị trì hoãn', 'Delayed thông báo phương tiện khởi hành muộn hơn dự kiến.', 1, 20, TRUE, 'PUBLISHED'),
 (@ch3_1, 'Airport Announcements', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Nghe số hiệu chuyến bay
 - Nhận biết cửa ra máy bay
-- Hiểu lời gọi lên máy bay', NULL, 'https://www.youtube.com/watch?v=s5vODFbMlO4', 'Final call nghĩa là gì?', 'Lời gọi cuối cùng', 'Final call báo hành khách phải đến cửa lên máy bay ngay.', 2, 22, FALSE, 'PUBLISHED'),
+- Hiểu lời gọi lên máy bay', NULL, 'https://www.youtube.com/watch?v=t_Wd4G9zZms', 'Final call nghĩa là gì?', 'Lời gọi cuối cùng', 'Final call báo hành khách phải đến cửa lên máy bay ngay.', 2, 22, FALSE, 'PUBLISHED'),
 (@ch3_2, 'Directions and Landmarks', 'MIXED', 'MỤC TIÊU BÀI HỌC
 - Nghe động từ chỉ hướng
 - Nhận biết mốc địa điểm
-- Theo dõi thứ tự chỉ dẫn', NULL, 'https://www.youtube.com/watch?v=s5vODFbMlO4', 'Across from có nghĩa là gì?', 'Đối diện', 'Across from mô tả hai địa điểm ở hai phía đối diện.', 1, 24, FALSE, 'PUBLISHED'),
+- Theo dõi thứ tự chỉ dẫn', NULL, 'https://www.youtube.com/watch?v=t_Wd4G9zZms', 'Across from có nghĩa là gì?', 'Đối diện', 'Across from mô tả hai địa điểm ở hai phía đối diện.', 1, 24, FALSE, 'PUBLISHED'),
 (@ch3_2, 'Appointments and Schedule Changes', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Nghe ngày và giờ hẹn
 - Nhận biết thay đổi kế hoạch
-- Xác nhận lịch mới', NULL, 'https://www.youtube.com/watch?v=s5vODFbMlO4', 'Reschedule có nghĩa là gì?', 'Sắp xếp lại lịch', 'Reschedule là đổi cuộc hẹn sang thời gian khác.', 2, 26, FALSE, 'PUBLISHED');
+- Xác nhận lịch mới', NULL, 'https://www.youtube.com/watch?v=t_Wd4G9zZms', 'Reschedule có nghĩa là gì?', 'Sắp xếp lại lịch', 'Reschedule là đổi cuộc hẹn sang thời gian khác.', 2, 26, FALSE, 'PUBLISHED');
 
 SET @l3_1 = (SELECT id FROM lessons WHERE chapter_id = @ch3_1 AND position = 1);
 SET @l3_2 = (SELECT id FROM lessons WHERE chapter_id = @ch3_1 AND position = 2);
@@ -332,19 +332,19 @@ INSERT INTO lessons (chapter_id, title, lesson_type, content, audio_url, video_u
 (@ch4_1, 'Signs and Notices', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Hiểu biển báo phổ biến
 - Xác định hành động được yêu cầu
-- Nhận biết từ khóa cảnh báo', NULL, 'https://www.youtube.com/watch?v=nZpTkCXzJPE', 'No entry có nghĩa là gì?', 'Không được vào', 'No entry là biển cấm đi vào.', 1, 20, TRUE, 'PUBLISHED'),
+- Nhận biết từ khóa cảnh báo', NULL, 'https://www.youtube.com/watch?v=3kxF1-jkz-U', 'No entry có nghĩa là gì?', 'Không được vào', 'No entry là biển cấm đi vào.', 1, 20, TRUE, 'PUBLISHED'),
 (@ch4_1, 'Messages and Short Emails', 'MIXED', 'MỤC TIÊU BÀI HỌC
 - Xác định người gửi và mục đích
 - Tìm thời gian và hành động cần làm
-- Suy luận giọng điệu', NULL, 'https://www.youtube.com/watch?v=nZpTkCXzJPE', 'Deadline có nghĩa là gì?', 'Hạn chót', 'Deadline là thời điểm cuối phải hoàn thành việc.', 2, 22, FALSE, 'PUBLISHED'),
+- Suy luận giọng điệu', NULL, 'https://www.youtube.com/watch?v=3kxF1-jkz-U', 'Deadline có nghĩa là gì?', 'Hạn chót', 'Deadline là thời điểm cuối phải hoàn thành việc.', 2, 22, FALSE, 'PUBLISHED'),
 (@ch4_2, 'Short News Articles', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Đọc tiêu đề và câu mở đầu
 - Tìm ai, việc gì, ở đâu và khi nào
-- Phân biệt ý chính và chi tiết', NULL, 'https://www.youtube.com/watch?v=nZpTkCXzJPE', 'Headline có nghĩa là gì?', 'Tiêu đề bài báo', 'Headline tóm lược chủ đề chính của tin.', 1, 24, FALSE, 'PUBLISHED'),
+- Phân biệt ý chính và chi tiết', NULL, 'https://www.youtube.com/watch?v=3kxF1-jkz-U', 'Headline có nghĩa là gì?', 'Tiêu đề bài báo', 'Headline tóm lược chủ đề chính của tin.', 1, 24, FALSE, 'PUBLISHED'),
 (@ch4_2, 'Story Sequence and Retelling', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Xác định mở đầu, diễn biến và kết thúc
 - Theo dõi nguyên nhân và kết quả
-- Kể lại bằng từ của bản thân', NULL, 'https://www.youtube.com/watch?v=nZpTkCXzJPE', 'In the end dùng để làm gì?', 'Giới thiệu kết quả cuối cùng', 'In the end báo hiệu kết thúc hoặc kết quả.', 2, 26, FALSE, 'PUBLISHED');
+- Kể lại bằng từ của bản thân', NULL, 'https://www.youtube.com/watch?v=3kxF1-jkz-U', 'In the end dùng để làm gì?', 'Giới thiệu kết quả cuối cùng', 'In the end báo hiệu kết thúc hoặc kết quả.', 2, 26, FALSE, 'PUBLISHED');
 
 SET @l4_1 = (SELECT id FROM lessons WHERE chapter_id = @ch4_1 AND position = 1);
 SET @l4_2 = (SELECT id FROM lessons WHERE chapter_id = @ch4_1 AND position = 2);
@@ -431,19 +431,19 @@ INSERT INTO lessons (chapter_id, title, lesson_type, content, audio_url, video_u
 (@ch5_1, 'Word Families', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Nhận biết noun, verb, adjective và adverb
 - Tạo bảng họ từ
-- Chọn đúng dạng từ trong câu', NULL, 'https://www.youtube.com/watch?v=jK0IHubzHZo', 'Tính từ của success là gì?', 'Successful', 'Successful là tính từ thuộc họ từ success.', 1, 20, TRUE, 'PUBLISHED'),
+- Chọn đúng dạng từ trong câu', NULL, 'https://www.youtube.com/watch?v=9eGRhJpOVeU', 'Tính từ của success là gì?', 'Successful', 'Successful là tính từ thuộc họ từ success.', 1, 20, TRUE, 'PUBLISHED'),
 (@ch5_1, 'Prefixes and Suffixes', 'MIXED', 'MỤC TIÊU BÀI HỌC
 - Hiểu nghĩa tiền tố phổ biến
 - Nhận biết hậu tố từ loại
-- Đoán nghĩa từ mới', NULL, 'https://www.youtube.com/watch?v=jK0IHubzHZo', 'Tiền tố un- thường mang nghĩa gì?', 'Không hoặc trái nghĩa', 'Un- thường tạo nghĩa phủ định.', 2, 22, FALSE, 'PUBLISHED'),
+- Đoán nghĩa từ mới', NULL, 'https://www.youtube.com/watch?v=9eGRhJpOVeU', 'Tiền tố un- thường mang nghĩa gì?', 'Không hoặc trái nghĩa', 'Un- thường tạo nghĩa phủ định.', 2, 22, FALSE, 'PUBLISHED'),
 (@ch5_2, 'Everyday Collocations', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Học verb-noun collocation
 - Học adjective-noun collocation
-- Sửa tổ hợp từ không tự nhiên', NULL, 'https://www.youtube.com/watch?v=jK0IHubzHZo', 'Động từ nào đi với a decision?', 'Make', 'Cụm tự nhiên là make a decision.', 1, 24, FALSE, 'PUBLISHED'),
+- Sửa tổ hợp từ không tự nhiên', NULL, 'https://www.youtube.com/watch?v=9eGRhJpOVeU', 'Động từ nào đi với a decision?', 'Make', 'Cụm tự nhiên là make a decision.', 1, 24, FALSE, 'PUBLISHED'),
 (@ch5_2, 'Phrasal Verbs in Context', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Hiểu phrasal verb thông dụng
 - Nhận biết phrasal verb tách được
-- Sử dụng trong hội thoại', NULL, 'https://www.youtube.com/watch?v=jK0IHubzHZo', 'Look after có nghĩa là gì?', 'Chăm sóc', 'Look after someone nghĩa là chăm sóc người đó.', 2, 26, FALSE, 'PUBLISHED');
+- Sử dụng trong hội thoại', NULL, 'https://www.youtube.com/watch?v=9eGRhJpOVeU', 'Look after có nghĩa là gì?', 'Chăm sóc', 'Look after someone nghĩa là chăm sóc người đó.', 2, 26, FALSE, 'PUBLISHED');
 
 SET @l5_1 = (SELECT id FROM lessons WHERE chapter_id = @ch5_1 AND position = 1);
 SET @l5_2 = (SELECT id FROM lessons WHERE chapter_id = @ch5_1 AND position = 2);
@@ -533,7 +533,7 @@ INSERT INTO lessons (chapter_id, title, lesson_type, content, audio_url, video_u
 (@ch6_1, 'Past Simple or Present Perfect', 'MIXED', 'MỤC TIÊU BÀI HỌC
 - Phân biệt thời gian quá khứ xác định và trải nghiệm
 - Dùng ever, never, already, yet
-- Hỏi và trả lời về trải nghiệm', NULL, 'https://www.youtube.com/watch?v=elPHkXNxi2g', 'Từ nào thường dùng trong câu hỏi Have you ...?', 'Ever', 'Ever hỏi về trải nghiệm vào bất kỳ lúc nào trước hiện tại.', 2, 22, FALSE, 'PUBLISHED'),
+- Hỏi và trả lời về trải nghiệm', NULL, 'https://www.youtube.com/watch?v=q1LKvqHEt7A', 'Từ nào thường dùng trong câu hỏi Have you ...?', 'Ever', 'Ever hỏi về trải nghiệm vào bất kỳ lúc nào trước hiện tại.', 2, 22, FALSE, 'PUBLISHED'),
 (@ch6_2, 'Choosing the Right Future Form', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Dùng will cho quyết định tức thời
 - Dùng going to cho dự định
@@ -541,7 +541,7 @@ INSERT INTO lessons (chapter_id, title, lesson_type, content, audio_url, video_u
 (@ch6_2, 'Conditionals and Advice', 'VIDEO', 'MỤC TIÊU BÀI HỌC
 - Dùng điều kiện loại 1
 - Đưa lời khuyên với should
-- Nói kết quả có thể xảy ra', NULL, 'https://www.youtube.com/watch?v=elPHkXNxi2g', 'Mệnh đề if loại 1 dùng thì nào?', 'Present simple', 'Câu điều kiện loại 1 dùng present simple sau if.', 2, 26, FALSE, 'PUBLISHED');
+- Nói kết quả có thể xảy ra', NULL, 'https://www.youtube.com/watch?v=Ojo2t-73wP4', 'Mệnh đề if loại 1 dùng thì nào?', 'Present simple', 'Câu điều kiện loại 1 dùng present simple sau if.', 2, 26, FALSE, 'PUBLISHED');
 
 SET @l6_1 = (SELECT id FROM lessons WHERE chapter_id = @ch6_1 AND position = 1);
 SET @l6_2 = (SELECT id FROM lessons WHERE chapter_id = @ch6_1 AND position = 2);

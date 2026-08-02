@@ -235,6 +235,7 @@ export const navigationByRole = {
       title: "KHÓA HỌC",
       items: [
         { label: "Duyệt khóa học", to: demoPaths.adminCourseApproval },
+        { label: "🛠️ Kiểm tra Video & Sửa bài", to: "/admin/courses" },
         { label: "Xuất bản khóa học", to: demoPaths.adminCoursePublish },
       ],
     },

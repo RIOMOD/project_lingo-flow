@@ -76,6 +76,7 @@ function getPageHeaderMeta(pathname, roleKey) {
   if (path === "/admin/roles") return { title: "Phân quyền hệ thống", breadcrumb: "QUẢN TRỊ" };
   if (path === "/admin/system-activity") return { title: "Nhật ký hoạt động", breadcrumb: "QUẢN TRỊ" };
   if (path === "/admin/course-approval") return { title: "Duyệt khóa học", breadcrumb: "KHÓA HỌC" };
+  if (path === "/admin/courses") return { title: "Kiểm tra Video & Sửa khóa học", breadcrumb: "KHÓA HỌC" };
   if (path === "/admin/course-publish") return { title: "Xuất bản khóa học", breadcrumb: "KHÓA HỌC" };
   if (path === "/admin/orders") return { title: "Quản lý đơn hàng", breadcrumb: "THƯƠNG MẠI" };
   if (path === "/admin/transactions") return { title: "Quản lý giao dịch", breadcrumb: "THƯƠNG MẠI" };
@@ -130,6 +131,7 @@ export default function AppShell({ roleKey = "student" }) {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [lessonCtx, setLessonCtx] = useState(null); // { title, chapterTitle, percent, courseId }
 
   const accountMenuRef = useRef(null);
   const roleDropdownRef = useRef(null);
@@ -170,6 +172,18 @@ export default function AppShell({ roleKey = "student" }) {
   };
 
   useEffect(() => setIsSidebarOpen(false), [location.pathname]);
+
+  // ── Lesson context: listen for updates from CourseLearningPage ──
+  const isLearningRoute = location.pathname.startsWith("/student/learn/");
+  useEffect(() => {
+    if (!isLearningRoute) {
+      setLessonCtx(null);
+      return;
+    }
+    const handler = (e) => setLessonCtx(e.detail);
+    window.addEventListener("lesson-context-update", handler);
+    return () => window.removeEventListener("lesson-context-update", handler);
+  }, [isLearningRoute]);
 
   const accountName = user?.fullName || user?.name || "Học viên";
   const headerMeta = useMemo(() => getPageHeaderMeta(location.pathname, roleKey), [location.pathname, roleKey]);
@@ -388,8 +402,59 @@ export default function AppShell({ roleKey = "student" }) {
       <div className="app-content">
         <header className="app-topbar">
           <div className="app-topbar-copy">
-            <span className="app-eyebrow">{breadcrumb}</span>
-            <h1 className="app-topbar-title">{pageTitle}</h1>
+            {isLearningRoute && lessonCtx ? (
+              // ── Lesson Mode Header ──
+              <div className="app-lesson-header">
+                <Link
+                  to={`/student/courses/${lessonCtx.courseId}`}
+                  className="app-lesson-back-btn"
+                  title="Quay về khóa học"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </Link>
+                <div className="app-lesson-info">
+                  <span className="app-lesson-chapter">{lessonCtx.chapterTitle || "Phòng học LingoFlow"}</span>
+                  <span className="app-lesson-title">{lessonCtx.title || "Đang tải..."}</span>
+                </div>
+                <div className="app-lesson-progress-chip-wrapper" style={{ position: "relative" }}>
+                  <div className="app-lesson-progress-chip">
+                    <svg className="app-lesson-progress-ring" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.15" />
+                      <circle
+                        cx="18" cy="18" r="15.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(lessonCtx.percent || 0) * 0.974} 97.4`}
+                        strokeDashoffset="24.35"
+                      />
+                    </svg>
+                    <span className="app-lesson-pct">{lessonCtx.percent || 0}%</span>
+                  </div>
+
+                  {/* Hover Popover Card for Course Progress */}
+                  <div className="app-lesson-progress-popover">
+                    <div className="popover-header">
+                      <span>🎯 Tiến độ khóa học</span>
+                      <strong className="popover-pct">{lessonCtx.percent || 0}%</strong>
+                    </div>
+                    <div className="popover-bar-track">
+                      <div className="popover-bar-fill" style={{ width: `${lessonCtx.percent || 0}%` }} />
+                    </div>
+                    <div className="popover-footer">
+                      <span>{lessonCtx.completedCount || 0}/{lessonCtx.totalCount || 0} bài đã hoàn thành</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // ── Normal Header ──
+              <>
+                <span className="app-eyebrow">{breadcrumb}</span>
+                <h1 className="app-topbar-title">{pageTitle}</h1>
+              </>
+            )}
           </div>
           {isStudent && (
             <div className="app-header-actions">

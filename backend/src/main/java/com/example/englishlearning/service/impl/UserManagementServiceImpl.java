@@ -121,10 +121,55 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Transactional
     public UserDetailResponse updateUser(Long userId, AdminUpdateUserRequest request) {
         User user = findUser(userId);
-        user.setFullName(request.getFullName());
-        user.setPhone(request.getPhone());
-        user.setAvatarUrl(request.getAvatarUrl());
+
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName().trim());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String newEmail = normalizeEmail(request.getEmail());
+            if (!newEmail.equalsIgnoreCase(user.getEmail())) {
+                if (userRepository.existsByEmailAndDeletedAtIsNull(newEmail)) {
+                    throw new BadRequestException("Email is already registered by another account");
+                }
+                user.setEmail(newEmail);
+            }
+        }
+
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone().trim());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword().trim()));
+        }
+
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            String roleCode = request.getRole().trim().toUpperCase();
+            Role role = roleRepository.findByCode(roleCode)
+                    .orElseThrow(() -> new ResourceNotFoundException("Role " + roleCode + " not found"));
+            user.setRole(role);
+        }
+
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl().trim());
+        }
+
         return toDetail(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = findUser(userId);
+        String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (user.getEmail().equalsIgnoreCase(currentUserEmail)) {
+            throw new BadRequestException("Cannot delete your own admin account");
+        }
+        user.setDeletedAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+        refreshTokenRepository.deleteByUser(user);
+        auditLogService.logAction("DELETE_USER", "USER", user.getId(), user.getEmail(), "DELETED", "Admin deleted user account");
     }
 
     @Override

@@ -101,12 +101,12 @@ export default function InvoicePage() {
       </nav>
 
       {/* Top Action Bar */}
-      <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.2rem 1.8rem", border: "1px solid #e2e8f0", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="commerce-card" style={{ borderRadius: "18px", padding: "1.2rem 1.8rem", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+          <h1 className="commerce-card-title" style={{ fontSize: "1.4rem", margin: 0 }}>
             Hóa đơn điện tử VAT ({invoice?.invoiceCode || orderCode})
           </h1>
-          <p style={{ margin: "2px 0 0 0", color: "#64748b", fontSize: "0.86rem" }}>
+          <p className="commerce-label" style={{ margin: "2px 0 0 0", fontSize: "0.86rem" }}>
             Mẫu hóa đơn GTGT điện tử hợp lệ theo quy định của Tổng Cục Thuế.
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function InvoicePage() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+        <div className="commerce-card" style={{ textAlign: "center", padding: "3rem 1rem", borderRadius: "18px" }}>
           <div className="auth-state">Đang tạo bản hiển thị Hóa đơn điện tử...</div>
         </div>
       )}
@@ -186,13 +186,11 @@ export default function InvoicePage() {
       {!loading && (
         <div
           id="einvoice-paper"
+          className="commerce-card einvoice-paper"
           style={{
-            background: "#ffffff",
             borderRadius: "24px",
             padding: "2.5rem 3rem",
-            border: "1px solid #cbd5e1",
             boxShadow: "0 20px 40px rgba(0,0,0,0.06)",
-            color: "#0f172a",
             fontFamily: "Inter, Roboto, system-ui, sans-serif",
             position: "relative",
           }}
@@ -243,17 +241,17 @@ export default function InvoicePage() {
           </div>
 
           {/* Customer & Transaction Meta */}
-          <div style={{ background: "#f8fafc", borderRadius: "16px", padding: "1.2rem 1.5rem", border: "1px solid #e2e8f0", marginBottom: "1.8rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", fontSize: "0.9rem" }}>
+          <div className="commerce-summary-box" style={{ borderRadius: "16px", padding: "1.2rem 1.5rem", marginBottom: "1.8rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", fontSize: "0.9rem" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <div><span style={{ color: "#64748b" }}>Tên người mua hàng:</span> <strong style={{ color: "#0f172a" }}>{invoice?.billingName || "Học viên LingoFlow"}</strong></div>
-              <div><span style={{ color: "#64748b" }}>Email nhận hóa đơn:</span> <strong style={{ color: "#0f172a" }}>{invoice?.billingEmail || "student@example.com"}</strong></div>
-              <div><span style={{ color: "#64748b" }}>Hình thức thanh toán:</span> <strong style={{ color: "#0d9488" }}>Chuyển khoản VietQR / Banking</strong></div>
+              <div><span className="commerce-label">Tên người mua hàng:</span> <strong className="commerce-value">{invoice?.billingName || "Học viên LingoFlow"}</strong></div>
+              <div><span className="commerce-label">Email nhận hóa đơn:</span> <strong className="commerce-value">{invoice?.billingEmail || "student@example.com"}</strong></div>
+              <div><span className="commerce-label">Hình thức thanh toán:</span> <strong style={{ color: "#0d9488" }}>Chuyển khoản VietQR / Banking</strong></div>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <div><span style={{ color: "#64748b" }}>Mã đơn hàng tham chiếu:</span> <strong style={{ color: "#2563eb" }}>{orderCode}</strong></div>
-              <div><span style={{ color: "#64748b" }}>Ngày lập hóa đơn:</span> <strong style={{ color: "#0f172a" }}>{formatDate(invoice?.createdAt)}</strong></div>
-              <div><span style={{ color: "#64748b" }}>Đơn vị tiền tệ:</span> <strong style={{ color: "#0f172a" }}>Việt Nam Đồng (VND)</strong></div>
+              <div><span className="commerce-label">Mã đơn hàng tham chiếu:</span> <strong style={{ color: "#2563eb" }}>{orderCode}</strong></div>
+              <div><span className="commerce-label">Ngày lập hóa đơn:</span> <strong className="commerce-value">{formatDate(invoice?.createdAt)}</strong></div>
+              <div><span className="commerce-label">Đơn vị tiền tệ:</span> <strong className="commerce-value">Việt Nam Đồng (VND)</strong></div>
             </div>
           </div>
 
@@ -304,21 +302,21 @@ export default function InvoicePage() {
               <p style={{ margin: 0 }}>Học viên có thể sử dụng hóa đơn này để quyết toán chi phí đào tạo với doanh nghiệp hoặc cơ quan.</p>
             </div>
 
-            <div style={{ background: "#f8fafc", padding: "1.2rem 1.5rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.92rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+            <div className="commerce-summary-box" style={{ padding: "1.2rem 1.5rem", borderRadius: "16px", display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.92rem" }}>
+              <div className="commerce-summary-row">
                 <span>Cộng tiền hàng (chưa VAT):</span>
-                <strong style={{ color: "#1e293b" }}>{money.format(subtotalVal)}</strong>
+                <strong className="commerce-value">{money.format(subtotalVal)}</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div className="commerce-summary-row">
                 <span>Thuế suất GTGT (VAT 10%):</span>
-                <strong style={{ color: "#1e293b" }}>10%</strong>
+                <strong className="commerce-value">10%</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div className="commerce-summary-row">
                 <span>Tiền thuế GTGT (VAT):</span>
-                <strong style={{ color: "#1e293b" }}>{money.format(vatVal)}</strong>
+                <strong className="commerce-value">{money.format(vatVal)}</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "8px", borderTop: "2px dashed #cbd5e1", fontSize: "1.1rem" }}>
-                <span style={{ fontWeight: 800, color: "#0f172a" }}>TỔNG CỘNG TIỀN THANH TOÁN:</span>
+              <div className="commerce-summary-total" style={{ fontSize: "1.1rem", borderTop: "2px dashed" }}>
+                <span>TỔNG CỘNG TIỀN THANH TOÁN:</span>
                 <strong style={{ fontSize: "1.45rem", fontWeight: 900, color: "#2563eb" }}>{money.format(totalVal)}</strong>
               </div>
             </div>

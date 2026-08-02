@@ -16,6 +16,14 @@ async function parseResponse(response) {
     const error = new Error(message);
     error.status = response.status;
     error.body = body;
+
+    // Detect if account has been locked or token revoked
+    if (response.status === 401 || response.status === 403 || message.toLowerCase().includes("locked") || message.toLowerCase().includes("bị khóa")) {
+      if (typeof window !== "undefined" && getAccessToken()) {
+        window.dispatchEvent(new CustomEvent("account_locked", { detail: { message } }));
+      }
+    }
+
     throw error;
   }
 
@@ -66,6 +74,9 @@ export async function apiRequest(path, options = {}) {
       return parseResponse(retryResponse);
     } catch (error) {
       clearTokens();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("account_locked", { detail: { message: "Phiên đăng nhập đã bị hủy hoặc tài khoản bị khóa." } }));
+      }
       throw error;
     }
   }
@@ -74,4 +85,3 @@ export async function apiRequest(path, options = {}) {
 }
 
 export { API_BASE_URL };
-

@@ -65,6 +65,7 @@ const AdminDashboardPage = lazy(() => import("../pages/admin/DashboardPage"));
 const UserManagementPage = lazy(() => import("../pages/admin/UserManagementPage"));
 const TeacherManagementPage = lazy(() => import("../pages/admin/TeacherManagementPage"));
 const CourseApprovalPage = lazy(() => import("../pages/admin/CourseApprovalPage"));
+const AdminCourseManagementPage = lazy(() => import("../pages/admin/AdminCourseManagementPage"));
 const CoursePublishPage = lazy(() => import("../pages/admin/CoursePublishPage"));
 const OrderManagementPage = lazy(() => import("../pages/admin/OrderManagementPage"));
 const TransactionManagementPage = lazy(() => import("../pages/admin/TransactionManagementPage"));
@@ -149,6 +150,7 @@ export default function AppRoutes() {
                 <Route path="users" element={<UserManagementPage />} />
                 <Route path="teachers" element={<TeacherManagementPage />} />
                 <Route path="course-approval" element={<CourseApprovalPage />} />
+                <Route path="courses" element={<AdminCourseManagementPage />} />
                 <Route path="course-publish" element={<CoursePublishPage />} />
                 <Route path="orders" element={<OrderManagementPage />} />
                 <Route path="transactions" element={<TransactionManagementPage />} />

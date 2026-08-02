@@ -13,10 +13,15 @@ public class AdminUpdateUserRequest {
     @Size(max = 150, message = "Full name must not exceed 150 characters")
     private String fullName;
 
+    private String email;
+
     @Size(max = 30, message = "Phone must not exceed 30 characters")
     private String phone;
+
+    private String password;
+
+    private String role;
 
     @Size(max = 500, message = "Avatar URL must not exceed 500 characters")
     private String avatarUrl;
 }
-

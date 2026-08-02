@@ -53,21 +53,21 @@ INSERT INTO lessons (
   id, chapter_id, title, lesson_type, content, audio_url, video_url,
   position, duration_minutes, is_preview, status
 ) VALUES
-  (1, 1, 'Chào hỏi và giới thiệu bản thân', 'MIXED', 'Hello, nice to meet you. My name is Linh. I am learning English for work.', NULL, 'https://www.youtube.com/watch?v=DywRyvzWoYY', 1, 15, TRUE, 'PUBLISHED'),
+  (1, 1, 'Chào hỏi và giới thiệu bản thân', 'MIXED', 'Hello, nice to meet you. My name is Linh. I am learning English for work.', NULL, 'https://www.youtube.com/watch?v=t_Wd4G9zZms', 1, 15, TRUE, 'PUBLISHED'),
   (2, 1, 'Hỏi thăm và phản hồi lịch sự', 'TEXT', 'How are you today? I am good, thank you. How about you?', NULL, NULL, 2, 18, FALSE, 'PUBLISHED'),
   (3, 2, 'Gọi món tại quán cà phê', 'TEXT', 'Can I have a latte, please? Would you like anything else?', NULL, NULL, 1, 20, FALSE, 'PUBLISHED'),
   (4, 2, 'Hỏi đường trong thành phố', 'AUDIO', 'Excuse me, how can I get to the nearest station?', 'https://www.oxfordonlineenglish.com/wp-content/uploads/2013/09/directions.mp3', NULL, 2, 22, FALSE, 'PUBLISHED'),
-  (5, 3, 'Tổng quan IELTS', 'VIDEO', 'IELTS includes Listening, Reading, Writing and Speaking. Each skill needs a clear strategy.', NULL, 'https://www.youtube.com/embed?listType=user_uploads&list=IELTSofficial', 1, 25, TRUE, 'PUBLISHED'),
+  (5, 3, 'Tổng quan IELTS', 'VIDEO', 'IELTS includes Listening, Reading, Writing and Speaking. Each skill needs a clear strategy.', NULL, 'https://www.youtube.com/watch?v=9eGRhJpOVeU', 1, 25, TRUE, 'PUBLISHED'),
   (6, 3, 'Cách đặt mục tiêu band điểm', 'TEXT', 'A realistic study plan helps you improve step by step.', NULL, NULL, 2, 20, FALSE, 'PUBLISHED'),
   (7, 4, 'Từ vựng học thuật thường gặp', 'TEXT', 'Analyze, evaluate, significant, approach and evidence are common academic words.', NULL, NULL, 1, 30, FALSE, 'PUBLISHED'),
   (8, 4, 'Câu phức trong IELTS Writing', 'TEXT', 'Although the topic is difficult, a clear outline can improve your response.', NULL, NULL, 2, 28, FALSE, 'PUBLISHED'),
-  (9, 5, 'Âm /θ/ và /ð/', 'MIXED', 'Practice: think, three, this, mother. Put your tongue lightly between your teeth.', NULL, 'https://www.youtube.com/watch?v=ruI2tdQzprg', 1, 18, TRUE, 'PUBLISHED'),
+  (9, 5, 'Âm /θ/ và /ð/', 'MIXED', 'Practice: think, three, this, mother. Put your tongue lightly between your teeth.', NULL, 'https://www.youtube.com/watch?v=elPHkXNxi2g', 1, 18, TRUE, 'PUBLISHED'),
   (10, 5, 'Trọng âm trong từ hai âm tiết', 'TEXT', 'Some nouns stress the first syllable, while many verbs stress the second syllable.', NULL, NULL, 2, 20, FALSE, 'PUBLISHED'),
   (11, 6, 'Nghe câu hỏi ngắn', 'AUDIO', 'Listen for question words: what, where, when, why and how.', 'https://magoosh-company-site.s3.amazonaws.com/wp-content/uploads/toefl/files/2016/08/17165619/Q1Advanced.mp3', NULL, 1, 18, FALSE, 'PUBLISHED'),
   (12, 6, 'Nghe hội thoại tại sân bay', 'AUDIO', 'Could you show me your passport, please?', 'https://www.espressoenglish.net/wp-content/uploads/2013/06/16a.mp3', NULL, 2, 24, FALSE, 'PUBLISHED'),
-  (13, 7, 'Cấu trúc email chuyên nghiệp', 'MIXED', 'Start with a clear greeting, state your purpose, give details and close politely.', NULL, 'https://www.youtube.com/watch?v=5MFQH5IHOFk', 1, 22, TRUE, 'PUBLISHED'),
+  (13, 7, 'Cấu trúc email chuyên nghiệp', 'MIXED', 'Start with a clear greeting, state your purpose, give details and close politely.', NULL, 'https://www.youtube.com/watch?v=aO3Det4ir8U', 1, 22, TRUE, 'PUBLISHED'),
   (14, 7, 'Xin lỗi và dời lịch họp', 'TEXT', 'I apologize for the inconvenience. Could we reschedule the meeting to Friday?', NULL, NULL, 2, 20, FALSE, 'PUBLISHED'),
-  (15, 8, 'Mở đầu cuộc họp', 'MIXED', 'Thank you for joining. Today, we will discuss the project timeline.', NULL, 'https://www.youtube.com/watch?v=5MFQH5IHOFk', 1, 25, FALSE, 'PUBLISHED'),
+  (15, 8, 'Mở đầu cuộc họp', 'MIXED', 'Thank you for joining. Today, we will discuss the project timeline.', NULL, 'https://www.youtube.com/watch?v=I1GWT0Oosp8', 1, 25, FALSE, 'PUBLISHED'),
   (16, 8, 'Trình bày quan điểm lịch sự', 'TEXT', 'From my perspective, we should prioritize customer feedback.', NULL, NULL, 2, 24, FALSE, 'PUBLISHED'),
   (17, 3, 'Reading preview: Skimming', 'TEXT', 'Skimming helps you understand the general idea before reading details.', NULL, NULL, 3, 16, FALSE, 'PUBLISHED'),
   (18, 5, 'Minimal pairs practice', 'AUDIO', 'Listen and repeat: ship/sheep, bit/beat, live/leave.', 'https://www.adelescorner.org/pronunciation/minimal_pairs/ship_sheep/ship.mp3', NULL, 3, 18, FALSE, 'PUBLISHED');
@@ -101,7 +101,27 @@ SET checkpoint_question = CASE id
       WHEN 13 THEN 'greeting' WHEN 14 THEN 'reschedule' WHEN 15 THEN 'thank you'
       WHEN 16 THEN 'from my perspective' WHEN 17 THEN 'skimming' WHEN 18 THEN 'ship sheep'
     END,
-    checkpoint_explanation = 'Hãy xem lại phần nội dung chính ngay phía trên rồi thử lại.'
+    checkpoint_explanation = CASE id
+      WHEN 1 THEN 'Câu chào ngắn thường bắt đầu bằng Hello, Hi hoặc Good morning; hãy chọn từ phổ biến nhất trong bài.'
+      WHEN 2 THEN 'Hỏi thăm sức khỏe thường là How are you? hoặc How are you doing?; câu này dùng mẫu chào hỏi thân thiện.'
+      WHEN 3 THEN 'Trong giao tiếp gọi món, cách lịch sự nhất là Can I have... hoặc I would like...'
+      WHEN 4 THEN 'Station nghĩa là nhà ga, trạm, hoặc nơi xe buýt/tàu khởi hành.'
+      WHEN 5 THEN 'IELTS gồm 4 kỹ năng chính: Listening, Reading, Writing và Speaking.'
+      WHEN 6 THEN 'Kế hoạch học tập hiệu quả phải thực tế, rõ mục tiêu và chia nhỏ từng bước để tiến bộ đều.'
+      WHEN 7 THEN 'Evidence là từ chỉ bằng chứng, rất phổ biến trong bài luận học thuật và IELTS Writing.'
+      WHEN 8 THEN 'Although là từ nối bật lên mệnh đề nhượng bộ, mở đầu câu phức cực quen thuộc.'
+      WHEN 9 THEN 'Think có âm /θ/ và thường xuất hiện trong các từ như think, three, thought.'
+      WHEN 10 THEN 'Danh từ hai âm tiết thường nhấn âm tiết đầu tiên, ví dụ: PREsent, RECORD, CONtract.'
+      WHEN 11 THEN 'Where là từ hỏi về địa điểm, nơi chốn, và được dùng nhiều trong nghe hiểu giao tiếp.'
+      WHEN 12 THEN 'Passport là giấy tờ bắt buộc cần xuất trình khi đi máy bay hoặc qua kiểm soát.'
+      WHEN 13 THEN 'Phần đầu email chuyên nghiệp thường là greeting, tiến tới mục đích và lời chào cuối thư.'
+      WHEN 14 THEN 'Reschedule có nghĩa là dời lịch hoặc đổi thời gian cuộc họp cho phù hợp.'
+      WHEN 15 THEN 'Thank you là cách cảm ơn lịch sự, phù hợp khi chào đón và kết thúc buổi họp.'
+      WHEN 16 THEN 'From my perspective là cách nêu ý kiến cá nhân rõ ràng và chuyên nghiệp.'
+      WHEN 17 THEN 'Skimming là kỹ thuật đọc lướt để nắm ý chính trước khi đọc kỹ từng chi tiết.'
+      WHEN 18 THEN 'Minimal pairs là cặp từ khác nhau âm rất ít, ví dụ ship/sheep, bit/beat, live/leave.'
+      ELSE 'Hãy xem lại phần nội dung chính ngay phía trên rồi thử lại.'
+    END
 WHERE id BETWEEN 1 AND 18;
 
 INSERT INTO lesson_contents (lesson_id, content_type, title, body, resource_url, position) VALUES

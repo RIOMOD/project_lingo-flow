@@ -150,6 +150,12 @@
   justify-content: space-between;
 }
 
+.sidebar-lesson-count {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .roadmap-chapter-group {
   margin-bottom: 1.25rem;
 }
@@ -525,4 +531,202 @@
   text-align: center;
   margin-top: 8px;
   font-weight: 600;
+}
+
+/* ── Lesson Content Body (Tab 1) ── */
+.lesson-content-body {
+  line-height: 1.75;
+  color: #334155;
+}
+
+.lesson-content-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.lesson-type-pill {
+  padding: 4px 10px;
+  background: #e0f2fe;
+  color: #0284c7;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.lesson-content-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.lesson-content-text {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  white-space: pre-line;
+  font-size: 0.98rem;
+  color: #334155;
+}
+
+/* ── Quiz Tab Card (Tab 2) ── */
+.quiz-tab-card {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.quiz-tab-heading {
+  margin: 0 0 0.8rem 0;
+  color: #0369a1;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.quiz-tab-question {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quiz-tab-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quiz-tab-verify-btn {
+  padding: 10px 20px;
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 800;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.quiz-tab-verify-btn:hover {
+  background: #0369a1;
+}
+
+.quiz-tab-feedback {
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.quiz-tab-feedback.is-correct {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.quiz-tab-feedback.is-wrong {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Lesson Completion Card ── */
+.lesson-completed-card {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.lesson-completed-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #15803d;
+  margin-bottom: 0.5rem;
+}
+
+.lesson-completed-sub {
+  font-size: 0.85rem;
+  color: #166534;
+  margin: 0 0 1rem 0;
+}
+
+/* ── Dark Mode for new classes ── */
+[data-theme="dark"] .lesson-content-body {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .lesson-type-pill {
+  background: #1e3a5f !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .lesson-content-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .lesson-content-text {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .sidebar-heading {
+  color: #f8fafc !important;
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .sidebar-lesson-count {
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .quiz-tab-card {
+  background: #0c1a2e !important;
+  border-color: #1e4d7a !important;
+}
+
+[data-theme="dark"] .quiz-tab-heading {
+  color: #7dd3fc !important;
+}
+
+[data-theme="dark"] .quiz-tab-question {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .quiz-tab-verify-btn {
+  background: #0369a1 !important;
+}
+
+[data-theme="dark"] .quiz-tab-feedback.is-correct {
+  background: #064e3b !important;
+  color: #4ade80 !important;
+  border-color: #10b981 !important;
+}
+
+[data-theme="dark"] .quiz-tab-feedback.is-wrong {
+  background: #450a0a !important;
+  color: #fca5a5 !important;
+  border-color: #991b1b !important;
+}
+
+[data-theme="dark"] .lesson-completed-card {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+}
+
+[data-theme="dark"] .lesson-completed-title {
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .lesson-completed-sub {
+  color: #86efac !important;
 }

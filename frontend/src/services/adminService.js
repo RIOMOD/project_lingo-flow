@@ -41,6 +41,14 @@ export async function updateAdminUser(userId, payload) {
   );
 }
 
+export async function deleteAdminUser(userId) {
+  return unwrap(
+    await apiRequest(`/admin/users/${userId}`, {
+      method: "DELETE",
+    })
+  );
+}
+
 export async function updateAdminUserStatus(userId, status) {
   return unwrap(
     await apiRequest(`/admin/users/${userId}/status`, {
@@ -76,4 +84,12 @@ export async function getAdminDashboardStats() {
 export async function getAdminAuditLogs(params = {}) {
   const query = toQuery(params);
   return unwrap(await apiRequest(`/admin/audit-logs${query ? `?${query}` : ""}`));
+}
+
+export async function getAdminRoles() {
+  return [
+    { id: 1, code: "ROLE_ADMIN", name: "Quản trị viên", description: "Toàn quyền truy cập và điều hành toàn bộ hệ thống", permissionCount: "100%" },
+    { id: 2, code: "ROLE_TEACHER", name: "Giảng viên", description: "Tạo, chỉnh sửa bài giảng, theo dõi doanh thu và học viên", permissionCount: "75%" },
+    { id: 3, code: "ROLE_STUDENT", name: "Học viên", description: "Học bài, ôn từ vựng, chấm bài AI, làm bài thi thử", permissionCount: "50%" },
+  ];
 }

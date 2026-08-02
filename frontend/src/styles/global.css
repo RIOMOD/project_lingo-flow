@@ -2241,16 +2241,20 @@ button:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 40;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
   background: rgba(8, 16, 34, 0.48);
   backdrop-filter: blur(8px);
+  overflow: auto;
 }
 
 .modal-panel {
-  width: min(560px, 100%);
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
   overflow: hidden;
+  margin: auto;
 }
 
 .modal-header,
@@ -4979,19 +4983,802 @@ html[data-theme="dark"] .app-shell {
 
 /* Secondary & Ghost Buttons in Dark Mode */
 [data-theme="dark"] .guest-button-secondary,
-[data-theme="dark"] .guest-button-ghost,
-[data-theme="dark"] .page-action-secondary,
-[data-theme="dark"] .page-action-ghost,
-[data-theme="dark"] .stu-btn-secondary {
+[data-theme="dark"] .guest-button-ghost {
+  background: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.kpi-val {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Excel Grid Layout */
+.admin-excel-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   VOCALYN-STYLE ENTERPRISE ADMIN DASHBOARD DESIGN
+   ───────────────────────────────────────────────────────────────────────────── */
+.vocalyn-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
+}
+
+/* Metrics Row (5 Cards) */
+.vocalyn-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.vocalyn-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.vocalyn-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.metric-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.metric-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.metric-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+.metric-val {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.metric-change {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metric-change.positive span {
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.metric-change.negative span {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.metric-change small {
+  color: #94a3b8;
+}
+
+/* Main Table Card */
+.main-table-card {
+  padding: 20px;
+}
+
+.vocalyn-table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.toolbar-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 6px 12px;
+  width: 320px;
+}
+
+.toolbar-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocalyn-btn-pill {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.vocalyn-btn-primary {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.vocalyn-btn-primary:hover {
+  background: #1e293b;
+}
+
+.vocalyn-btn-secondary {
+  background: #ffffff;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.vocalyn-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.vocalyn-btn-danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.vocalyn-btn-danger:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* Data Table */
+.vocalyn-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+}
+
+.vocalyn-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.vocalyn-data-table th {
+  background: #fafafa;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.vocalyn-data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.vocalyn-data-table tr:hover {
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.vocalyn-data-table tr.is-active-row {
+  background: #f1f5f9;
+}
+
+.table-title-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.course-name-text {
+  font-size: 0.9rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.course-sub-text {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.teacher-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacher-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vocalyn-tag {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.tag-level { background: #f1f5f9; color: #475569; }
+.tag-type { background: #e0f2fe; color: #0369a1; }
+
+.vocalyn-status-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.vocalyn-status-pill.status-published { background: #f3e8ff; color: #7e22ce; }
+.vocalyn-status-pill.status-submitted { background: #fef9c3; color: #a16207; }
+.vocalyn-status-pill.status-approved { background: #dbeafe; color: #1d4ed8; }
+.vocalyn-status-pill.status-hidden { background: #f1f5f9; color: #64748b; }
+.vocalyn-status-pill.status-broken { background: #fee2e2; color: #b91c1c; }
+.vocalyn-status-pill.status-healthy { background: #dcfce7; color: #15803d; }
+
+.vocalyn-action-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.vocalyn-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vocalyn-icon-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* Footer Pagination */
+.vocalyn-table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.vocalyn-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-num-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.page-num-btn.is-active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.page-num-btn:hover:not(.is-active):not(:disabled) {
+  background: #f8fafc;
+}
+
+/* Detail Inspector Card */
+.detail-inspector-card {
+  padding: 20px;
+}
+
+.inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.inspector-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 6px 0 2px 0;
+  color: #0f172a;
+}
+
+.inspector-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.chapter-block-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.chapter-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.lessons-subtable {
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.vocalyn-input-pill {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.82rem;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+}
+
+.vocalyn-input-pill:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.vocalyn-inline-form-box {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   VOCALYN DARK MODE ([data-theme="dark"])
+   ───────────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .vocalyn-dashboard-container {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .vocalyn-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .metric-title,
+[data-theme="dark"] .course-sub-text,
+[data-theme="dark"] .inspector-desc,
+[data-theme="dark"] .footer-count-text {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .metric-val,
+[data-theme="dark"] .course-name-text,
+[data-theme="dark"] .inspector-title,
+[data-theme="dark"] .vocalyn-data-table td {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .toolbar-search-box,
+[data-theme="dark"] .vocalyn-input-pill,
+[data-theme="dark"] .chapter-block-card,
+[data-theme="dark"] .lessons-subtable {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .toolbar-search-box input {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .vocalyn-data-table th {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .vocalyn-data-table td {
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .vocalyn-data-table tr:hover,
+[data-theme="dark"] .vocalyn-data-table tr.is-active-row {
+  background: #273549 !important;
+}
+
+[data-theme="dark"] .vocalyn-btn-primary {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="dark"] .vocalyn-btn-secondary {
   background: #334155 !important;
   color: #f8fafc !important;
   border-color: #475569 !important;
 }
 
-[data-theme="dark"] .guest-button-secondary:hover,
-[data-theme="dark"] .page-action-secondary:hover {
+[data-theme="dark"] .vocalyn-icon-btn,
+[data-theme="dark"] .page-num-btn {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .page-num-btn.is-active {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="dark"] .vocalyn-inline-form-box {
+  background: #1e3a8a !important;
+  border-color: #3b82f6 !important;
+}
+
+.admin-excel-table tr:hover {
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.admin-excel-table tr.is-selected-row {
+  background: #eff6ff !important;
+  border-left: 3px solid #2563eb;
+}
+
+.admin-excel-table tr.is-broken-row {
+  background: #fff5f5;
+}
+
+/* Cell elements */
+.cell-title {
+  display: block;
+  font-size: 0.85rem;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.cell-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.badge-pill-sm {
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.status-badge-sm {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.status-badge-sm.status-published { background: #dcfce7; color: #15803d; }
+.status-badge-sm.status-submitted { background: #fef9c3; color: #a16207; }
+.status-badge-sm.status-approved { background: #dbeafe; color: #1d4ed8; }
+.status-badge-sm.status-hidden { background: #f1f5f9; color: #64748b; }
+.status-badge-sm.is-danger { background: #fee2e2; color: #b91c1c; }
+.status-badge-sm.is-success { background: #dcfce7; color: #15803d; }
+
+/* Buttons & Inputs */
+.admin-input-compact {
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+}
+
+.admin-input-compact:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.admin-input-compact.is-invalid-input {
+  border-color: #ef4444 !important;
+  background: #fff5f5;
+}
+
+.admin-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.admin-btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+.admin-btn-xs { padding: 2px 6px; font-size: 0.75rem; }
+
+.admin-btn-primary { background: #2563eb; color: #ffffff; }
+.admin-btn-primary:hover { background: #1d4ed8; }
+
+.admin-btn-secondary { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+.admin-btn-secondary:hover { background: #e2e8f0; color: #0f172a; }
+
+.admin-btn-danger { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.admin-btn-danger:hover { background: #ef4444; color: #ffffff; }
+
+.admin-btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+}
+
+/* Chapter outline */
+.chapter-section-box {
+  margin-bottom: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.chapter-header-row {
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-bottom: 1px solid #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.admin-course-meta-bar {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.meta-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meta-course-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.meta-sub-info {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.url-code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #334155;
+  word-break: break-all;
+}
+
+.video-url-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-inline-form-box {
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  padding: 8px 12px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FULL DARK MODE FOR ADMIN CONTROL CENTER ([data-theme="dark"])
+   ───────────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .admin-excel-view {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .admin-excel-topbar,
+[data-theme="dark"] .admin-excel-panel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .admin-excel-page-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .kpi-chip {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .kpi-val {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .kpi-chip.is-warning {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .kpi-chip.is-success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #6ee7b7 !important;
+}
+
+[data-theme="dark"] .admin-table-container,
+[data-theme="dark"] .chapter-section-box {
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .admin-excel-table th {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .admin-excel-table td {
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .admin-excel-table tr:hover {
+  background: #273549 !important;
+}
+
+[data-theme="dark"] .admin-excel-table tr.is-selected-row {
+  background: #1e3a8a !important;
+  border-left-color: #60a5fa !important;
+}
+
+[data-theme="dark"] .admin-excel-table tr.is-broken-row {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+[data-theme="dark"] .cell-title,
+[data-theme="dark"] .meta-course-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .cell-sub,
+[data-theme="dark"] .meta-sub-info {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .admin-input-compact {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .admin-input-compact:focus {
+  border-color: #60a5fa !important;
+}
+
+[data-theme="dark"] .admin-btn-secondary {
+  background: #334155 !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] .admin-btn-secondary:hover {
   background: #475569 !important;
-  color: #ffffff !important;
+}
+
+[data-theme="dark"] .chapter-header-row,
+[data-theme="dark"] .admin-course-meta-bar {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .url-code {
+  background: #0f172a !important;
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .admin-inline-form-box {
+  background: #1e3a8a !important;
+  border-color: #3b82f6 !important;
 }
 
 /* Main Cards across Pages (HomePage, AboutPage, ContactPage, MyCoursesPage, etc.) */
@@ -6322,5 +7109,607 @@ html[data-theme="dark"] .app-shell {
   color: #cbd5e1 !important;
 }
 
+/* ============================================================
+   COMMERCE UI CLASSES (CartPage, CheckoutPage,
+   PaymentStatusPage, InvoicePage)
+   ============================================================ */
 
+/* Base card panel */
+.commerce-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.commerce-card-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.commerce-label {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.commerce-value {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Item row in cart/checkout list */
+.commerce-item-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+}
+
+/* Summary box (price breakdown) */
+.commerce-summary-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.commerce-summary-row {
+  display: flex;
+  justify-content: space-between;
+  color: #64748b;
+}
+
+.commerce-summary-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.6rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Modal for banking QR simulator */
+.commerce-modal {
+  background: #ffffff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+  border: 1px solid #e2e8f0;
+}
+
+.commerce-modal-body {
+  padding: 1.5rem;
+}
+
+.commerce-modal-detail-box {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.commerce-modal-detail-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Cancel/secondary button */
+.commerce-btn-cancel {
+  width: 100%;
+  padding: 0.65rem;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* E-Invoice specific */
+.einvoice-paper {
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+/* ── Dark Mode Overrides ── */
+
+[data-theme="dark"] .commerce-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .commerce-card-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .commerce-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .commerce-value {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .commerce-item-row {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .commerce-summary-box {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .commerce-summary-row {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .commerce-summary-total {
+  border-top-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .commerce-modal {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .commerce-modal-body {
+  background: #1e293b !important;
+}
+
+[data-theme="dark"] .commerce-modal-detail-box {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .commerce-modal-detail-row span:first-child {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .commerce-btn-cancel {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .einvoice-paper {
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .einvoice-paper h2,
+[data-theme="dark"] .einvoice-paper h3,
+[data-theme="dark"] .einvoice-paper strong {
+  color: inherit !important;
+}
+
+[data-theme="dark"] .einvoice-paper [style*="color: #0f172a"],
+[data-theme="dark"] .einvoice-paper [style*="color: #1e293b"],
+[data-theme="dark"] .einvoice-paper [style*="color: #475569"] {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .einvoice-paper [style*="color: #64748b"] {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .einvoice-paper [style*="border-bottom: 2px solid #0f172a"] {
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .einvoice-paper thead tr {
+  background: #1e3a8a !important;
+}
+
+[data-theme="dark"] .einvoice-paper tbody tr {
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .einvoice-paper tbody tr:nth-child(odd) {
+  background: #1e293b !important;
+}
+
+[data-theme="dark"] .einvoice-paper tbody tr:nth-child(even) {
+  background: #0f172a !important;
+}
+
+[data-theme="dark"] .einvoice-paper [style*="background: #f0fdf4"],
+[data-theme="dark"] .einvoice-paper [style*="background: #dcfce7"] {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+  color: #4ade80 !important;
+}
+
+/* ============================================================
+   LEARNING ROOM DARK MODE (CourseLearningPage)
+   ============================================================ */
+
+[data-theme="dark"] .learning-room-v3 {
+  color: #f8fafc !important;
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] .learning-sidebar-card,
+[data-theme="dark"] .learning-main-card,
+[data-theme="dark"] .learning-progress-panel {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .sidebar-heading {
+  color: #f8fafc !important;
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .chapter-title-tag {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .roadmap-lesson-item {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .roadmap-lesson-item:hover:not(:disabled) {
+  background: #1e3a5f !important;
+  border-color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .roadmap-lesson-item.is-active {
+  background: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .roadmap-lesson-item.is-completed {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+}
+
+[data-theme="dark"] .lesson-item-title {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .lesson-item-duration {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .panel-header-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .progress-guage-box {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .guage-label {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .guage-track {
+  background: #334155 !important;
+}
+
+[data-theme="dark"] .guage-subtext {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .step-row-item {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .step-row-item.is-done {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+}
+
+[data-theme="dark"] .step-row-item.is-pending {
+  background: #431407 !important;
+  border-color: #92400e !important;
+}
+
+[data-theme="dark"] .step-title-text {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .step-desc-text {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .panel-checkpoint-box {
+  background: #0c1a2e !important;
+  border-color: #1e4d7a !important;
+}
+
+[data-theme="dark"] .checkpoint-title-label {
+  color: #7dd3fc !important;
+}
+
+[data-theme="dark"] .checkpoint-q-text {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .checkpoint-input-field {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .checkpoint-input-field::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .tab-btn {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .tab-btn:hover {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .tab-btn.is-active {
+  background: #1e3a5f !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .content-tabs-nav {
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .btn-complete-lesson.is-disabled {
+  background: #1e293b !important;
+  color: #64748b !important;
+}
+
+[data-theme="dark"] .completion-hint-text {
+  color: #64748b !important;
+}
+
+/* Lesson content inline-style overrides */
+[data-theme="dark"] .learning-main-card [style*="color: #334155"],
+[data-theme="dark"] .learning-main-card [style*="color: #0f172a"],
+[data-theme="dark"] .learning-main-card [style*="color:#0f172a"],
+[data-theme="dark"] .learning-main-card [style*="color:#334155"] {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .learning-main-card [style*="background: #f8fafc"],
+[data-theme="dark"] .learning-main-card [style*="background:#f8fafc"],
+[data-theme="dark"] .learning-main-card [style*="background: #f0f9ff"],
+[data-theme="dark"] .learning-main-card [style*="background:#f0f9ff"] {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .learning-progress-panel [style*="background: #f0fdf4"],
+[data-theme="dark"] .learning-progress-panel [style*="background:#f0fdf4"] {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+}
+
+[data-theme="dark"] .learning-progress-panel [style*="color: #15803d"],
+[data-theme="dark"] .learning-progress-panel [style*="color:#15803d"] {
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .learning-progress-panel [style*="color: #166534"],
+[data-theme="dark"] .learning-progress-panel [style*="color:#166534"] {
+  color: #86efac !important;
+}
+
+/* ============================================================
+   COMMERCE PAGES DARK MODE (CartPage, CheckoutPage,
+   PaymentStatusPage, InvoicePage)
+   ============================================================ */
+
+/* Base overrides for settings-container in dark mode */
+[data-theme="dark"] .settings-container {
+  color: #f8fafc !important;
+}
+
+/* All white card panels within commerce pages */
+[data-theme="dark"] .settings-container [style*="background: #ffffff"],
+[data-theme="dark"] .settings-container [style*="background:#ffffff"],
+[data-theme="dark"] .settings-container [style*="background: white"] {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .settings-container [style*="background: #f8fafc"],
+[data-theme="dark"] .settings-container [style*="background:#f8fafc"],
+[data-theme="dark"] .settings-container [style*="background: #f1f5f9"],
+[data-theme="dark"] .settings-container [style*="background:#f1f5f9"] {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+/* Dark text in commerce cards → white */
+[data-theme="dark"] .settings-container [style*="color: #0f172a"],
+[data-theme="dark"] .settings-container [style*="color:#0f172a"],
+[data-theme="dark"] .settings-container [style*="color: #1e293b"],
+[data-theme="dark"] .settings-container [style*="color:#1e293b"] {
+  color: #f1f5f9 !important;
+}
+
+/* Muted/secondary text → readable slate */
+[data-theme="dark"] .settings-container [style*="color: #64748b"],
+[data-theme="dark"] .settings-container [style*="color:#64748b"],
+[data-theme="dark"] .settings-container [style*="color: #475569"],
+[data-theme="dark"] .settings-container [style*="color:#475569"] {
+  color: #94a3b8 !important;
+}
+
+/* Border overrides */
+[data-theme="dark"] .settings-container [style*="border: 1px solid #e2e8f0"],
+[data-theme="dark"] .settings-container [style*="border-bottom: 1px solid #e2e8f0"],
+[data-theme="dark"] .settings-container [style*="border-bottom: 1px solid #f1f5f9"] {
+  border-color: #334155 !important;
+}
+
+/* Input fields inside commerce pages */
+[data-theme="dark"] .settings-container input[type="text"],
+[data-theme="dark"] .settings-container input[type="email"],
+[data-theme="dark"] .settings-container select,
+[data-theme="dark"] .settings-container textarea {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .settings-container input::placeholder {
+  color: #64748b !important;
+}
+
+/* Coupon/voucher suggestion chips */
+[data-theme="dark"] .settings-container [style*="background: #eff6ff"],
+[data-theme="dark"] .settings-container [style*="background:#eff6ff"] {
+  background: #1e3a5f !important;
+  border-color: #1d4ed8 !important;
+  color: #93c5fd !important;
+}
+
+/* Applied coupon success */
+[data-theme="dark"] .settings-container [style*="background: #dcfce7"],
+[data-theme="dark"] .settings-container [style*="background:#dcfce7"] {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+  color: #4ade80 !important;
+}
+
+/* Success card main icon circle */
+[data-theme="dark"] .settings-container [style*="background: #dcfce7"][style*="border-radius: 50%"] {
+  background: #064e3b !important;
+  color: #4ade80 !important;
+}
+
+/* Error/danger states */
+[data-theme="dark"] .settings-container [style*="background: #fef2f2"],
+[data-theme="dark"] .settings-container [style*="background:#fef2f2"] {
+  background: #450a0a !important;
+  border-color: #991b1b !important;
+  color: #fca5a5 !important;
+}
+
+/* Invoice / Order detail table rows */
+[data-theme="dark"] .settings-container table,
+[data-theme="dark"] .settings-container [class*="order-"],
+[data-theme="dark"] .settings-container [class*="invoice-"] {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .settings-container tr:nth-child(even),
+[data-theme="dark"] .settings-container [style*="background: #f8fafc"]:not(input) {
+  background-color: #0f172a !important;
+}
+
+/* Step progress bar pills (CartPage breadcrumb / CheckoutPage steps) */
+[data-theme="dark"] .settings-container [style*="background: #dcfce7"][style*="width: 36px"] {
+  background: #064e3b !important;
+  color: #4ade80 !important;
+}
+
+/* Active step circle (blue) */
+[data-theme="dark"] .settings-container [style*="background: #2563eb"][style*="width: 36px"] {
+  background: #1d4ed8 !important;
+}
+
+/* Payment status - CANCELLED */
+[data-theme="dark"] .settings-container [style*="background: #fef2f2"][style*="border-radius: 50%"] {
+  background: #450a0a !important;
+  color: #fca5a5 !important;
+}
+
+/* Navigation breadcrumb text */
+[data-theme="dark"] .settings-container nav a,
+[data-theme="dark"] .settings-container nav span {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .settings-container nav a:hover {
+  color: #f8fafc !important;
+}
+
+/* H1/H2 headings inside commerce pages */
+[data-theme="dark"] .settings-container h1,
+[data-theme="dark"] .settings-container h2,
+[data-theme="dark"] .settings-container h3 {
+  color: #f8fafc !important;
+}
+
+/* Price text (blue) stays readable */
+[data-theme="dark"] .settings-container [style*="color: #2563eb"],
+[data-theme="dark"] .settings-container [style*="color:#2563eb"] {
+  color: #60a5fa !important;
+}
+
+/* Strong/price values */
+[data-theme="dark"] .settings-container strong[style*="color: #1e293b"],
+[data-theme="dark"] .settings-container strong[style*="color:#1e293b"] {
+  color: #f1f5f9 !important;
+}
+
+/* Checkout info blocks (billing details, confirmation checkboxes) */
+[data-theme="dark"] .settings-container label {
+  color: #cbd5e1 !important;
+}
+
+/* Dividers */
+[data-theme="dark"] .settings-container hr {
+  border-color: #334155 !important;
+}
+
+/* Order detail specific classes from OrderDetailPage */
+[data-theme="dark"] .order-detail-header,
+[data-theme="dark"] .order-detail-section,
+[data-theme="dark"] .order-detail-card,
+[data-theme="dark"] .order-items-list,
+[data-theme="dark"] .order-item-row {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .order-item-row:nth-child(even) {
+  background-color: #0f172a !important;
+}
+
+/* InvoicePage classes */
+[data-theme="dark"] .invoice-container,
+[data-theme="dark"] .invoice-header,
+[data-theme="dark"] .invoice-body,
+[data-theme="dark"] .invoice-row,
+[data-theme="dark"] .invoice-footer {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
 

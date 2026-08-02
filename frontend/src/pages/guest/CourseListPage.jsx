@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { EmptyState, LoadingState } from "../../components/common/UiState";
 import { getCourses } from "../../services/courseService";
+import { useAuth } from "../../hooks/useAuth";
 
 const fallbackImages = [
   "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
@@ -25,19 +26,25 @@ function hasSale(course) {
 }
 
 export default function CourseListPage() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("");
-  const [courseType, setCourseType] = useState("");
+  const [courseType, setCourseType] = useState(!isAuthenticated ? "FREE" : "");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Force FREE courseType when guest user is not logged in
+  const effectiveCourseType = !isAuthenticated ? "FREE" : courseType;
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setError("");
 
-    getCourses({ search, level, courseType, size: 12 })
+    getCourses({ search, level, courseType: effectiveCourseType, size: 24 })
       .then((data) => {
         if (mounted) setCourses(data?.items ?? []);
       })
@@ -51,7 +58,7 @@ export default function CourseListPage() {
     return () => {
       mounted = false;
     };
-  }, [search, level, courseType]);
+  }, [search, level, effectiveCourseType, isAuthenticated]);
 
   return (
     <div className="course-page">
@@ -60,9 +67,51 @@ export default function CourseListPage() {
           <span className="page-badge">Course catalog</span>
           <h2 className="page-title">Khóa học tiếng Anh</h2>
           <p className="page-description">
-            Chọn khóa FREE để đăng ký ngay, hoặc xem trước bài học của khóa PAID trước khi mua.
+            {!isAuthenticated
+              ? "Khám phá các khóa học Miễn phí (FREE). Đăng nhập tài khoản để mở khóa các khóa học Chuyên sâu (PAID)."
+              : "Chọn khóa FREE để đăng ký ngay, hoặc xem trước bài học của khóa PAID trước khi mua."}
           </p>
         </div>
+
+        {/* Guest Lock Alert Banner */}
+        {!isAuthenticated && (
+          <div style={{
+            background: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            padding: "12px 18px",
+            borderRadius: "12px",
+            marginBottom: "16px",
+            fontSize: "0.9rem",
+            color: "#1e40af",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "10px"
+          }}>
+            <span>
+              💡 <strong>Bạn chưa đăng nhập:</strong> Hệ thống đang hiển thị các khóa học <strong>Miễn Phí (FREE)</strong>.
+            </span>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => navigate("/login")}
+                className="vocalyn-btn-pill vocalyn-btn-primary"
+                style={{ fontSize: "0.78rem", padding: "4px 14px" }}
+              >
+                🔑 Đăng nhập ngay
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/register")}
+                className="vocalyn-btn-pill vocalyn-btn-secondary"
+                style={{ fontSize: "0.78rem", padding: "4px 14px" }}
+              >
+                ✨ Đăng ký
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="course-filter-row">
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm khóa học" />
@@ -73,10 +122,30 @@ export default function CourseListPage() {
             <option value="INTERMEDIATE">Intermediate</option>
             <option value="ADVANCED">Advanced</option>
           </select>
-          <select value={courseType} onChange={(event) => setCourseType(event.target.value)}>
-            <option value="">Tất cả</option>
-            <option value="FREE">Free</option>
-            <option value="PAID">Paid</option>
+          <select
+            value={effectiveCourseType}
+            onChange={(event) => {
+              if (!isAuthenticated && event.target.value === "PAID") {
+                if (window.confirm("Bạn cần đăng nhập để xem các khóa học Chuyên sâu (PAID). Đến trang Đăng nhập?")) {
+                  navigate("/login");
+                }
+                return;
+              }
+              setCourseType(event.target.value);
+            }}
+          >
+            {!isAuthenticated ? (
+              <>
+                <option value="FREE">FREE (Khóa học Miễn phí)</option>
+                <option value="PAID">🔒 PAID (Cần đăng nhập)</option>
+              </>
+            ) : (
+              <>
+                <option value="">Tất cả (FREE & PAID)</option>
+                <option value="FREE">FREE (Miễn phí)</option>
+                <option value="PAID">PAID (Trả phí)</option>
+              </>
+            )}
           </select>
         </div>
       </section>
@@ -125,4 +194,3 @@ export default function CourseListPage() {
     </div>
   );
 }
-

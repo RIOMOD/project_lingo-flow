@@ -300,10 +300,10 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<CourseSummaryResponse> getAdminCourses(Course.CourseStatus status, Pageable pageable) {
-        Course.CourseStatus targetStatus = status == null ? Course.CourseStatus.SUBMITTED : status;
-        return PageResponse.from(courseRepository
-                .findByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(targetStatus, pageable)
-                .map(this::toSummary));
+        Page<Course> page = status == null
+                ? courseRepository.findByDeletedAtIsNullOrderByUpdatedAtDesc(pageable)
+                : courseRepository.findByStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(status, pageable);
+        return PageResponse.from(page.map(this::toSummary));
     }
 
     @Override
@@ -467,9 +467,12 @@ public class CourseServiceImpl implements CourseService {
         return course;
     }
 
-    private void ensureTeacherOwner(Course course, String teacherEmail) {
-        User teacher = getUserByEmail(teacherEmail);
-        if (!course.getTeacher().getId().equals(teacher.getId())) {
+    private void ensureTeacherOwner(Course course, String userEmail) {
+        User user = getUserByEmail(userEmail);
+        if (user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole().getCode())) {
+            return; // ADMIN has full power to manage any course
+        }
+        if (!course.getTeacher().getId().equals(user.getId())) {
             throw new UnauthorizedException("You can only manage your own courses");
         }
     }

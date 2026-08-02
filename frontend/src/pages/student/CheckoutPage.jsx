@@ -149,7 +149,7 @@ export default function CheckoutPage() {
       </nav>
 
       {/* Step Progress Indicator */}
-      <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.2rem 1.8rem", border: "1px solid #e2e8f0", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
+      <div className="commerce-card" style={{ borderRadius: "18px", padding: "1.2rem 1.8rem", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {[
             { step: 1, label: "Giỏ hàng", status: "completed" },
@@ -182,7 +182,7 @@ export default function CheckoutPage() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+        <div className="commerce-card" style={{ textAlign: "center", padding: "3rem 1rem", borderRadius: "18px" }}>
           <div className="auth-state">Đang tạo đơn hàng và tạo mã VietQR...</div>
         </div>
       )}
@@ -198,24 +198,24 @@ export default function CheckoutPage() {
           {/* Left Column: Registered Courses & Billing Info */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             {/* User Account Info */}
-            <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
-              <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>👤 Thông tin nhận khóa học</h3>
+            <div className="commerce-card" style={{ borderRadius: "18px", padding: "1.5rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
+              <h3 className="commerce-card-title">👤 Thông tin nhận khóa học</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", fontSize: "0.92rem" }}>
                 <div>
-                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Họ và tên học viên</span>
-                  <strong style={{ color: "#1e293b" }}>{user?.fullName || "Học viên LingoFlow"}</strong>
+                  <span className="commerce-label">Họ và tên học viên</span>
+                  <strong className="commerce-value">{user?.fullName || "Học viên LingoFlow"}</strong>
                 </div>
                 <div>
-                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Email nhận kích hoạt</span>
-                  <strong style={{ color: "#1e293b" }}>{user?.email || "student@example.com"}</strong>
+                  <span className="commerce-label">Email nhận kích hoạt</span>
+                  <strong className="commerce-value">{user?.email || "student@example.com"}</strong>
                 </div>
               </div>
             </div>
 
             {/* Registered Courses Summary List */}
-            <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
+            <div className="commerce-card" style={{ borderRadius: "18px", padding: "1.5rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>📚 Khóa học đăng ký ({items.length})</h3>
+                <h3 className="commerce-card-title" style={{ margin: 0 }}>📚 Khóa học đăng ký ({items.length})</h3>
                 <Link to="/student/cart" style={{ fontSize: "0.85rem", color: "#2563eb", fontWeight: 600, textDecoration: "none" }}>
                   Chỉnh sửa giỏ hàng →
                 </Link>
@@ -230,19 +230,11 @@ export default function CheckoutPage() {
                   {items.map((item, idx) => (
                     <div
                       key={item.courseId || idx}
-                      style={{
-                        display: "flex",
-                        gap: "12px",
-                        alignItems: "center",
-                        padding: "0.8rem 1rem",
-                        background: "#f8fafc",
-                        borderRadius: "14px",
-                        border: "1px solid #f1f5f9",
-                      }}
+                      className="commerce-item-row"
                     >
                       <CourseImage item={item} index={idx} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <strong style={{ display: "block", fontSize: "0.95rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <strong className="commerce-value" style={{ display: "block", fontSize: "0.95rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {item.title}
                         </strong>
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "2px" }}>
@@ -265,7 +257,7 @@ export default function CheckoutPage() {
 
           {/* Right Column: Order Summary & VietQR Box */}
           <div style={{ position: "sticky", top: "2rem" }}>
-            <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.8rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div className="commerce-card" style={{ borderRadius: "20px", padding: "1.8rem", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#0f172a" }}>Tổng quan thanh toán</h3>
                 <span style={{ background: "#fef3c7", color: "#d97706", fontSize: "0.75rem", fontWeight: 800, padding: "4px 10px", borderRadius: "999px" }}>
@@ -274,19 +266,19 @@ export default function CheckoutPage() {
               </div>
 
               {/* Price Calculation */}
-              <div style={{ background: "#f8fafc", borderRadius: "14px", padding: "1rem", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.9rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div className="commerce-summary-box">
+                <div className="commerce-summary-row">
                   <span>Tạm tính ({items.length} khóa):</span>
-                  <strong style={{ color: "#1e293b" }}>{money.format(subtotalAmount)}</strong>
+                  <strong className="commerce-value">{money.format(subtotalAmount)}</strong>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+                <div className="commerce-summary-row">
                   <span>Giảm giá voucher:</span>
-                  <strong style={{ color: discountAmount > 0 ? "#16a34a" : "#64748b" }}>
+                  <strong style={{ color: discountAmount > 0 ? "#16a34a" : undefined }}>
                     -{money.format(discountAmount)}
                   </strong>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "0.6rem", borderTop: "1px solid #e2e8f0", fontSize: "1.05rem" }}>
-                  <span style={{ fontWeight: 700, color: "#0f172a" }}>Tổng thanh toán:</span>
+                <div className="commerce-summary-total">
+                  <span>Tổng thanh toán:</span>
                   <strong style={{ fontSize: "1.55rem", fontWeight: 800, color: "#2563eb" }}>
                     {money.format(totalAmount)}
                   </strong>
@@ -420,15 +412,7 @@ export default function CheckoutPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#ffffff",
-              borderRadius: "24px",
-              width: "100%",
-              maxWidth: "420px",
-              overflow: "hidden",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.45)",
-              border: "1px solid #e2e8f0",
-            }}
+            className="commerce-modal"
           >
             {/* Bank Header */}
             <div style={{ background: "linear-gradient(135deg, #1e3a8a, #2563eb)", color: "#ffffff", padding: "1.25rem 1.5rem", textAlign: "center", position: "relative" }}>
@@ -459,10 +443,10 @@ export default function CheckoutPage() {
             </div>
 
             {/* Bank Body */}
-            <div style={{ padding: "1.5rem" }}>
+            <div className="commerce-modal-body">
               {scanStep === 1 ? (
                 <>
-                  <div style={{ background: "#f8fafc", borderRadius: "16px", padding: "1rem", border: "1px solid #e2e8f0", marginBottom: "1.25rem", display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.88rem" }}>
+                  <div className="commerce-modal-detail-box">
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ color: "#64748b" }}>Đơn vị nhận:</span>
                       <strong style={{ color: "#0f172a" }}>LINGO FLOW ACADEMY</strong>
@@ -508,17 +492,7 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setShowScanModal(false)}
-                      style={{
-                        width: "100%",
-                        padding: "0.65rem",
-                        background: "#f1f5f9",
-                        color: "#64748b",
-                        border: "1px solid #cbd5e1",
-                        borderRadius: "10px",
-                        fontSize: "0.85rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
+                      className="commerce-btn-cancel"
                     >
                       Hủy bỏ / Đóng
                     </button>
