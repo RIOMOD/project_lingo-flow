@@ -721,7 +721,9 @@ export default function ExercisePage() {
     return map;
   }, [attempt?.answers, localAnswers]);
 
-  const questions = attempt?.questions ?? [];
+  const targetExFallback = DEFAULT_EXERCISES.find((e) => e.id === Number(attempt?.id || attempt?.targetId) || e.targetId === Number(attempt?.id || attempt?.targetId)) || DEFAULT_EXERCISES[0];
+  const rawQuestions = attempt?.questions;
+  const questions = (rawQuestions && rawQuestions.length > 0) ? rawQuestions : targetExFallback.questions;
   const question = questions[current];
   const answeredCount = questions.filter((item) => answered(answers.get(item.id))).length;
   const skillItems = requestedSkill
@@ -736,10 +738,18 @@ export default function ExercisePage() {
       setLocalAnswers({});
       setShowConfirmModal(false);
       const apiAttempt = await startExercise(id);
-      setAttempt(apiAttempt);
+      const targetEx = DEFAULT_EXERCISES.find((e) => e.id === Number(id) || e.targetId === Number(id)) || DEFAULT_EXERCISES[0];
+      const safeQuestions = (apiAttempt?.questions && apiAttempt.questions.length > 0) 
+        ? apiAttempt.questions 
+        : targetEx.questions;
+
+      setAttempt({
+        ...apiAttempt,
+        questions: safeQuestions
+      });
     } catch {
       // Local fallback attempt
-      const targetEx = DEFAULT_EXERCISES.find((e) => e.id === id) || DEFAULT_EXERCISES[0];
+      const targetEx = DEFAULT_EXERCISES.find((e) => e.id === Number(id) || e.targetId === Number(id)) || DEFAULT_EXERCISES[0];
       setAttempt({
         id: targetEx.id,
         targetId: targetEx.id,

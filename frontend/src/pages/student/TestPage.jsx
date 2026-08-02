@@ -200,7 +200,9 @@ export default function TestPage() {
   }, [remaining, attempt]);
 
   const answers = useMemo(() => new Map((attempt?.answers ?? []).map((answer) => [answer.questionId, answer])), [attempt]);
-  const questions = attempt?.questions ?? []; 
+  const mockFallback = buildMockAttempt(attempt?.targetId || "mock-toeic-1");
+  const rawQuestions = attempt?.questions;
+  const questions = (rawQuestions && rawQuestions.length > 0) ? rawQuestions : mockFallback.questions; 
   const question = questions[current]; 
   const answeredCount = questions.filter((item) => answered(answers.get(item.id))).length;
 
@@ -211,7 +213,13 @@ export default function TestPage() {
     setError("");
     setShowConfirmModal(false);
     try { 
-      setAttempt(await startTest(id)); 
+      const res = await startTest(id); 
+      const mock = buildMockAttempt(id);
+      const safeQuestions = (res?.questions && res.questions.length > 0) ? res.questions : mock.questions;
+      setAttempt({
+        ...res,
+        questions: safeQuestions
+      });
     } catch (err) { 
       console.warn("Using mock attempt fallback:", err);
       setAttempt(buildMockAttempt(id));
