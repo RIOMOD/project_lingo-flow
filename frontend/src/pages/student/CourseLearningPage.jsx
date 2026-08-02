@@ -524,10 +524,11 @@ export default function CourseLearningPage() {
                   <p style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem", marginBottom: "1rem" }}>
                     {lesson.checkpointQuestion}
                   </p>
-                  <div style={{ display: "flex", gap: "10px", marginBottom: "1rem" }}>
+                  <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", width: "100%", boxSizing: "border-box" }}>
                     <input
                       type="text"
                       className="checkpoint-input-field"
+                      style={{ flex: 1, minWidth: 0 }}
                       value={checkpointAnswer}
                       onChange={(e) => handleAnswerInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleVerifyQuiz()}
@@ -536,7 +537,7 @@ export default function CourseLearningPage() {
                     <button
                       type="button"
                       onClick={handleVerifyQuiz}
-                      style={{ padding: "10px 20px", background: "#0284c7", color: "#ffffff", fontWeight: 800, border: "none", borderRadius: "10px", cursor: "pointer", whiteSpace: "nowrap" }}
+                      style={{ padding: "10px 20px", background: "#0284c7", color: "#ffffff", fontWeight: 800, border: "none", borderRadius: "10px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
                     >
                       Kiểm tra
                     </button>

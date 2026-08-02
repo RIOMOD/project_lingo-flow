@@ -108,18 +108,18 @@
   grid-template-columns: 300px minmax(0, 1fr) 360px;
   gap: 1.5rem;
   align-items: start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   .learning-layout-grid {
-    grid-template-columns: 280px minmax(0, 1fr);
-  }
-  .learning-progress-panel {
-    grid-column: 1 / -1;
+    grid-template-columns: 270px minmax(0, 1fr) 320px;
+    gap: 1rem;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .learning-layout-grid {
     grid-template-columns: 1fr;
   }
@@ -127,6 +127,9 @@
 
 /* ── Sidebar Accordion (Roadmap) ── */
 .learning-sidebar-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: #ffffff;
   border-radius: 20px;
   border: 1px solid #e2e8f0;
@@ -244,11 +247,16 @@
 
 /* ── Main Content Area ── */
 .learning-main-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: #ffffff;
   border-radius: 20px;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
 }
 
 .content-tabs-nav {
@@ -285,6 +293,9 @@
 
 /* ── Right Panel: Completion Checklist Card ── */
 .learning-progress-panel {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: #ffffff;
   border-radius: 20px;
   border: 1px solid #e2e8f0;
