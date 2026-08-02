@@ -38,3 +38,5 @@ Demo accounts use password `Password123!`:
 - `teacher2@example.com`
 - `student@example.com`
 - `student2@example.com`
+
+đã có chatbot AI
