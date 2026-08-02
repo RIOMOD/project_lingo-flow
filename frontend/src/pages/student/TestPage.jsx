@@ -353,6 +353,7 @@ export default function TestPage() {
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <button
           type="button"
+          className="btn-assessment-back"
           onClick={() => {
             if (attempt?.status === "IN_PROGRESS") {
               setShowExitModal(true);
@@ -360,22 +361,8 @@ export default function TestPage() {
               setAttempt(null);
             }
           }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.4rem",
-            padding: "0.45rem 0.9rem",
-            borderRadius: "10px",
-            border: "1px solid #cbd5e1",
-            background: "#ffffff",
-            color: "#0f172a",
-            fontSize: "0.85rem",
-            fontWeight: 700,
-            cursor: "pointer",
-            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)"
-          }}
         >
-          ← Quay lại danh sách bài kiểm tra
+          <span className="btn-icon-badge is-light">←</span> Quay lại danh sách bài kiểm tra
         </button>
       </div>
 
@@ -465,30 +452,29 @@ export default function TestPage() {
           <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexShrink: 0, marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #f1f5f9" }}>
             <button 
               type="button" 
+              className="btn-assessment-prev"
               disabled={current === 0} 
               onClick={() => setCurrent((v) => v - 1)}
-              style={{ padding: "0.55rem 1.25rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: "700", cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.4 : 1 }}
             >
-              ← Câu trước
+              <span className="btn-icon-badge is-light">←</span> Câu trước
             </button>
 
             {current < questions.length - 1 ? (
               <button 
                 type="button" 
+                className="btn-assessment-next"
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
               >
-                Câu tiếp theo →
+                Câu tiếp theo <span className="btn-icon-badge is-dark">→</span>
               </button>
             ) : (
               !submitted && (
                 <button 
-                  className="primary" 
                   type="button" 
+                  className="btn-assessment-submit"
                   onClick={() => setShowConfirmModal(true)}
-                  style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
                 >
-                  Nộp bài ✓
+                  Nộp bài <span className="btn-icon-badge is-dark">✓</span>
                 </button>
               )
             )}
@@ -539,20 +525,8 @@ export default function TestPage() {
                   <button 
                     type="button" 
                     key={item.id}
-                    onClick={() => setCurrent(index)} 
-                    style={{
-                      height: "36px",
-                      borderRadius: "9px",
-                      border: isCurrent ? "2px solid #0d9488" : isAns ? "1px solid #99f6e4" : "1px solid #e2e8f0",
-                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#f8fafc",
-                      color: isCurrent ? "#0d9488" : isAns ? "#0f766e" : "#475569",
-                      fontWeight: isCurrent || isAns ? "800" : "600",
-                      fontSize: "0.88rem",
-                      position: "relative",
-                      cursor: "pointer",
-                      boxShadow: isCurrent ? "0 2px 8px rgba(13, 148, 136, 0.2)" : "none",
-                      transition: "all 0.15s ease-in-out"
-                    }}
+                    className={`${isCurrent ? "is-current" : ""} ${isAns ? "is-answered" : ""}`}
+                    onClick={() => setCurrent(index)}
                   >
                     {index + 1}
                     {isFlag && <span style={{ position: "absolute", top: "1px", right: "3px", fontSize: "0.6rem", color: "#b45309" }}>⚑</span>}
@@ -564,10 +538,10 @@ export default function TestPage() {
           
           {!submitted && (
             <button 
-              className="assessment-submit" 
               type="button" 
+              className="btn-assessment-submit"
               onClick={() => setShowConfirmModal(true)}
-              style={{ width: "100%", marginTop: "1rem", padding: "0.7rem", borderRadius: "11px", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", border: "none", fontWeight: "800", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)", transition: "all 0.15s ease-in-out" }}
+              style={{ width: "100%", justifyContent: "center" }}
             >
               Nộp bài
             </button>

@@ -900,23 +900,10 @@ export default function ExercisePage() {
         <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
           <button
             type="button"
+            className="btn-assessment-back"
             onClick={handleBackClick}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.35rem",
-              padding: "0.4rem 0.85rem",
-              borderRadius: "9px",
-              border: "1px solid #cbd5e1",
-              background: "#ffffff",
-              color: "#0f172a",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
-            }}
           >
-            ← Quay lại
+            <span className="btn-icon-badge is-light">←</span> Quay lại
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.25rem 0.6rem", borderRadius: "6px", letterSpacing: "0.03em" }}>
@@ -941,7 +928,7 @@ export default function ExercisePage() {
               Điểm: {attempt.score}/{attempt.totalPoints || 100} ({percent.toFixed(0)}%) · Đúng {attempt.correctAnswers}/{questions.length} câu.
             </p>
           </div>
-          <button type="button" onClick={() => begin(attempt.targetId || attempt.id)} style={{ padding: "0.45rem 1rem", fontSize: "0.85rem", borderRadius: "9px", background: "#0d9488", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}>
+          <button type="button" className="btn-assessment-submit" onClick={() => begin(attempt.targetId || attempt.id)} style={{ padding: "0.45rem 1rem", fontSize: "0.85rem" }}>
             Làm lại bài tập
           </button>
         </section>
@@ -969,29 +956,29 @@ export default function ExercisePage() {
           <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
             <button
               type="button"
+              className="btn-assessment-prev"
               disabled={current === 0}
               onClick={() => setCurrent((v) => v - 1)}
-              style={{ padding: "0.55rem 1.25rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: 700, cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.4 : 1 }}
             >
-              ← Câu trước
+              <span className="btn-icon-badge is-light">←</span> Câu trước
             </button>
 
             {current < questions.length - 1 ? (
               <button
                 type="button"
+                className="btn-assessment-next"
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
               >
-                Câu tiếp theo →
+                Câu tiếp theo <span className="btn-icon-badge is-dark">→</span>
               </button>
             ) : (
               !submitted && (
                 <button
                   type="button"
+                  className="btn-assessment-submit"
                   onClick={submit}
-                  style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
                 >
-                  Nộp bài ngay ✓
+                  Nộp bài ngay <span className="btn-icon-badge is-dark">✓</span>
                 </button>
               )
             )}
@@ -1013,19 +1000,8 @@ export default function ExercisePage() {
                   <button
                     type="button"
                     key={item.id}
+                    className={`${isCurrent ? "is-current" : ""} ${isAns ? "is-answered" : ""}`}
                     onClick={() => setCurrent(index)}
-                    style={{
-                      height: "36px",
-                      borderRadius: "9px",
-                      border: isCurrent ? "2px solid #0d9488" : isAns ? "1px solid #99f6e4" : "1px solid #e2e8f0",
-                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#f8fafc",
-                      color: isCurrent ? "#0d9488" : isAns ? "#0f766e" : "#475569",
-                      fontWeight: isCurrent || isAns ? "800" : "600",
-                      fontSize: "0.88rem",
-                      cursor: "pointer",
-                      boxShadow: isCurrent ? "0 2px 8px rgba(13, 148, 136, 0.2)" : "none",
-                      transition: "all 0.15s ease-in-out"
-                    }}
                   >
                     {index + 1}
                   </button>
@@ -1037,8 +1013,9 @@ export default function ExercisePage() {
           {!submitted && (
             <button
               type="button"
+              className="btn-assessment-submit"
               onClick={submit}
-              style={{ width: "100%", marginTop: "1rem", padding: "0.65rem", borderRadius: "10px", background: "#0d9488", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}
+              style={{ width: "100%", justifyContent: "center" }}
             >
               Nộp bài
             </button>
