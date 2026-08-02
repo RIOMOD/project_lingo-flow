@@ -946,8 +946,8 @@ export default function ExercisePage() {
         </section>
       )}
 
-      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box", height: "480px" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", height: "480px", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)", overflow: "hidden" }}>
+      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           <div className="assessment-counter" style={{ marginBottom: "0.5rem", fontWeight: 700, color: "#0f172a", flexShrink: 0 }}>
             Câu {current + 1} / {questions.length}
           </div>
@@ -994,7 +994,7 @@ export default function ExercisePage() {
           </div>
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", height: "480px", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div>
             <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>Danh sách {questions.length} câu hỏi</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>

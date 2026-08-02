@@ -435,8 +435,8 @@ export default function TestPage() {
         </section>
       )}
 
-      <div className="assessment-workspace" style={{ flex: 1, minHeight: "460px", display: "grid", gridTemplateColumns: "1fr 300px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minHeight: "460px", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
+      <div className="assessment-workspace" style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 300px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "0.65rem 0.9rem", borderRadius: "10px", border: "1px solid #e2e8f0", flexShrink: 0 }}>
             <span style={{ fontWeight: "700", color: "#0f172a" }}>Câu {current + 1} / {questions.length}</span>
             {!submitted && (
@@ -503,7 +503,7 @@ export default function TestPage() {
           )}
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", minHeight: "460px", boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
+        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           {submitted && recommendations.length > 0 && (
             <div className="assessment-recommendations">
               <div className="assessment-recommendations-heading">
