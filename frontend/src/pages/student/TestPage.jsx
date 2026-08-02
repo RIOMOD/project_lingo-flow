@@ -162,6 +162,7 @@ const buildMockAttempt = (testId) => {
   ],
   answers: []
 };
+};
 
 export default function TestPage() {
   const [items, setItems] = useState([]);

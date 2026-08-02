@@ -51,6 +51,7 @@ public class AiServiceImpl implements AiService {
     private final AiUsageLogRepository usageLogRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final String provider;
     private final int dailyUsageLimit;
     private final boolean fallbackEnabled;
 
@@ -63,6 +64,7 @@ public class AiServiceImpl implements AiService {
             AiUsageLogRepository usageLogRepository,
             UserRepository userRepository,
             ObjectMapper objectMapper,
+            @Value("${app.ai.provider:openai}") String provider,
             @Value("${app.ai.daily-usage-limit:50}") int dailyUsageLimit,
             @Value("${app.ai.fallback-enabled:true}") boolean fallbackEnabled
     ) {
@@ -74,6 +76,7 @@ public class AiServiceImpl implements AiService {
         this.usageLogRepository = usageLogRepository;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
+        this.provider = provider == null ? "openai" : provider.trim();
         this.dailyUsageLimit = dailyUsageLimit;
         this.fallbackEnabled = fallbackEnabled;
     }
@@ -192,6 +195,9 @@ public class AiServiceImpl implements AiService {
     }
 
     private AiProviderResult callChatProvider(AiPromptRequest prompt) {
+        if ("fallback".equalsIgnoreCase(provider)) {
+            return fallbackAiProvider.chat(prompt);
+        }
         try {
             if (openAiProvider.isAvailable()) {
                 return openAiProvider.chat(prompt);
@@ -204,6 +210,9 @@ public class AiServiceImpl implements AiService {
     }
 
     private WritingProviderResult callWritingProvider(AiPromptRequest prompt) {
+        if ("fallback".equalsIgnoreCase(provider)) {
+            return fallbackAiProvider.writingFeedback(prompt);
+        }
         try {
             if (openAiProvider.isAvailable()) {
                 return openAiProvider.writingFeedback(prompt);

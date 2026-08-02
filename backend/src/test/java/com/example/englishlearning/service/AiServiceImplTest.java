@@ -67,6 +67,7 @@ class AiServiceImplTest {
                 usageLogRepository,
                 userRepository,
                 new ObjectMapper(),
+                "openai",
                 50,
                 true
         );
@@ -155,5 +156,51 @@ class AiServiceImplTest {
         assertEquals("Fallback reply", response.getReply());
         assertEquals("fallback", response.getProvider());
         assertTrue(response.isFallback());
+    }
+
+    @Test
+    void testChat_UsesFallbackWithoutCallingOpenAi_WhenFallbackIsConfigured() {
+        AiServiceImpl fallbackService = new AiServiceImpl(
+                openAiProvider,
+                fallbackAiProvider,
+                conversationRepository,
+                messageRepository,
+                writingRepository,
+                usageLogRepository,
+                userRepository,
+                new ObjectMapper(),
+                "fallback",
+                50,
+                true
+        );
+
+        String email = "test@example.com";
+        User user = new User();
+        user.setId(1L);
+        user.setEmail(email);
+
+        AiChatRequest request = new AiChatRequest();
+        request.setMessage("Hello");
+
+        AiProviderResult fallbackResult = AiProviderResult.builder()
+                .text("Original chatbot reply")
+                .fallback(true)
+                .build();
+
+        when(userRepository.findByEmailAndDeletedAtIsNull(email)).thenReturn(Optional.of(user));
+        when(fallbackAiProvider.name()).thenReturn("fallback");
+        when(fallbackAiProvider.chat(any(AiPromptRequest.class))).thenReturn(fallbackResult);
+        when(conversationRepository.save(any(AiConversation.class))).thenAnswer(i -> {
+            AiConversation conversation = i.getArgument(0);
+            conversation.setId(100L);
+            return conversation;
+        });
+
+        AiChatResponse response = fallbackService.chat(email, request);
+
+        assertEquals("Original chatbot reply", response.getReply());
+        assertEquals("fallback", response.getProvider());
+        assertTrue(response.isFallback());
+        verifyNoInteractions(openAiProvider);
     }
 }
