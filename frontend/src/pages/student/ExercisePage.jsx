@@ -675,6 +675,7 @@ export default function ExercisePage() {
   const [error, setError] = useState("");
   const [localAnswers, setLocalAnswers] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const requestedExerciseId = new URLSearchParams(window.location.search).get("exerciseId");
   const requestedSkill = new URLSearchParams(window.location.search).get("skill");
 
@@ -862,8 +863,6 @@ export default function ExercisePage() {
 
   const submitted = attempt.status !== "IN_PROGRESS";
   const percent = Number(attempt.scorePercent || 0);
-
-  const [showExitModal, setShowExitModal] = useState(false);
 
   function handleBackClick() {
     if (attempt?.status === "IN_PROGRESS") {
