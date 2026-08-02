@@ -40,12 +40,14 @@ function recommendationPath(item) {
   return `/student/exercises?skill=${item?.skillType || "MIXED"}`;
 }
 
-const buildMockAttempt = (testId) => ({
-  id: Date.now(),
-  targetId: testId,
-  title: testId.includes("toeic") ? "TOEIC Full Listening & Reading Mock Test" : "IELTS Academic Reading Practice Test 1",
-  status: "IN_PROGRESS",
-  dueAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+const buildMockAttempt = (testId) => {
+  const safeId = String(testId ?? "").toLowerCase();
+  return {
+    id: Date.now(),
+    targetId: testId,
+    title: safeId.includes("toeic") ? "TOEIC Full Listening & Reading Mock Test" : "IELTS Academic Reading Practice Test 1",
+    status: "IN_PROGRESS",
+    dueAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
   questions: [
     {
       id: 101,
@@ -159,7 +161,7 @@ const buildMockAttempt = (testId) => ({
     }
   ],
   answers: []
-});
+};
 
 export default function TestPage() {
   const [items, setItems] = useState([]);
