@@ -3,6 +3,26 @@ import AssessmentQuestion from "../../components/student/AssessmentQuestion";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { getExercises, saveAnswer, startExercise, submitAttempt } from "../../services/assessmentService";
 
+const IconArrowLeft = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+);
+
+const IconArrowRight = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+);
+
 const DEFAULT_EXERCISES = [
   {
     id: 101,
@@ -903,7 +923,7 @@ export default function ExercisePage() {
             className="btn-assessment-back"
             onClick={handleBackClick}
           >
-            <span className="btn-icon-badge is-light">←</span> Quay lại
+            <IconArrowLeft /> Quay lại
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.25rem 0.6rem", borderRadius: "6px", letterSpacing: "0.03em" }}>
@@ -960,7 +980,7 @@ export default function ExercisePage() {
               disabled={current === 0}
               onClick={() => setCurrent((v) => v - 1)}
             >
-              <span className="btn-icon-badge is-light">←</span> Câu trước
+              <IconArrowLeft /> Câu trước
             </button>
 
             {current < questions.length - 1 ? (
@@ -969,7 +989,7 @@ export default function ExercisePage() {
                 className="btn-assessment-next"
                 onClick={() => setCurrent((v) => v + 1)}
               >
-                Câu tiếp theo <span className="btn-icon-badge is-dark">→</span>
+                Câu tiếp theo <IconArrowRight />
               </button>
             ) : (
               !submitted && (
@@ -978,7 +998,7 @@ export default function ExercisePage() {
                   className="btn-assessment-submit"
                   onClick={submit}
                 >
-                  Nộp bài ngay <span className="btn-icon-badge is-dark">✓</span>
+                  Nộp bài ngay <IconCheck />
                 </button>
               )
             )}

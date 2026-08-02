@@ -5,6 +5,26 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 import { getAttempt, getAttempts, getTests, saveAnswer, startTest, submitAttempt } from "../../services/assessmentService";
 import { exportDocumentToPDF } from "../../utils/pdfExporter";
 
+const IconArrowLeft = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+);
+
+const IconArrowRight = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+);
+
 function answered(answer) { 
   return Boolean(answer && (answer.selectedOptionId || (answer.selectedOptionIds && answer.selectedOptionIds !== "[]" && answer.selectedOptionIds.length > 0) || answer.answerText?.trim() || answer.answerJson)); 
 }
@@ -362,7 +382,7 @@ export default function TestPage() {
             }
           }}
         >
-          <span className="btn-icon-badge is-light">←</span> Quay lại danh sách bài kiểm tra
+          <IconArrowLeft /> Quay lại danh sách bài kiểm tra
         </button>
       </div>
 
@@ -456,7 +476,7 @@ export default function TestPage() {
               disabled={current === 0} 
               onClick={() => setCurrent((v) => v - 1)}
             >
-              <span className="btn-icon-badge is-light">←</span> Câu trước
+              <IconArrowLeft /> Câu trước
             </button>
 
             {current < questions.length - 1 ? (
@@ -465,7 +485,7 @@ export default function TestPage() {
                 className="btn-assessment-next"
                 onClick={() => setCurrent((v) => v + 1)}
               >
-                Câu tiếp theo <span className="btn-icon-badge is-dark">→</span>
+                Câu tiếp theo <IconArrowRight />
               </button>
             ) : (
               !submitted && (
@@ -474,7 +494,7 @@ export default function TestPage() {
                   className="btn-assessment-submit"
                   onClick={() => setShowConfirmModal(true)}
                 >
-                  Nộp bài <span className="btn-icon-badge is-dark">✓</span>
+                  Nộp bài <IconCheck />
                 </button>
               )
             )}
