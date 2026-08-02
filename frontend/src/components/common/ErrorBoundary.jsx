@@ -35,10 +35,10 @@ export class ErrorBoundary extends React.Component {
           </p>
 
           {this.state.error && (
-            <details style={{ marginBottom: "1.5rem", textAlign: "left" }}>
+            <details open style={{ marginBottom: "1.5rem", textAlign: "left" }}>
               <summary style={{ fontSize: "0.8rem", color: "#64748b", cursor: "pointer", fontWeight: 600 }}>🔍 Chi tiết lỗi hệ thống</summary>
-              <pre style={{ margin: "8px 0 0 0", padding: "10px", background: "#f8fafc", color: "#dc2626", fontSize: "0.78rem", borderRadius: "8px", overflowX: "auto", border: "1px solid #fee2e2" }}>
-                {this.state.error.toString()}
+              <pre style={{ margin: "8px 0 0 0", padding: "10px", background: "#f8fafc", color: "#dc2626", fontSize: "0.78rem", borderRadius: "8px", overflowX: "auto", border: "1px solid #fee2e2", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {this.state.error.stack || this.state.error.toString()}
               </pre>
             </details>
           )}

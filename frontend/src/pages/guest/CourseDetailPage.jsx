@@ -69,54 +69,80 @@ export default function CourseDetailPage() {
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
-    setError("");
 
-    getCourseBySlug(courseSlug)
-      .then(async (data) => {
+    async function loadData() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await getCourseBySlug(courseSlug);
         if (!mounted) return;
         setCourse(data);
 
-        const chapterData = await getCourseChapters(data.id);
-        if (mounted) {
-          const list = chapterData ?? [];
-          setChapters(list);
-          // Expand all chapters by default
-          setExpandedChapters(Object.fromEntries(list.map((ch) => [ch.id, true])));
-        }
-
-        if (isAuthenticated) {
+        if (data?.id) {
           try {
-            const [accessData, cartData] = await Promise.allSettled([
-              getCourseAccess(data.id),
-              getCart(),
-            ]);
-
-            if (mounted && accessData.status === "fulfilled") setAccess(accessData.value);
-            if (mounted && cartData.status === "fulfilled" && cartData.value?.items) {
-              const inCart = cartData.value.items.some((item) => item.courseId === data.id);
-              setIsInCart(inCart);
+            const chapterData = await getCourseChapters(data.id);
+            if (mounted) {
+              const list = Array.isArray(chapterData) ? chapterData.filter(Boolean) : [];
+              setChapters(list);
+              const initialExpanded = {};
+              list.forEach((ch) => {
+                if (ch?.id) initialExpanded[ch.id] = true;
+              });
+              setExpandedChapters(initialExpanded);
             }
-          } catch (accessErr) {
-            console.warn("Could not check course access or cart:", accessErr);
+          } catch (chapErr) {
+            console.warn("Could not load course chapters:", chapErr);
+          }
+
+          if (isAuthenticated) {
+            try {
+              const [accessRes, cartRes] = await Promise.allSettled([
+                getCourseAccess(data.id),
+                getCart(),
+              ]);
+
+              if (mounted && accessRes.status === "fulfilled") {
+                setAccess(accessRes.value);
+              }
+              if (mounted && cartRes.status === "fulfilled" && cartRes.value?.items) {
+                const items = Array.isArray(cartRes.value.items) ? cartRes.value.items : [];
+                const inCart = items.some((item) => item?.courseId === data.id);
+                setIsInCart(inCart);
+              }
+            } catch (accErr) {
+              console.warn("Could not check course access or cart:", accErr);
+            }
           }
         }
-      })
-      .catch((err) => {
-        if (mounted) setError(err.message || "Không tìm thấy thông tin khóa học.");
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
+      } catch (err) {
+        if (mounted) {
+          console.error("Error loading course details:", err);
+          setError(err?.message || "Không tìm thấy thông tin khóa học.");
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (courseSlug) {
+      loadData();
+    }
 
     return () => {
       mounted = false;
     };
   }, [courseSlug, isAuthenticated]);
 
-  const lessons = useMemo(() => chapters.flatMap((chapter) => chapter.lessons ?? []), [chapters]);
+  const lessons = useMemo(() => {
+    if (!Array.isArray(chapters)) return [];
+    return chapters.flatMap((chapter) => (Array.isArray(chapter?.lessons) ? chapter.lessons.filter(Boolean) : []));
+  }, [chapters]);
+
   const firstPreview = useMemo(() => lessons.find(isPreviewLesson), [lessons]);
-  const totalDuration = useMemo(() => lessons.reduce((acc, l) => acc + (l.durationMinutes || 5), 0), [lessons]);
+  const totalDuration = useMemo(() => lessons.reduce((acc, l) => acc + (Number(l?.durationMinutes) || 5), 0), [lessons]);
 
   const toggleChapter = (chapterId) => {
     setExpandedChapters((prev) => ({ ...prev, [chapterId]: !prev[chapterId] }));
@@ -314,7 +340,7 @@ export default function CourseDetailPage() {
                         onClick={() => toggleChapter(chapter.id)}
                         style={{
                           width: "100%", padding: "1rem 1.2rem", background: "#f8fafc", border: "none", display: "flex",
-                          justify: "space-between", alignItems: "center", cursor: "pointer", textAlign: "left"
+                          justifyContent: "space-between", alignItems: "center", cursor: "pointer", textAlign: "left"
                         }}
                       >
                         <div>
