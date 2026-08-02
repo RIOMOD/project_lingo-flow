@@ -10,6 +10,8 @@ function selectedIds(answer) {
   return [];
 }
 
+const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
 export default function AssessmentQuestion({ question, answer, disabled, onAnswer, saving }) {
   const [text, setText] = useState(answer?.answerText || "");
   const multiple = selectedIds(answer);
@@ -45,34 +47,34 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
     <div 
       className="assessment-question-card" 
       style={{ 
-        background: "#ffffff", 
-        padding: "0.9rem 1.15rem", 
-        borderRadius: "14px", 
-        border: "1px solid #e2e8f0",
         flex: 1,
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        boxSizing: "border-box"
+        boxSizing: "border-box",
+        padding: "0.25rem 0"
       }}
     >
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div className="assessment-question-meta" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-          <span style={{ fontSize: "0.72rem", fontWeight: "800", textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.55rem", borderRadius: "6px", letterSpacing: "0.03em" }}>
+        <div className="assessment-question-meta" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: "800", textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.25rem 0.65rem", borderRadius: "8px", letterSpacing: "0.04em" }}>
             {qType.replaceAll("_", " ")}
           </span>
-          <strong style={{ fontSize: "0.82rem", color: "#64748b", fontWeight: "700" }}>{points} Điểm</strong>
+          <span style={{ fontSize: "0.82rem", color: "#64748b", fontWeight: "700", background: "#f1f5f9", padding: "0.2rem 0.6rem", borderRadius: "6px" }}>
+            {points} Điểm
+          </span>
         </div>
 
-        <h3 style={{ fontSize: "1.02rem", fontWeight: "700", color: "#0f172a", margin: "0.3rem 0 0.65rem 0", lineHeight: "1.4" }}>
+        <h3 style={{ fontSize: "1.08rem", fontWeight: "700", color: "#0f172a", margin: "0.2rem 0 0.85rem 0", lineHeight: "1.5", letterSpacing: "-0.01em" }}>
           {qText}
         </h3>
 
         {choiceType && options.length > 0 && (
-          <div className="assessment-options" style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-            {options.map((option) => {
+          <div className="assessment-options" style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+            {options.map((option, idx) => {
               const optionId = option.id;
               const optionLabel = option.optionText || option.content || option.text;
+              const letter = OPTION_LETTERS[idx] || String.fromCharCode(65 + idx);
               const checked = isMultiple 
                 ? multiple.includes(optionId)
                 : answer?.selectedOptionId === optionId || answer?.selectedOptionId === String(optionId) || (multiple.length > 0 && multiple[multiple.length - 1] === optionId);
@@ -85,17 +87,38 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.65rem",
-                    padding: "0.55rem 0.95rem",
-                    borderRadius: "10px",
-                    border: checked ? "2px solid #0d9488" : "1px solid #cbd5e1",
+                    gap: "0.75rem",
+                    padding: "0.6rem 1rem",
+                    borderRadius: "12px",
+                    border: checked ? "2px solid #0d9488" : "1px solid #e2e8f0",
                     background: checked ? "#f0fdfa" : "#ffffff",
                     cursor: disabled ? "default" : "pointer",
                     fontWeight: checked ? "700" : "500",
-                    boxShadow: checked ? "0 2px 8px rgba(13, 148, 136, 0.08)" : "none",
+                    boxShadow: checked ? "0 4px 12px rgba(13, 148, 136, 0.1)" : "0 1px 3px rgba(0,0,0,0.02)",
                     transition: "all 0.15s ease-in-out"
                   }}
                 >
+                  <span 
+                    style={{ 
+                      width: "26px", 
+                      height: "26px", 
+                      borderRadius: "50%", 
+                      display: "inline-flex", 
+                      alignItems: "center", 
+                      justifyContent: "center", 
+                      fontSize: "0.82rem", 
+                      fontWeight: "800",
+                      background: checked ? "#0d9488" : "#f1f5f9", 
+                      color: checked ? "#ffffff" : "#64748b",
+                      flexShrink: 0,
+                      transition: "all 0.15s ease-in-out"
+                    }}
+                  >
+                    {letter}
+                  </span>
+
+                  <span style={{ fontSize: "0.94rem", color: checked ? "#0f766e" : "#1e293b", lineHeight: "1.4", flex: 1 }}>{optionLabel}</span>
+
                   <input 
                     type={isMultiple ? "checkbox" : "radio"} 
                     name={`question-${question.id}`} 
@@ -104,7 +127,6 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
                     onChange={() => handleSelectOption(optionId)}
                     style={{ width: "16px", height: "16px", accentColor: "#0d9488", cursor: "pointer", flexShrink: 0 }}
                   />
-                  <span style={{ fontSize: "0.92rem", color: checked ? "#0f766e" : "#1e293b", lineHeight: "1.35" }}>{optionLabel}</span>
                 </div>
               );
             })}
@@ -112,8 +134,8 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
         )}
 
         {["FILL_IN_THE_BLANK", "WRITING", "SENTENCE_ORDERING", "MATCHING"].includes(qType) && (
-          <label className="assessment-text-answer" style={{ display: "block", marginTop: "0.5rem" }}>
-            <span style={{ display: "block", marginBottom: "0.4rem", fontWeight: "600", color: "#475569", fontSize: "0.88rem" }}>
+          <label className="assessment-text-answer" style={{ display: "block", marginTop: "0.6rem" }}>
+            <span style={{ display: "block", marginBottom: "0.45rem", fontWeight: "600", color: "#475569", fontSize: "0.88rem" }}>
               {qType === "WRITING" ? "Bài viết của bạn" : "Câu trả lời của bạn"}
             </span>
             {qType === "WRITING" ? (
@@ -123,7 +145,7 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
                 disabled={disabled} 
                 onChange={(event) => setText(event.target.value)} 
                 onBlur={() => onAnswer({ answerText: text })} 
-                style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "9px", border: "1px solid #cbd5e1", fontSize: "0.92rem" }}
+                style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "0.92rem", outline: "none", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)" }}
               />
             ) : (
               <input 
@@ -131,7 +153,7 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
                 disabled={disabled} 
                 onChange={(event) => setText(event.target.value)} 
                 onBlur={() => onAnswer({ answerText: text })} 
-                style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "9px", border: "1px solid #cbd5e1", fontSize: "0.92rem" }}
+                style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "0.92rem", outline: "none", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.03)" }}
               />
             )}
           </label>
@@ -147,8 +169,8 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
               className={`assessment-explanation ${answer?.correct ? "is-correct" : "is-incorrect"}`}
               style={{
                 marginTop: "0.4rem",
-                padding: "0.6rem 0.85rem",
-                borderRadius: "9px",
+                padding: "0.65rem 0.85rem",
+                borderRadius: "10px",
                 background: answer?.correct ? "#f0fdf4" : "#fef2f2",
                 border: answer?.correct ? "1px solid #bbf7d0" : "1px solid #fecaca",
                 color: answer?.correct ? "#15803d" : "#b91c1c",

@@ -889,12 +889,12 @@ export default function ExercisePage() {
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between", 
-          background: "#ffffff", 
+          background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)", 
           padding: "0.65rem 1.1rem", 
           borderRadius: "14px", 
           border: "1px solid #e2e8f0", 
           marginBottom: "0.75rem",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)"
+          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.02)"
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
@@ -905,20 +905,21 @@ export default function ExercisePage() {
               display: "inline-flex",
               alignItems: "center",
               gap: "0.35rem",
-              padding: "0.4rem 0.8rem",
-              borderRadius: "8px",
+              padding: "0.4rem 0.85rem",
+              borderRadius: "9px",
               border: "1px solid #cbd5e1",
-              background: "#f8fafc",
+              background: "#ffffff",
               color: "#0f172a",
               fontSize: "0.82rem",
               fontWeight: 700,
-              cursor: "pointer"
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)"
             }}
           >
             ← Quay lại
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-            <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.5rem", borderRadius: "6px" }}>
+            <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.25rem 0.6rem", borderRadius: "6px", letterSpacing: "0.03em" }}>
               Bài tập
             </span>
             <h2 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>
@@ -927,29 +928,32 @@ export default function ExercisePage() {
           </div>
         </div>
 
-        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0d9488", background: "#f0fdfa", border: "1px solid #ccfbf1", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
-          {submitted ? "Đã nộp bài" : `Tiến độ: ${answeredCount}/${questions.length} câu`}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", fontWeight: 700, color: "#0d9488", background: "#f0fdfa", border: "1px solid #ccfbf1", padding: "0.35rem 0.85rem", borderRadius: "8px" }}>
+          <span>🎯</span> {submitted ? "Đã nộp bài" : `Tiến độ: ${answeredCount}/${questions.length} câu`}
         </div>
       </header>
 
       {submitted && (
-        <section className={`assessment-result-banner ${attempt.passed ? "is-pass" : "is-fail"}`} style={{ marginBottom: "0.75rem", padding: "0.75rem 1rem" }}>
+        <section className={`assessment-result-banner ${attempt.passed ? "is-pass" : "is-fail"}`} style={{ marginBottom: "0.75rem", padding: "0.75rem 1rem", borderRadius: "14px" }}>
           <div>
             <h3 style={{ margin: 0, fontSize: "1rem" }}>{attempt.passed ? "🎉 Đạt kết quả xuất sắc!" : "⚠️ Bạn chưa đạt điểm yêu cầu"}</h3>
             <p style={{ margin: "0.2rem 0 0 0", fontSize: "0.85rem" }}>
               Điểm: {attempt.score}/{attempt.totalPoints || 100} ({percent.toFixed(0)}%) · Đúng {attempt.correctAnswers}/{questions.length} câu.
             </p>
           </div>
-          <button type="button" onClick={() => begin(attempt.targetId || attempt.id)} style={{ padding: "0.4rem 0.9rem", fontSize: "0.85rem" }}>
+          <button type="button" onClick={() => begin(attempt.targetId || attempt.id)} style={{ padding: "0.45rem 1rem", fontSize: "0.85rem", borderRadius: "9px", background: "#0d9488", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}>
             Làm lại bài tập
           </button>
         </section>
       )}
 
       <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
-          <div className="assessment-counter" style={{ marginBottom: "0.5rem", fontWeight: 700, color: "#0f172a", flexShrink: 0 }}>
-            Câu {current + 1} / {questions.length}
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", boxSizing: "border-box", justifyContent: "space-between", padding: "1.1rem 1.3rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)" }}>
+          <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "0.5rem", borderBottom: "1px solid #f1f5f9", marginBottom: "0.5rem", flexShrink: 0 }}>
+            <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#0f172a" }}>
+              Câu {current + 1} <span style={{ color: "#94a3b8", fontWeight: "500" }}>/ {questions.length}</span>
+            </span>
+            <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Chủ đề: Luyện Ngữ Pháp</span>
           </div>
 
           {question && (
@@ -962,42 +966,46 @@ export default function ExercisePage() {
             />
           )}
 
-          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", flexShrink: 0 }}>
+          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
             <button
               type="button"
               disabled={current === 0}
               onClick={() => setCurrent((v) => v - 1)}
-              style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#fff", cursor: current === 0 ? "not-allowed" : "pointer" }}
+              style={{ padding: "0.55rem 1.25rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: 700, cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.4 : 1 }}
             >
-              Câu trước
+              ← Câu trước
             </button>
 
             {current < questions.length - 1 ? (
               <button
                 type="button"
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.55rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
+                style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
               >
-                Câu tiếp theo
+                Câu tiếp theo →
               </button>
             ) : (
               !submitted && (
                 <button
                   type="button"
                   onClick={submit}
-                  style={{ padding: "0.55rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
+                  style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
                 >
-                  Nộp bài ngay
+                  Nộp bài ngay ✓
                 </button>
               )
             )}
           </div>
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.1rem 1.2rem", borderRadius: "16px", border: "1px solid #e2e8f0", boxSizing: "border-box", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div>
-            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>Danh sách {questions.length} câu hỏi</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.85rem", paddingBottom: "0.5rem", borderBottom: "1px solid #f1f5f9" }}>
+              <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: "800", color: "#0f172a" }}>📋 Danh sách câu hỏi</h3>
+              <span style={{ fontSize: "0.75rem", background: "#f1f5f9", padding: "0.15rem 0.5rem", borderRadius: "6px", color: "#475569", fontWeight: "700" }}>{questions.length} câu</span>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.45rem" }}>
               {questions.map((item, index) => {
                 const isCurrent = index === current;
                 const isAns = answered(answers.get(item.id));

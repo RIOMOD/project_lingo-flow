@@ -435,15 +435,17 @@ export default function TestPage() {
       )}
 
       <div className="assessment-workspace" style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 300px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
-          <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "0.65rem 0.9rem", borderRadius: "10px", border: "1px solid #e2e8f0", flexShrink: 0 }}>
-            <span style={{ fontWeight: "700", color: "#0f172a" }}>Câu {current + 1} / {questions.length}</span>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", boxSizing: "border-box", justifyContent: "space-between", padding: "1.1rem 1.3rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)" }}>
+          <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "0.5rem", borderBottom: "1px solid #f1f5f9", marginBottom: "0.5rem", flexShrink: 0 }}>
+            <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#0f172a" }}>
+              Câu {current + 1} <span style={{ color: "#94a3b8", fontWeight: "500" }}>/ {questions.length}</span>
+            </span>
             {!submitted && (
               <button 
                 type="button" 
                 className={flags.has(question?.id) ? "is-flagged" : ""} 
                 onClick={toggleFlag}
-                style={{ background: "none", border: "none", color: flags.has(question?.id) ? "#eab308" : "#64748b", fontWeight: "600", cursor: "pointer" }}
+                style={{ background: "#f8fafc", border: "1px solid #cbd5e1", padding: "0.25rem 0.65rem", borderRadius: "7px", color: flags.has(question?.id) ? "#b45309" : "#64748b", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer" }}
               >
                 ⚑ {flags.has(question?.id) ? "Đã đánh dấu" : "Xem lại sau"}
               </button>
@@ -460,23 +462,23 @@ export default function TestPage() {
             />
           )}
 
-          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexShrink: 0, margin: 0 }}>
+          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexShrink: 0, marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px solid #f1f5f9" }}>
             <button 
               type="button" 
               disabled={current === 0} 
               onClick={() => setCurrent((v) => v - 1)}
-              style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", fontWeight: "600", cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.5 : 1 }}
+              style={{ padding: "0.55rem 1.25rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#334155", fontWeight: "700", cursor: current === 0 ? "not-allowed" : "pointer", opacity: current === 0 ? 0.4 : 1 }}
             >
-              Câu trước
+              ← Câu trước
             </button>
 
             {current < questions.length - 1 ? (
               <button 
                 type="button" 
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
+                style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
               >
-                Câu tiếp theo
+                Câu tiếp theo →
               </button>
             ) : (
               !submitted && (
@@ -484,16 +486,16 @@ export default function TestPage() {
                   className="primary" 
                   type="button" 
                   onClick={() => setShowConfirmModal(true)}
-                  style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
+                  style={{ padding: "0.55rem 1.45rem", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)" }}
                 >
-                  Nộp bài
+                  Nộp bài ✓
                 </button>
               )
             )}
           </div>
 
           {submitted && (
-            <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", flexShrink: 0 }}>
+            <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", flexShrink: 0, marginTop: "0.5rem" }}>
               <Link to={recommendations.length ? recommendationPath(recommendations[0]) : "/student/exercises"} style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#f1f5f9", color: "#0f172a", textDecoration: "none", fontWeight: "600" }}>
                 {recommendations.length ? `Ôn ${recommendations[0].topic}` : "Ôn bài liên quan"}
               </Link>
@@ -502,7 +504,7 @@ export default function TestPage() {
           )}
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
+        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.1rem 1.2rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)" }}>
           {submitted && recommendations.length > 0 && (
             <div className="assessment-recommendations">
               <div className="assessment-recommendations-heading">
@@ -522,8 +524,12 @@ export default function TestPage() {
             </div>
           )}
           <div>
-            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.05rem", color: "#0f172a", fontWeight: "700" }}>Danh sách câu</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.85rem", paddingBottom: "0.5rem", borderBottom: "1px solid #f1f5f9" }}>
+              <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: "800", color: "#0f172a" }}>📋 Danh sách câu hỏi</h3>
+              <span style={{ fontSize: "0.75rem", background: "#f1f5f9", padding: "0.15rem 0.5rem", borderRadius: "6px", color: "#475569", fontWeight: "700" }}>{questions.length} câu</span>
+            </div>
+            
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.45rem" }}>
               {questions.map((item, index) => {
                 const isCurrent = index === current;
                 const isAns = answered(answers.get(item.id));
@@ -535,18 +541,21 @@ export default function TestPage() {
                     key={item.id}
                     onClick={() => setCurrent(index)} 
                     style={{
-                      height: "40px",
-                      borderRadius: "10px",
-                      border: isCurrent ? "2px solid #0d9488" : "1px solid #e2e8f0",
-                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#ffffff",
-                      color: isCurrent ? "#0d9488" : "#334155",
-                      fontWeight: isCurrent || isAns ? "700" : "500",
+                      height: "36px",
+                      borderRadius: "9px",
+                      border: isCurrent ? "2px solid #0d9488" : isAns ? "1px solid #99f6e4" : "1px solid #e2e8f0",
+                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#f8fafc",
+                      color: isCurrent ? "#0d9488" : isAns ? "#0f766e" : "#475569",
+                      fontWeight: isCurrent || isAns ? "800" : "600",
+                      fontSize: "0.88rem",
                       position: "relative",
-                      cursor: "pointer"
+                      cursor: "pointer",
+                      boxShadow: isCurrent ? "0 2px 8px rgba(13, 148, 136, 0.2)" : "none",
+                      transition: "all 0.15s ease-in-out"
                     }}
                   >
                     {index + 1}
-                    {isFlag && <span style={{ position: "absolute", top: "2px", right: "4px", fontSize: "0.65rem" }}>⚑</span>}
+                    {isFlag && <span style={{ position: "absolute", top: "1px", right: "3px", fontSize: "0.6rem", color: "#b45309" }}>⚑</span>}
                   </button>
                 );
               })}
@@ -558,7 +567,7 @@ export default function TestPage() {
               className="assessment-submit" 
               type="button" 
               onClick={() => setShowConfirmModal(true)}
-              style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "#0d9488", color: "#ffffff", border: "none", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem" }}
+              style={{ width: "100%", marginTop: "1rem", padding: "0.7rem", borderRadius: "11px", background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", color: "#ffffff", border: "none", fontWeight: "800", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.25)", transition: "all 0.15s ease-in-out" }}
             >
               Nộp bài
             </button>
