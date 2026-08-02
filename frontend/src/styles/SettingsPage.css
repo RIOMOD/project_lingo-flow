@@ -1,15 +1,18 @@
 /* SettingsPage.css - Dedicated settings styling */
 
 .settings-page {
-  padding: 1.5rem 0;
-  max-width: 960px;
-  margin: 0 auto;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0.5rem 0;
 }
 
 .settings-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .settings-card {

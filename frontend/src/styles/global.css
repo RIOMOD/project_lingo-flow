@@ -3999,11 +3999,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   text-decoration: underline;
 }
 
-.assessment-page { display: grid; gap: 22px; max-width: 1180px; margin: 0 auto; }
-.assessment-hero { padding: 28px; border: 1px solid #e2e8ef; border-radius: 20px; background: #fff; }
-.assessment-hero h2 { margin: 10px 0 6px; color: #17253b; font-size: 2rem; }
-.assessment-hero p { margin: 0; color: #68788e; }
-.assessment-library { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.assessment-page { display: grid; gap: 16px; width: 100% !important; max-width: 100% !important; margin: 0 !important; box-sizing: border-box !important; }
+.assessment-hero { padding: 1.25rem 1.6rem; border: 1px solid #e2e8ef; border-radius: 18px; background: #fff; }
+.assessment-hero h2 { margin: 6px 0 4px; color: #17253b; font-size: 1.45rem; font-weight: 800; }
+.assessment-hero p { margin: 0; color: #68788e; font-size: 0.9rem; }
+.assessment-library { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; width: 100%; box-sizing: border-box; }
 .assessment-library article { display: grid; align-content: start; gap: 10px; padding: 20px; border: 1px solid #e1e7ed; border-radius: 15px; background: #fff; }
 .assessment-library article > span { color: #087f7b; font-size: .72rem; font-weight: 800; }
 .assessment-library h3, .assessment-library p { margin: 0; }
@@ -4011,7 +4011,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .assessment-library small { color: #7b8798; }
 .assessment-library button, .assessment-result-banner button { margin-top: auto; padding: 11px 14px; border: 0; border-radius: 10px; background: #087f7b; color: #fff; font-weight: 750; cursor: pointer; }
 .assessment-history { display: grid; gap: 7px; padding: 18px; border: 1px solid #e2e8ef; border-radius: 15px; background: #fff; }
-.assessment-history button { display: flex; justify-content: space-between; padding: 11px; border: 0; border-radius: 9px; background: #f5f7fa; cursor: pointer; }
+.assessment-history button { display: flex; justify-content: space-between; padding: 11px; border: 0; border-radius: 99px; background: #f5f7fa; cursor: pointer; }
 .assessment-run-header { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 20px 24px; border: 1px solid #e2e8ef; border-radius: 17px; background: #fff; }
 .assessment-run-header h2 { margin: 7px 0 3px; }
 .assessment-run-header p { margin: 0; color: #6c7b90; }
@@ -4044,18 +4044,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .assessment-explanation p { margin: 3px 0 0; color: #607087; }
 .assessment-explanation.is-correct { background: #edf8f2; color: #28754c; }
 .assessment-explanation.is-incorrect { background: #fff2f0; color: #a33b34; }
-/* Student Workstation Full Header-Width Match Rule */
+/* Universal Workstation Full Header-Width Match Rule */
+.app-main > div,
+.assessment-page,
+.assessment-hero,
+.assessment-library,
 .settings-page,
 .settings-container,
 .pronunciation-page,
 .pronunciation-container,
 .vocab-dashboard-page,
+.grammar-page,
 .leaderboard-page,
 .writing-page,
 .chatbot-page,
 .support-page,
 .order-history-page,
-.order-detail-page {
+.order-detail-page,
+.student-dashboard-page,
+.my-courses-page,
+.progress-page,
+.cart-page,
+.checkout-page,
+.profile-page,
+.teacher-dashboard-page,
+.admin-dashboard-page,
+.user-management-page,
+.course-management-page {
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
