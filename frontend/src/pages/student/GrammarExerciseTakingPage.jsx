@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { grammarService } from "../../services/grammar.service";
 import { IconChevronLeft } from "../../components/common/SidebarIcons";
+import { useAiLimoPageContext } from "../../context/AiLimoContext";
 
 export default function GrammarExerciseTakingPage() {
   const { id: topicId } = useParams();
@@ -10,14 +11,26 @@ export default function GrammarExerciseTakingPage() {
   const [answers, setAnswers] = useState({});
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [activeQuestionId, setActiveQuestionId] = useState(null);
+
+  useAiLimoPageContext(activeQuestionId ? {
+    type: "GRAMMAR",
+    grammarTopicId: Number(topicId),
+    questionId: Number(activeQuestionId),
+  } : null);
 
   useEffect(() => {
     grammarService.getExerciseByTopic(topicId)
-      .then(data => setQuestions(data?.items || data || []))
+      .then(data => {
+        const items = data?.items || data || [];
+        setQuestions(items);
+        setActiveQuestionId(items[0]?.id ?? null);
+      })
       .catch(err => setError(err.response?.data?.message || err.message || "Lỗi tải bài tập"));
   }, [topicId]);
 
   function handleSelectOption(questionId, optionId) {
+    setActiveQuestionId(questionId);
     setAnswers(prev => ({ ...prev, [questionId]: optionId }));
   }
 

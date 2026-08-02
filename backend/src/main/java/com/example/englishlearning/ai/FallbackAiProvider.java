@@ -26,7 +26,13 @@ public class FallbackAiProvider implements AiProvider {
         String level = blankToDefault(request.getLevel(), "A2");
         String userText = request.getUserText() == null ? "" : request.getUserText().trim();
 
-        String reply = generateSmartReply(userText, topic, level);
+        String reply = "HINT_ONLY".equals(request.getGuidanceMode()) && asksForCurrentAnswer(userText)
+                ? """
+                  Mình chưa thể chọn đáp án hoặc giải trọn câu đang làm trước khi bạn nộp bài.
+
+                  Gợi ý: hãy xác định từ khóa trong câu hỏi, nhớ lại quy tắc liên quan trong bài học rồi loại từng phương án không phù hợp. Bạn có thể nói mình đang phân vân ở bước nào để mình gợi ý tiếp.
+                  """
+                : generateSmartReply(userText, topic, level);
 
         return AiProviderResult.builder()
                 .text(reply)
@@ -39,6 +45,31 @@ public class FallbackAiProvider implements AiProvider {
 
     private String generateSmartReply(String userText, String topic, String level) {
         String lower = userText.toLowerCase();
+
+        EnglishMeaningQuery meaningQuery = parseEnglishMeaningQuery(userText);
+        if (meaningQuery != null) {
+            TranslationResult meaning = translateEnglishToVietnamese(meaningQuery.englishText());
+            if (meaning != null) {
+                return """
+                        **%s** nghĩa tiếng Việt là **%s**.
+
+                        - Phiên âm: %s
+                        - Ví dụ: *%s*
+                        - Dịch ví dụ: %s
+                        """.formatted(
+                        capitalize(meaningQuery.englishText()),
+                        meaning.viMeaning(),
+                        meaning.ipa(),
+                        meaning.enExample(),
+                        meaning.viExample()
+                );
+            }
+            return """
+                    Mình đang chạy ở chế độ dự phòng vì backend chưa được cấu hình API AI.
+                    Mình chưa có dữ liệu đáng tin cậy để dịch chính xác "%s", nên sẽ không đoán câu trả lời.
+                    Hãy cấu hình OPENAI_API_KEY để Limo có thể trả lời các câu hỏi tự do.
+                    """.formatted(meaningQuery.englishText());
+        }
 
         // 1. Pronunciation / Audio / Reading query
         if (containsAny(lower, "nghe đọc", "phát âm", "đọc chữ", "pronounce", "phát âm từ", "đọc từ", "đọc câu", "nghe từ", "nghe chữ", "muốn nghe", "muốn đọc")) {
@@ -121,11 +152,10 @@ public class FallbackAiProvider implements AiProvider {
 
         // 7. Default General English Conversation
         return """
-                💬 **Phản hồi (%s)**:
-                
-                > *"That's a great question! Let me help you practice English."*
-                *(Dịch: Đó là một câu hỏi tuyệt vời! Hãy cùng luyện tiếng Anh nào.)*
-                """.formatted(level);
+                Mình đang chạy ở chế độ dự phòng vì backend chưa được cấu hình API AI.
+                Mình chưa thể trả lời đáng tin cậy câu hỏi này và sẽ không tạo câu trả lời mẫu không liên quan.
+                Hãy cấu hình OPENAI_API_KEY để sử dụng chế độ hỏi tự do đầy đủ.
+                """;
     }
 
     private boolean containsAny(String input, String... keywords) {
@@ -133,6 +163,13 @@ public class FallbackAiProvider implements AiProvider {
             if (input.contains(kw)) return true;
         }
         return false;
+    }
+
+    private boolean asksForCurrentAnswer(String input) {
+        String lower = input == null ? "" : input.toLowerCase();
+        return containsAny(lower,
+                "đáp án", "chọn đáp án", "chọn a", "chọn b", "chọn c", "chọn d",
+                "câu này", "giải câu", "làm giúp", "answer this", "correct option", "which option");
     }
 
     private String extractTargetText(String input) {
@@ -202,6 +239,55 @@ public class FallbackAiProvider implements AiProvider {
     }
 
     private record TranslationResult(String enWord, String ipa, String viMeaning, String enExample, String viExample) {}
+
+    private record EnglishMeaningQuery(String englishText) {}
+
+    private EnglishMeaningQuery parseEnglishMeaningQuery(String input) {
+        if (input == null || input.isBlank()) return null;
+        String folded = fold(input);
+        boolean asksVietnameseMeaning = containsAny(folded,
+                "nghia tieng viet", "dich ra la gi", "dich sang tieng viet", "nghia la gi", "dich la gi");
+        if (!asksVietnameseMeaning) return null;
+
+        Matcher quoted = Pattern.compile("[\"']([a-zA-Z][a-zA-Z\\s-]{0,50})[\"']").matcher(input);
+        if (quoted.find()) return new EnglishMeaningQuery(quoted.group(1).trim().toLowerCase());
+
+        for (String phrase : List.of("good morning", "thank you")) {
+            if (folded.trim().startsWith(phrase + " ") || folded.trim().equals(phrase)) {
+                return new EnglishMeaningQuery(phrase);
+            }
+        }
+        Matcher leadingEnglish = Pattern.compile("^\\s*([a-zA-Z]+)", Pattern.CASE_INSENSITIVE).matcher(input);
+        if (!leadingEnglish.find()) return null;
+        String candidate = leadingEnglish.group(1).trim().toLowerCase();
+        return candidate.isBlank() ? null : new EnglishMeaningQuery(candidate);
+    }
+
+    private TranslationResult translateEnglishToVietnamese(String input) {
+        String key = input == null ? "" : input.trim().toLowerCase().replaceAll("\\s+", " ");
+        return switch (key) {
+            case "hello", "hi" -> new TranslationResult("Hello", "/həˈloʊ/", "xin chào", "Hello! Nice to meet you.", "Xin chào! Rất vui được gặp bạn.");
+            case "good morning" -> new TranslationResult("Good morning", "/ɡʊd ˈmɔːrnɪŋ/", "chào buổi sáng", "Good morning, everyone.", "Chào buổi sáng mọi người.");
+            case "goodbye", "bye" -> new TranslationResult("Goodbye", "/ˌɡʊdˈbaɪ/", "tạm biệt", "Goodbye! See you tomorrow.", "Tạm biệt! Hẹn gặp bạn ngày mai.");
+            case "thank you", "thanks" -> new TranslationResult("Thank you", "/ˈθæŋk juː/", "cảm ơn", "Thank you for your help.", "Cảm ơn bạn đã giúp đỡ.");
+            case "please" -> new TranslationResult("Please", "/pliːz/", "vui lòng; làm ơn", "Please open the window.", "Vui lòng mở cửa sổ.");
+            case "sorry" -> new TranslationResult("Sorry", "/ˈsɑːri/", "xin lỗi", "I'm sorry for being late.", "Tôi xin lỗi vì đến muộn.");
+            case "book" -> new TranslationResult("Book", "/bʊk/", "quyển sách", "This book is interesting.", "Quyển sách này rất thú vị.");
+            case "teacher" -> new TranslationResult("Teacher", "/ˈtiːtʃər/", "giáo viên", "My teacher is very kind.", "Giáo viên của tôi rất tốt bụng.");
+            case "student" -> new TranslationResult("Student", "/ˈstuːdənt/", "học sinh; sinh viên", "She is an English student.", "Cô ấy là một học viên tiếng Anh.");
+            case "school" -> new TranslationResult("School", "/skuːl/", "trường học", "The children are at school.", "Bọn trẻ đang ở trường.");
+            case "water" -> new TranslationResult("Water", "/ˈwɔːtər/", "nước", "Can I have some water?", "Tôi có thể xin một ít nước không?");
+            case "beautiful" -> new TranslationResult("Beautiful", "/ˈbjuːtɪfl/", "đẹp; xinh đẹp", "It is a beautiful day.", "Hôm nay là một ngày đẹp trời.");
+            case "computer" -> new TranslationResult("Computer", "/kəmˈpjuːtər/", "máy tính", "I use a computer to study.", "Tôi dùng máy tính để học.");
+            default -> null;
+        };
+    }
+
+    private String fold(String value) {
+        return java.text.Normalizer.normalize(value.toLowerCase(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .replace('đ', 'd');
+    }
 
     private String extractVietnameseWordToTranslate(String input) {
         if (input == null || input.isBlank()) return "Dây thừng";
