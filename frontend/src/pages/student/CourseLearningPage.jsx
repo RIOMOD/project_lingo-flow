@@ -122,9 +122,19 @@ export default function CourseLearningPage() {
   );
 
   useEffect(() => {
+    if (!courseId) return;
     setError("");
     loadRoadmap(lessonId).catch((err) => setError(err.message || "Không tải được lộ trình học"));
-  }, [lessonId, loadRoadmap]);
+  }, [courseId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (lessonId) {
+      const numId = Number(lessonId);
+      if (numId && numId !== activeLessonId) {
+        setActiveLessonId(numId);
+      }
+    }
+  }, [lessonId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Load lesson detail ────────────────────────────────────
   useEffect(() => {
