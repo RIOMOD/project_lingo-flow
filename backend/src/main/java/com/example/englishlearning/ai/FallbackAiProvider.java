@@ -119,13 +119,12 @@ public class FallbackAiProvider implements AiProvider {
                     """;
         }
 
-        // 7. Default General English Conversation
+        // 7. Default General Conversation
         return """
-                💬 **Phản hồi (%s)**:
+                💬 **Phản hồi**:
                 
-                > *"That's a great question! Let me help you practice English."*
-                *(Dịch: Đó là một câu hỏi tuyệt vời! Hãy cùng luyện tiếng Anh nào.)*
-                """.formatted(level);
+                > *"Tôi đã ghi nhận thông tin của bạn: '%s'. (Hiện tại tôi đang ở chế độ Offline/Fallback nên chỉ có thể trả lời các mẫu câu cơ bản. Để tôi có thể giải đáp mọi câu hỏi của bạn, vui lòng kết nối OpenAI nhé!)"*
+                """.formatted(userText);
     }
 
     private boolean containsAny(String input, String... keywords) {

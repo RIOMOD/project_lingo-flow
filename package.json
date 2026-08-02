@@ -6,7 +6,7 @@
     "dev": "concurrently --kill-others-on-fail --names BACKEND,FRONTEND -c \"bgMagenta.bold,bgBlue.bold\" \"npm run dev:backend\" \"npm run dev:frontend:wait\"",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:frontend:wait": "wait-on tcp:127.0.0.1:8080 && npm run dev:frontend",
-    "dev:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/build-and-run.ps1",
+    "dev:backend": "nodemon --watch backend/src --watch backend/pom.xml --ext java,xml,properties,yml --exec \"powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/build-and-run.ps1\"",
     "install:all": "npm install && npm --prefix frontend install",
     "stop:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File ./backend/stop-backend.ps1",
     "build:frontend": "npm --prefix frontend run build",
@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
+    "nodemon": "^3.1.7",
     "wait-on": "^9.1.0"
   }
 }

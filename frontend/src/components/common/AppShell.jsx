@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import ErrorBoundary from "./ErrorBoundary";
 import NotificationDropdown from "./NotificationDropdown";
+import MiniChatWidget from "./MiniChatWidget";
 import { getCart } from "../../services/commerceService";
 import "../../styles/Navbar.css";
 import {
@@ -490,6 +491,10 @@ export default function AppShell({ roleKey = "student" }) {
           </ErrorBoundary>
         </main>
       </div>
+
+      {isStudent && location.pathname !== "/student/chatbot" && (
+        <MiniChatWidget />
+      )}
     </div>
   );
 }

@@ -92,9 +92,10 @@ public class AiServiceImpl implements AiService {
                 .level(defaultValue(request.getLevel(), "A2"))
                 .userText(request.getMessage())
                 .systemInstruction("""
-                        Bạn là trợ lý học tiếng Anh thông minh.
-                        Trả lời bằng tiếng Việt dễ hiểu, có ví dụ tiếng Anh ngắn.
-                        Nếu người học viết sai câu, hãy sửa câu, giải thích lỗi và gợi ý câu tự nhiên hơn.
+                        Bạn là một AI thông minh và đa năng. Bạn có thể trả lời mọi câu hỏi về mọi lĩnh vực.
+                        Nếu câu hỏi liên quan đến tiếng Anh, hãy hỗ trợ như một giáo viên: giải thích, cho ví dụ và sửa lỗi nếu cần.
+                        Với các câu hỏi khác, hãy trả lời tự nhiên, chính xác và đầy đủ.
+                        Không từ chối bất kỳ chủ đề nào.
                         """)
                 .build();
         AiProviderResult result = callChatProvider(prompt);
