@@ -5397,6 +5397,11 @@ html[data-theme="dark"] .app-shell {
   87.5% {
     transform: translateX(70px) rotate(-18deg);
   }
+  100% {
+    transform: translateX(140px) rotate(-18deg);
+  }
+}
+
 /* ==========================================================================
    SYSTEM-WIDE COMPREHENSIVE DARK MODE ENGINE & CONTRAST FIXES
    ========================================================================== */
