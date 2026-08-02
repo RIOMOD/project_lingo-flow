@@ -946,9 +946,9 @@ export default function ExercisePage() {
         </section>
       )}
 
-      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box", minHeight: "460px" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minHeight: "460px", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
-          <div className="assessment-counter" style={{ marginBottom: "1rem", fontWeight: 700, color: "#0f172a" }}>
+      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box", height: "480px" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", height: "480px", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)", overflow: "hidden" }}>
+          <div className="assessment-counter" style={{ marginBottom: "0.5rem", fontWeight: 700, color: "#0f172a", flexShrink: 0 }}>
             Câu {current + 1} / {questions.length}
           </div>
 
@@ -962,12 +962,12 @@ export default function ExercisePage() {
             />
           )}
 
-          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
+          <div className="assessment-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", flexShrink: 0 }}>
             <button
               type="button"
               disabled={current === 0}
               onClick={() => setCurrent((v) => v - 1)}
-              style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#fff", cursor: current === 0 ? "not-allowed" : "pointer" }}
+              style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", border: "1px solid #cbd5e1", background: "#fff", cursor: current === 0 ? "not-allowed" : "pointer" }}
             >
               Câu trước
             </button>
@@ -976,7 +976,7 @@ export default function ExercisePage() {
               <button
                 type="button"
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
+                style={{ padding: "0.55rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
               >
                 Câu tiếp theo
               </button>
@@ -985,7 +985,7 @@ export default function ExercisePage() {
                 <button
                   type="button"
                   onClick={submit}
-                  style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
+                  style={{ padding: "0.55rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
                 >
                   Nộp bài ngay
                 </button>
@@ -994,38 +994,40 @@ export default function ExercisePage() {
           </div>
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", minHeight: "460px", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
-          <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>Danh sách {questions.length} câu hỏi</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
-            {questions.map((item, index) => {
-              const isCurrent = index === current;
-              const isAns = answered(answers.get(item.id));
-              return (
-                <button
-                  type="button"
-                  key={item.id}
-                  onClick={() => setCurrent(index)}
-                  style={{
-                    height: "38px",
-                    borderRadius: "8px",
-                    border: isCurrent ? "2px solid #0d9488" : "1px solid #e2e8f0",
-                    background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#ffffff",
-                    color: isCurrent ? "#0d9488" : "#334155",
-                    fontWeight: isCurrent || isAns ? "700" : "500",
-                    cursor: "pointer"
-                  }}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
+        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", height: "480px", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div>
+            <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>Danh sách {questions.length} câu hỏi</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+              {questions.map((item, index) => {
+                const isCurrent = index === current;
+                const isAns = answered(answers.get(item.id));
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => setCurrent(index)}
+                    style={{
+                      height: "38px",
+                      borderRadius: "8px",
+                      border: isCurrent ? "2px solid #0d9488" : "1px solid #e2e8f0",
+                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#ffffff",
+                      color: isCurrent ? "#0d9488" : "#334155",
+                      fontWeight: isCurrent || isAns ? "700" : "500",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {!submitted && (
             <button
               type="button"
               onClick={submit}
-              style={{ width: "100%", marginTop: "1.5rem", padding: "0.75rem", borderRadius: "12px", background: "#0d9488", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}
+              style={{ width: "100%", marginTop: "1rem", padding: "0.65rem", borderRadius: "10px", background: "#0d9488", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}
             >
               Nộp bài
             </button>
