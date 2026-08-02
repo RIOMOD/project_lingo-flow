@@ -31,6 +31,68 @@ function initials(name = "Học viên") {
   return name.split(/\s+/).filter(Boolean).slice(-2).map((part) => part[0]).join("").toUpperCase();
 }
 
+function getPageHeaderMeta(pathname, roleKey) {
+  const path = (pathname || "").replace(/\/$/, "");
+
+  // Student Routes
+  if (path === "/student") return { title: "Tổng quan học tập", breadcrumb: "HỌC TẬP" };
+  if (path === "/student/courses") return { title: "Khóa học của tôi", breadcrumb: "HỌC TẬP" };
+  if (path.startsWith("/student/courses/")) return { title: "Chi tiết khóa học", breadcrumb: "HỌC TẬP" };
+  if (path === "/student/path" || path === "/student/progress") return { title: "Lộ trình & Tiến độ học tập", breadcrumb: "TIẾN ĐỘ & THI ĐUA" };
+  if (path === "/student/exercises") return { title: "Bài tập theo kỹ năng", breadcrumb: "HỌC TẬP" };
+  if (path === "/student/tests") return { title: "Bài kiểm tra & Thi thử TOEIC", breadcrumb: "HỌC TẬP" };
+  if (path === "/student/vocabulary" || path.startsWith("/student/vocabulary")) return { title: "Ôn tập Từ vựng", breadcrumb: "ÔN LUYỆN" };
+  if (path === "/student/grammar") return { title: "Ngữ pháp Tiếng Anh", breadcrumb: "ÔN LUYỆN" };
+  if (path === "/student/pronunciation") return { title: "Luyện phát âm AI", breadcrumb: "ÔN LUYỆN" };
+  if (path === "/student/leaderboard") return { title: "Bảng xếp hạng Học viên 🔥", breadcrumb: "TIẾN ĐỘ & THI ĐUA" };
+  if (path === "/student/chatbot") return { title: "Trợ lý Chatbot AI 🤖", breadcrumb: "CÔNG CỤ AI" };
+  if (path === "/student/writing") return { title: "AI Chấm & Sửa bài Writing ✍️", breadcrumb: "CÔNG CỤ AI" };
+  if (path === "/student/cart") return { title: "Giỏ hàng của bạn 🛒", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/student/checkout") return { title: "Thanh toán khóa học 💳", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/student/orders" || path.startsWith("/student/orders")) return { title: "Lịch sử đơn hàng 📦", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/student/profile") return { title: "Hồ sơ cá nhân", breadcrumb: "TÀI KHOẢN" };
+  if (path === "/student/settings") return { title: "Cài đặt tài khoản", breadcrumb: "TÀI KHOẢN" };
+  if (path === "/student/support") return { title: "Trung tâm Hỗ trợ & Trợ giúp 🎧", breadcrumb: "TRỢ GIÚP" };
+
+  // Teacher Routes
+  if (path === "/teacher") return { title: "Tổng quan Giảng viên", breadcrumb: "GIẢNG DẠY" };
+  if (path === "/teacher/courses") return { title: "Quản lý khóa học", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/courses/create") return { title: "Tạo khóa học mới", breadcrumb: "NỘI DUNG" };
+  if (path.includes("/edit")) return { title: "Chỉnh sửa khóa học", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/lessons") return { title: "Lesson Builder", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/vocabulary") return { title: "Quản lý từ vựng", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/grammar") return { title: "Quản lý ngữ pháp", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/question-bank") return { title: "Ngân hàng câu hỏi", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/submission") return { title: "Gửi duyệt khóa học", breadcrumb: "NỘI DUNG" };
+  if (path === "/teacher/students") return { title: "Theo dõi học viên", breadcrumb: "VẬN HÀNH" };
+  if (path === "/teacher/revenue") return { title: "Báo cáo doanh thu", breadcrumb: "VẬN HÀNH" };
+  if (path === "/teacher/profile") return { title: "Hồ sơ cá nhân", breadcrumb: "VẬN HÀNH" };
+
+  // Admin Routes
+  if (path === "/admin") return { title: "Tổng quan Quản trị viên", breadcrumb: "QUẢN TRỊ" };
+  if (path === "/admin/users") return { title: "Quản lý người dùng", breadcrumb: "QUẢN TRỊ" };
+  if (path === "/admin/teachers") return { title: "Quản lý giảng viên", breadcrumb: "QUẢN TRỊ" };
+  if (path === "/admin/roles") return { title: "Phân quyền hệ thống", breadcrumb: "QUẢN TRỊ" };
+  if (path === "/admin/system-activity") return { title: "Nhật ký hoạt động", breadcrumb: "QUẢN TRỊ" };
+  if (path === "/admin/course-approval") return { title: "Duyệt khóa học", breadcrumb: "KHÓA HỌC" };
+  if (path === "/admin/course-publish") return { title: "Xuất bản khóa học", breadcrumb: "KHÓA HỌC" };
+  if (path === "/admin/orders") return { title: "Quản lý đơn hàng", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/admin/transactions") return { title: "Quản lý giao dịch", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/admin/coupons") return { title: "Quản lý mã giảm giá", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/admin/refunds") return { title: "Quản lý hoàn tiền", breadcrumb: "THƯƠNG MẠI" };
+  if (path === "/admin/reports") return { title: "Báo cáo thống kê", breadcrumb: "THƯƠNG MẠI" };
+
+  const roleTitles = {
+    student: "Không gian học tập",
+    teacher: "Trung tâm giảng dạy",
+    admin: "Quản trị hệ thống",
+  };
+  return {
+    title: roleTitles[roleKey] || "LingoFlow",
+    breadcrumb: (roleKey || "HỆ THỐNG").toUpperCase(),
+  };
+}
+
 function renderSectionIcon(title) {
   if (!title) return null;
   const t = title.toUpperCase();
@@ -109,8 +171,9 @@ export default function AppShell({ roleKey = "student" }) {
   useEffect(() => setIsSidebarOpen(false), [location.pathname]);
 
   const accountName = user?.fullName || user?.name || "Học viên";
-  const pageTitle = currentPage?.title ?? role.title;
-  const breadcrumb = useMemo(() => currentSection?.title ?? role.label, [currentSection, role.label]);
+  const headerMeta = useMemo(() => getPageHeaderMeta(location.pathname, roleKey), [location.pathname, roleKey]);
+  const pageTitle = headerMeta.title;
+  const breadcrumb = headerMeta.breadcrumb;
 
   async function handleLogout() {
     if (isLoggingOut) return;
