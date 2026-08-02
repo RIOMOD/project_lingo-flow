@@ -30,6 +30,13 @@ export async function completeLessonProgress(lessonId, payload = {}) {
   }));
 }
 
+export async function verifyLessonCheckpoint(lessonId, payload = {}) {
+  return unwrap(await apiRequest(`/progress/lessons/${lessonId}/checkpoint`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }));
+}
+
 export async function trackLessonProgress(lessonId, payload = {}) {
   return unwrap(await apiRequest(`/progress/lessons/${lessonId}`, {
     method: "PUT",

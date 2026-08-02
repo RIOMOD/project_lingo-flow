@@ -3,8 +3,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import LessonMedia from "../../components/common/LessonMedia";
 import { LoadingState } from "../../components/common/UiState";
 import { useToast } from "../../context/ToastContext";
+import { useAiLimoPageContext } from "../../context/AiLimoContext";
 import { getCourseChapters, getLesson } from "../../services/courseService";
-import { completeLessonProgress, startLessonProgress, trackLessonProgress } from "../../services/progressService";
+import { completeLessonProgress, startLessonProgress, trackLessonProgress, verifyLessonCheckpoint } from "../../services/progressService";
 import "../../styles/LearningRoom.css";
 
 // ─────────────────────────────────────────────────────────────
@@ -30,19 +31,6 @@ function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function normalizeAnswer(str) {
-  if (!str) return "";
-  return str.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function answersMatch(submitted, expected) {
-  if (!expected || expected.trim() === "") return true;
-  const norm = normalizeAnswer(submitted);
-  const exp = normalizeAnswer(expected);
-  if (!norm) return false;
-  return norm === exp || norm.includes(exp) || exp.includes(norm);
-}
-
 // ─────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────
@@ -60,6 +48,8 @@ export default function CourseLearningPage() {
   const [checkpointAnswer, setCheckpointAnswer] = useState("");
   const [quizChecked, setQuizChecked] = useState(false);
   const [quizSuccess, setQuizSuccess] = useState(false);
+  const [quizExplanation, setQuizExplanation] = useState("");
+  const [verifyingQuiz, setVerifyingQuiz] = useState(false);
   const [completion, setCompletion] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -67,6 +57,12 @@ export default function CourseLearningPage() {
   const [isSwitching, setIsSwitching] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [activeTab, setActiveTab] = useState("content");
+
+  useAiLimoPageContext(lesson && activeLessonId ? {
+    type: "LESSON",
+    courseId: Number(courseId),
+    lessonId: Number(activeLessonId),
+  } : null);
 
   const contentRef = useRef(null);
   const latestProgressRef = useRef({ percent: 0, position: 0, duration: 0 });
@@ -153,6 +149,7 @@ export default function CourseLearningPage() {
     setCheckpointAnswer("");
     setQuizChecked(false);
     setQuizSuccess(false);
+    setQuizExplanation("");
 
     getLesson(courseId, activeLessonId)
       .then(async (data) => {
@@ -317,31 +314,36 @@ export default function CourseLearningPage() {
     navigate(`/student/learn/${courseId}/${item.id}`, { replace: true });
   }
 
-  // Handle answer input change with real-time matching
   const handleAnswerInput = (value) => {
     setCheckpointAnswer(value);
-    setError(""); // Clear previous inline error when user re-types
-    if (lesson?.checkpointAnswer) {
-      const isMatch = answersMatch(value, lesson.checkpointAnswer);
-      setQuizSuccess(isMatch);
-      if (isMatch) {
-        setQuizChecked(true);
-      }
-    }
+    setError("");
+    setQuizChecked(false);
+    setQuizSuccess(false);
+    setQuizExplanation("");
   };
 
-  const handleVerifyQuiz = () => {
+  const handleVerifyQuiz = async () => {
     if (!checkpointAnswer.trim()) {
       toast.error("Vui lòng nhập câu trả lời trước khi kiểm tra!");
       return;
     }
-    setQuizChecked(true);
-    const matched = answersMatch(checkpointAnswer, lesson?.checkpointAnswer);
-    setQuizSuccess(matched);
-    if (matched) {
-      toast.success("Chính xác! Đáp án hoàn toàn đúng 🎉");
-    } else {
-      toast.error("Chưa chính xác, hãy thử lại!");
+    if (verifyingQuiz) return;
+    setVerifyingQuiz(true);
+    try {
+      const result = await verifyLessonCheckpoint(activeLessonId, {
+        checkpointAnswer: checkpointAnswer.trim(),
+      });
+      setQuizChecked(true);
+      setQuizSuccess(Boolean(result?.correct));
+      setQuizExplanation(result?.explanation || result?.message || "");
+      if (result?.correct) toast.success("Chính xác! Đáp án hoàn toàn đúng 🎉");
+      else toast.error("Chưa chính xác, hãy thử lại!");
+    } catch (err) {
+      setQuizChecked(true);
+      setQuizSuccess(false);
+      setQuizExplanation(err.message || "Không thể kiểm tra câu trả lời.");
+    } finally {
+      setVerifyingQuiz(false);
     }
   };
 
@@ -401,8 +403,7 @@ export default function CourseLearningPage() {
   const step2Done =
     isAlreadyCompleted ||
     !hasQuestion ||
-    quizSuccess ||
-    answersMatch(checkpointAnswer, lesson?.checkpointAnswer);
+    quizSuccess;
 
   const localReady = step1Done && step2Done;
 
@@ -568,15 +569,16 @@ export default function CourseLearningPage() {
                       <button
                         type="button"
                         onClick={handleVerifyQuiz}
+                        disabled={verifyingQuiz}
                         style={{ padding: "10px 20px", background: "#0284c7", color: "#ffffff", fontWeight: 800, border: "none", borderRadius: "10px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
                       >
-                        Kiểm tra
+                        {verifyingQuiz ? "Đang kiểm tra..." : "Kiểm tra"}
                       </button>
                     </div>
                     {quizChecked && (
                       <div style={{ padding: "1rem", borderRadius: "12px", background: quizSuccess ? "#dcfce7" : "#fee2e2", color: quizSuccess ? "#15803d" : "#b91c1c", border: `1px solid ${quizSuccess ? "#86efac" : "#fca5a5"}`, fontSize: "0.9rem" }}>
                         <strong>{quizSuccess ? "🎉 Chính xác!" : "⚠️ Chưa chính xác!"}</strong>
-                        <p style={{ margin: "4px 0 0 0" }}>{lesson.checkpointExplanation || "Hãy đọc lại nội dung bài giảng để chọn đáp án đúng."}</p>
+                        <p style={{ margin: "4px 0 0 0" }}>{quizExplanation || lesson.checkpointExplanation || "Hãy đọc lại nội dung bài giảng để chọn đáp án đúng."}</p>
                       </div>
                     )}
                   </div>

@@ -629,10 +629,10 @@ public class CourseServiceImpl implements CourseService {
                 .mediaDurationSeconds(mediaDurationSecs)
                 .checkpointPassed(progress != null && Boolean.TRUE.equals(progress.getCheckpointPassed()))
                 .checkpointQuestion(locked ? null : lesson.getCheckpointQuestion())
-                // Expose answer to enrolled users so frontend can validate instantly without roundtrip
-                .checkpointAnswer(locked ? null : lesson.getCheckpointAnswer())
-                // Always show explanation once lesson starts (helps retries)
-                .checkpointExplanation(locked ? null : lesson.getCheckpointExplanation())
+                .checkpointAnswer(locked || progress == null || progress.getStatus() != LearningProgress.ProgressStatus.COMPLETED
+                        ? null : lesson.getCheckpointAnswer())
+                .checkpointExplanation(locked || progress == null || progress.getStatus() != LearningProgress.ProgressStatus.COMPLETED
+                        ? null : lesson.getCheckpointExplanation())
                 .build();
     }
 

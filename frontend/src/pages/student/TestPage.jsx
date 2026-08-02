@@ -4,6 +4,7 @@ import AssessmentQuestion from "../../components/student/AssessmentQuestion";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { getAttempt, getAttempts, getTests, saveAnswer, startTest, submitAttempt } from "../../services/assessmentService";
 import { exportDocumentToPDF } from "../../utils/pdfExporter";
+import { useAiLimoPageContext } from "../../context/AiLimoContext";
 
 const IconArrowLeft = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -162,6 +163,7 @@ const buildMockAttempt = (testId) => {
   ],
   answers: []
 };
+};
 
 export default function TestPage() {
   const [items, setItems] = useState([]);
@@ -226,6 +228,12 @@ export default function TestPage() {
   const rawQuestions = attempt?.questions;
   const questions = (rawQuestions && rawQuestions.length > 0) ? rawQuestions : mockFallback.questions; 
   const question = questions[current]; 
+  const hasServerAttempt = attempt?.id != null && Number.isFinite(Number(attempt.id));
+  useAiLimoPageContext(hasServerAttempt && question ? {
+    type: "ASSESSMENT",
+    attemptId: Number(attempt.id),
+    questionId: Number(question.id),
+  } : null);
   const answeredCount = questions.filter((item) => answered(answers.get(item.id))).length;
 
   async function begin(id) { 
