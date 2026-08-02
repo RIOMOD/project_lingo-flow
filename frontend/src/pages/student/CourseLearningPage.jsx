@@ -64,6 +64,7 @@ export default function CourseLearningPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loadingLesson, setLoadingLesson] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [activeTab, setActiveTab] = useState("content");
 
@@ -129,7 +130,13 @@ export default function CourseLearningPage() {
   useEffect(() => {
     if (!activeLessonId) return;
     let mounted = true;
-    setLoadingLesson(true);
+
+    if (!lesson) {
+      setLoadingLesson(true);
+    } else {
+      setIsSwitching(true);
+    }
+
     setError("");
     setMessage("");
     setCompletion(null);
@@ -192,7 +199,10 @@ export default function CourseLearningPage() {
         }
       })
       .finally(() => {
-        if (mounted) setLoadingLesson(false);
+        if (mounted) {
+          setLoadingLesson(false);
+          setIsSwitching(false);
+        }
       });
 
     return () => {
@@ -291,9 +301,10 @@ export default function CourseLearningPage() {
       toast.error(item.lockReason || "Hoàn thành bài trước để mở khóa bài này.");
       return;
     }
+    if (item.id === activeLessonId) return;
     persistProgress();
     setActiveLessonId(item.id);
-    navigate(`/student/learn/${courseId}/${item.id}`);
+    navigate(`/student/learn/${courseId}/${item.id}`, { replace: true });
   }
 
   // Handle answer input change with real-time matching
@@ -467,9 +478,17 @@ export default function CourseLearningPage() {
         </aside>
 
         {/* ── Middle Panel (Media Player & Lesson Notes) ── */}
-        <article className="learning-main-card" ref={contentRef}>
-          {loadingLesson && <LoadingState title="Đang tải bài học..." />}
-          {!loadingLesson && lesson && (
+        <article
+          className="learning-main-card"
+          ref={contentRef}
+          style={{
+            opacity: isSwitching ? 0.78 : 1,
+            transition: "opacity 0.18s ease",
+          }}
+        >
+          {loadingLesson && !lesson ? (
+            <LoadingState title="Đang tải bài học..." />
+          ) : lesson ? (
             <>
               {/* Lesson Media Component */}
               <LessonMedia
