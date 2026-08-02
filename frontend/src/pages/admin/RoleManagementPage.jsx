@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { getAdminRoles } from "../../services/adminService";
 
 const ROLE_PERMISSIONS = {
@@ -139,7 +140,7 @@ export default function RoleManagementPage() {
       </div>
 
       {/* View Permissions Modal */}
-      {viewRole && (
+      {viewRole && createPortal(
         <div className="lb-overlay" onClick={() => setViewRole(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
             <div className="lb-modal-header">
@@ -165,11 +166,12 @@ export default function RoleManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Role Modal */}
-      {editingRole && (
+      {editingRole && createPortal(
         <div className="lb-overlay" onClick={() => setEditingRole(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "460px" }}>
             <div className="lb-modal-header">
@@ -194,7 +196,8 @@ export default function RoleManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

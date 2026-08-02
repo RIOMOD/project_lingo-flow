@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import {
   approveCourse,
@@ -360,7 +361,7 @@ export default function AdminCourseReviewPage() {
         </div>
       </section>
 
-      {rejectModalOpen && (
+      {rejectModalOpen && createPortal(
         <div className="lb-overlay" onClick={() => !busy && setRejectModalOpen(false)}>
           <div className="lb-modal lb-modal-sm" onClick={(event) => event.stopPropagation()}>
             <div className="lb-modal-header">
@@ -395,7 +396,8 @@ export default function AdminCourseReviewPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

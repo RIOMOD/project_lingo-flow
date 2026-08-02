@@ -4705,15 +4705,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Overlay & Modal */
 .lb-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(16,32,56,0.45);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
   animation: rise-in 0.2s ease both;
 }
 
@@ -4722,9 +4730,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   border-radius: 18px;
   width: 100%;
   max-width: 560px;
-  max-height: 92vh;
+  max-height: 88vh;
   overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(16,32,56,0.25);
+  margin: auto !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  position: relative;
+  z-index: 1000000;
 }
 
 .lb-modal-sm { max-width: 420px; }

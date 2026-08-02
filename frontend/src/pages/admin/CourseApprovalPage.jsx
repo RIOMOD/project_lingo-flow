@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { approveCourse, getAdminCourses, rejectCourse } from "../../services/courseService";
 import { useToast } from "../../context/ToastContext";
 
@@ -153,7 +154,7 @@ export default function CourseApprovalPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewCourse && (
+      {viewCourse && createPortal(
         <div className="lb-overlay" onClick={() => setViewCourse(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px" }}>
             <div className="lb-modal-header">
@@ -179,11 +180,12 @@ export default function CourseApprovalPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Reject Modal */}
-      {rejectTarget && (
+      {rejectTarget && createPortal(
         <div className="lb-overlay" onClick={() => !rejecting && setRejectTarget(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
             <div className="lb-modal-header">
@@ -212,7 +214,8 @@ export default function CourseApprovalPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

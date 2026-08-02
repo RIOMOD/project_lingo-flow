@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function RefundManagementPage() {
   const [refunds, setRefunds] = useState([
@@ -294,7 +295,7 @@ export default function RefundManagementPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewDetailRefund && (
+      {viewDetailRefund && createPortal(
         <div className="lb-overlay" onClick={() => setViewDetailRefund(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
             <div className="lb-modal-header">
@@ -315,11 +316,12 @@ export default function RefundManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Create / Edit Modal */}
-      {(showCreateModal || editingRefund) && (
+      {(showCreateModal || editingRefund) && createPortal(
         <div className="lb-overlay" onClick={() => { setShowCreateModal(false); setEditingRefund(null); }}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -402,7 +404,8 @@ export default function RefundManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

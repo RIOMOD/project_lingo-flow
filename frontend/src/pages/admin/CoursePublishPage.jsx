@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { getAdminCourses, publishCourse, rejectCourse } from "../../services/courseService";
 import { useToast } from "../../context/ToastContext";
 
@@ -174,7 +175,7 @@ export default function CoursePublishPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewCourse && (
+      {viewCourse && createPortal(
         <div className="lb-overlay" onClick={() => setViewCourse(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
             <div className="lb-modal-header">
@@ -197,11 +198,12 @@ export default function CoursePublishPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Sale Price Modal */}
-      {salePriceTarget && (
+      {salePriceTarget && createPortal(
         <div className="lb-overlay" onClick={() => setSalePriceTarget(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "460px" }}>
             <div className="lb-modal-header">
@@ -239,11 +241,12 @@ export default function CoursePublishPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Unpublish / Revoke Modal */}
-      {unpublishTarget && (
+      {unpublishTarget && createPortal(
         <div className="lb-overlay" onClick={() => setUnpublishTarget(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "460px" }}>
             <div className="lb-modal-header">
@@ -265,7 +268,8 @@ export default function CoursePublishPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

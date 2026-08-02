@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { getAdminUsers, lockUser, updateAdminUser, deleteAdminUser, createTeacher } from "../../services/adminService";
 
 export default function TeacherManagementPage() {
@@ -200,7 +201,7 @@ export default function TeacherManagementPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewDetail && (
+      {viewDetail && createPortal(
         <div className="lb-overlay" onClick={() => setViewDetail(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
             <div className="lb-modal-header">
@@ -228,11 +229,12 @@ export default function TeacherManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Modal */}
-      {editingTeacher && (
+      {editingTeacher && createPortal(
         <div className="lb-overlay" onClick={() => !saving && setEditingTeacher(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -271,11 +273,12 @@ export default function TeacherManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Create Teacher Modal */}
-      {showCreate && (
+      {showCreate && createPortal(
         <div className="lb-overlay" onClick={() => !creating && setShowCreate(false)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -322,7 +325,8 @@ export default function TeacherManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function CouponManagementPage() {
   const [coupons, setCoupons] = useState([
@@ -289,7 +290,7 @@ export default function CouponManagementPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewDetailCoupon && (
+      {viewDetailCoupon && createPortal(
         <div className="lb-overlay" onClick={() => setViewDetailCoupon(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
             <div className="lb-modal-header">
@@ -309,11 +310,12 @@ export default function CouponManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Create / Edit Modal */}
-      {(showCreateModal || editingCoupon) && (
+      {(showCreateModal || editingCoupon) && createPortal(
         <div className="lb-overlay" onClick={() => { setShowCreateModal(false); setEditingCoupon(null); }}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -408,7 +410,8 @@ export default function CouponManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

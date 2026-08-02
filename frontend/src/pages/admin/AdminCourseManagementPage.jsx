@@ -1460,7 +1460,7 @@ export default function AdminCourseManagementPage() {
       )}
 
       {/* ── VIEW DETAIL COURSE MODAL ── */}
-      {viewDetailCourse && (
+      {viewDetailCourse && createPortal(
         <div className="lb-overlay" onClick={() => setViewDetailCourse(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
             <div className="lb-modal-header">
@@ -1520,11 +1520,12 @@ export default function AdminCourseManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── CREATE COURSE MODAL ── */}
-      {showCreateCourseModal && (
+      {showCreateCourseModal && createPortal(
         <div className="lb-overlay" onClick={() => !saving && setShowCreateCourseModal(false)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
             <div className="lb-modal-header">
@@ -1612,11 +1613,12 @@ export default function AdminCourseManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── EDIT COURSE MODAL ── */}
-      {editingCourseModal && (
+      {editingCourseModal && createPortal(
         <div className="lb-overlay" onClick={() => !saving && setEditingCourseModal(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
             <div className="lb-modal-header">
@@ -1700,7 +1702,8 @@ export default function AdminCourseManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── YOUTUBE VIDEO PREVIEW MODAL (TOP-MOST LAYER PORTAL) ── */}

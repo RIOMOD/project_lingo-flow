@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function TransactionManagementPage() {
   const [txs, setTxs] = useState([
@@ -289,7 +290,7 @@ export default function TransactionManagementPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewDetailTx && (
+      {viewDetailTx && createPortal(
         <div className="lb-overlay" onClick={() => setViewDetailTx(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
             <div className="lb-modal-header">
@@ -309,11 +310,12 @@ export default function TransactionManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Create / Edit Modal */}
-      {(showCreateModal || editingTx) && (
+      {(showCreateModal || editingTx) && createPortal(
         <div className="lb-overlay" onClick={() => { setShowCreateModal(false); setEditingTx(null); }}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -384,7 +386,8 @@ export default function TransactionManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

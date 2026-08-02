@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { getAdminAuditLogs } from "../../services/adminService";
 
 const ACTION_TYPES = ["", "UPDATE_USER_STATUS", "DELETE_USER", "APPROVE_COURSE", "REJECT_COURSE", "PUBLISH_COURSE", "UPDATE_COURSE", "CREATE_TEACHER", "UPDATE_USER_ROLE"];
@@ -154,7 +155,7 @@ export default function SystemActivityPage() {
       </div>
 
       {/* Detail Modal */}
-      {viewLog && (
+      {viewLog && createPortal(
         <div className="lb-overlay" onClick={() => setViewLog(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -175,7 +176,8 @@ export default function SystemActivityPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

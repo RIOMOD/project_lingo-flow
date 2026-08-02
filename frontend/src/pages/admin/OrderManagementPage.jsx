@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState([
@@ -280,7 +281,7 @@ export default function OrderManagementPage() {
       </div>
 
       {/* View Detail Modal */}
-      {viewDetailOrder && (
+      {viewDetailOrder && createPortal(
         <div className="lb-overlay" onClick={() => setViewDetailOrder(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "480px" }}>
             <div className="lb-modal-header">
@@ -300,11 +301,12 @@ export default function OrderManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Create / Edit Modal */}
-      {(showCreateModal || editingOrder) && (
+      {(showCreateModal || editingOrder) && createPortal(
         <div className="lb-overlay" onClick={() => { setShowCreateModal(false); setEditingOrder(null); }}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
             <div className="lb-modal-header">
@@ -359,7 +361,7 @@ export default function OrderManagementPage() {
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                   >
-                    <option value="COMPLETED">COMPLETED (Hoàn thành)</option>
+                    <option value="COMPLETED">COMPLETED (Hoàn tất)</option>
                     <option value="PENDING">PENDING (Chờ xử lý)</option>
                     <option value="CANCELLED">CANCELLED (Đã hủy)</option>
                     <option value="REFUNDED">REFUNDED (Đã hoàn tiền)</option>
@@ -370,12 +372,13 @@ export default function OrderManagementPage() {
               <div className="lb-modal-footer" style={{ marginTop: "10px" }}>
                 <button type="button" className="vocalyn-btn-pill vocalyn-btn-secondary" onClick={() => { setShowCreateModal(false); setEditingOrder(null); }}>Hủy</button>
                 <button type="submit" className="vocalyn-btn-pill vocalyn-btn-primary">
-                  {editingOrder ? "💾 Lưu Thay Đổi" : "➕ Tạo Đơn"}
+                  {editingOrder ? "💾 Lưu Thay Đổi" : "➕ Tạo Đơn Hàng"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

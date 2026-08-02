@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { deleteAdminUser, getAdminUserDetail, getAdminUsers, lockUser, updateAdminUser } from "../../services/adminService";
 
 export default function UserManagementPage() {
@@ -563,7 +564,7 @@ export default function UserManagementPage() {
       </div>
 
       {/* ── View Detail Modal ── */}
-      {viewUserDetail && (
+      {viewUserDetail && createPortal(
         <div className="lb-overlay" onClick={() => setViewUserDetail(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
             <div className="lb-modal-header">
@@ -609,11 +610,12 @@ export default function UserManagementPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Edit User Modal (Admin Full Control) ── */}
-      {editingUser && (
+      {editingUser && createPortal(
         <div className="lb-overlay" onClick={() => !saving && setEditingUser(null)}>
           <div className="lb-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px" }}>
             <div className="lb-modal-header">
@@ -736,7 +738,8 @@ export default function UserManagementPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
