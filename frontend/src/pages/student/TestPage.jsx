@@ -529,7 +529,7 @@ export default function TestPage() {
               <span style={{ fontSize: "0.75rem", background: "#f1f5f9", padding: "0.15rem 0.5rem", borderRadius: "6px", color: "#475569", fontWeight: "700" }}>{questions.length} câu</span>
             </div>
             
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.45rem" }}>
+            <div className="assessment-grid-container">
               {questions.map((item, index) => {
                 const isCurrent = index === current;
                 const isAns = answered(answers.get(item.id));

@@ -4050,11 +4050,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .assessment-nav button.primary { border-color: #087f7b; background: #087f7b; color: #fff; }
 .assessment-question-map { width: 300px; min-width: 300px; max-width: 300px; display: flex; flex-direction: column; justify-content: space-between; min-height: 520px; padding: 1.25rem; border: 1px solid #e2e8ef; border-radius: 16px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); box-sizing: border-box; position: static !important; }
 .assessment-question-map h3 { margin-top: 0; }
-.assessment-question-map > div { display: grid; grid-template-columns: repeat(5,1fr); gap: 7px; }
-.assessment-question-map > div button { aspect-ratio: 1; border: 1px solid #dce3ea; border-radius: 8px; background: #fff; cursor: pointer; }
-.assessment-question-map > div button.is-answered { background: #e6f4f2; color: #087f7b; border-color: #9bcac6; }
-.assessment-question-map > div button.is-current { outline: 2px solid #087f7b; }
-.assessment-question-map > div button.is-flagged { box-shadow: inset 0 -3px #d8a13c; }
+.assessment-grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.45rem; width: 100%; box-sizing: border-box; }
+.assessment-grid-container button { width: 100%; height: 38px; border: 1px solid #dce3ea; border-radius: 9px; background: #fff; cursor: pointer; }
+.assessment-grid-container button.is-answered { background: #e6f4f2; color: #087f7b; border-color: #9bcac6; }
+.assessment-grid-container button.is-current { outline: 2px solid #087f7b; }
+.assessment-grid-container button.is-flagged { box-shadow: inset 0 -3px #d8a13c; }
 .assessment-submit { width: 100%; margin-top: 16px; padding: 11px; border: 0; border-radius: 9px; background: #087f7b; color: #fff; font-weight: 750; cursor: pointer; }
 .assessment-result-banner { display: flex; align-items: center; gap: 15px; padding: 18px 20px; border-radius: 15px; border: 1px solid #cce6d7; background: #eef8f2; }
 .assessment-result-banner > span { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: #d6efe1; color: #28764d; font-size: 1.3rem; }

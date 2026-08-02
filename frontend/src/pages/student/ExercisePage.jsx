@@ -1005,7 +1005,7 @@ export default function ExercisePage() {
               <span style={{ fontSize: "0.75rem", background: "#f1f5f9", padding: "0.15rem 0.5rem", borderRadius: "6px", color: "#475569", fontWeight: "700" }}>{questions.length} câu</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.45rem" }}>
+            <div className="assessment-grid-container">
               {questions.map((item, index) => {
                 const isCurrent = index === current;
                 const isAns = answered(answers.get(item.id));
@@ -1015,13 +1015,16 @@ export default function ExercisePage() {
                     key={item.id}
                     onClick={() => setCurrent(index)}
                     style={{
-                      height: "38px",
-                      borderRadius: "8px",
-                      border: isCurrent ? "2px solid #0d9488" : "1px solid #e2e8f0",
-                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#ffffff",
-                      color: isCurrent ? "#0d9488" : "#334155",
-                      fontWeight: isCurrent || isAns ? "700" : "500",
-                      cursor: "pointer"
+                      height: "36px",
+                      borderRadius: "9px",
+                      border: isCurrent ? "2px solid #0d9488" : isAns ? "1px solid #99f6e4" : "1px solid #e2e8f0",
+                      background: isCurrent ? "#ccfbf1" : isAns ? "#f0fdfa" : "#f8fafc",
+                      color: isCurrent ? "#0d9488" : isAns ? "#0f766e" : "#475569",
+                      fontWeight: isCurrent || isAns ? "800" : "600",
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
+                      boxShadow: isCurrent ? "0 2px 8px rgba(13, 148, 136, 0.2)" : "none",
+                      transition: "all 0.15s ease-in-out"
                     }}
                   >
                     {index + 1}
