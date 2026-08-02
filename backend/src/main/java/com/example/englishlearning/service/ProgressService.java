@@ -6,7 +6,6 @@ import com.example.englishlearning.dto.progress.ProgressDashboardResponse;
 import com.example.englishlearning.dto.progress.LearningRecommendationResponse;
 
 import com.example.englishlearning.dto.progress.CertificateEligibilityResponse;
-import com.example.englishlearning.dto.progress.CheckpointVerificationResponse;
 
 import java.util.List;
 
@@ -17,7 +16,6 @@ public interface ProgressService {
     CourseProgressResponse startLesson(String email, Long lessonId, LessonProgressRequest request);
     CourseProgressResponse trackLesson(String email, Long lessonId, LessonProgressRequest request);
     CourseProgressResponse completeLesson(String email, Long lessonId, LessonProgressRequest request);
-    CheckpointVerificationResponse verifyCheckpoint(String email, Long lessonId, LessonProgressRequest request);
     void recordVocabularyProgress(String email, int masteredCount);
     ProgressDashboardResponse getTeacherDashboard(String email);
     List<LearningRecommendationResponse> getRecommendations(String email);

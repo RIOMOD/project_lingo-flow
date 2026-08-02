@@ -2,7 +2,6 @@ package com.example.englishlearning.service.impl;
 
 import com.example.englishlearning.dto.progress.CertificateEligibilityResponse;
 import com.example.englishlearning.dto.progress.ChartPointResponse;
-import com.example.englishlearning.dto.progress.CheckpointVerificationResponse;
 import com.example.englishlearning.dto.progress.CourseProgressResponse;
 import com.example.englishlearning.dto.progress.LessonProgressRequest;
 import com.example.englishlearning.dto.progress.LearningRecommendationResponse;
@@ -214,7 +213,8 @@ public class ProgressServiceImpl implements ProgressService {
                 progress.setCheckpointPassed(false);
                 progress.setCheckpointScore(BigDecimal.ZERO);
                 progressRepository.save(progress);
-                throw new BadRequestException("Câu trả lời chưa đúng. Hãy xem lại nội dung và thử lại.");
+                throw new BadRequestException("Câu trả lời chưa đúng. " + (lesson.getCheckpointExplanation() == null
+                        ? "Hãy xem lại nội dung và thử lại." : lesson.getCheckpointExplanation()));
             }
             progress.setCheckpointPassed(true);
             progress.setCheckpointScore(new BigDecimal("100.00"));
@@ -229,27 +229,6 @@ public class ProgressServiceImpl implements ProgressService {
         progress.setScore(progress.getCheckpointScore());
         progressRepository.save(progress);
         return buildCourseProgress(user.getId(), lesson.getChapter().getCourse());
-    }
-
-    @Override
-    public CheckpointVerificationResponse verifyCheckpoint(String email, Long lessonId, LessonProgressRequest request) {
-        User user = getUser(email);
-        Lesson lesson = getLesson(lessonId);
-        boolean previewOnly = ensureCourseAccess(user, lesson.getChapter().getCourse(), Boolean.TRUE.equals(lesson.getPreview()));
-        ensureLessonUnlocked(user, lesson, previewOnly);
-        LearningProgress progress = getOrCreateProgress(user, lesson);
-        progress.setCheckpointAttempts(safe(progress.getCheckpointAttempts()) + 1);
-
-        boolean correct = answersMatch(request == null ? null : request.getCheckpointAnswer(), lesson.getCheckpointAnswer());
-        progress.setCheckpointPassed(correct);
-        progress.setCheckpointScore(correct ? new BigDecimal("100.00") : BigDecimal.ZERO);
-        progressRepository.save(progress);
-
-        return CheckpointVerificationResponse.builder()
-                .correct(correct)
-                .message(correct ? "Chính xác!" : "Chưa chính xác, hãy xem lại bài học và thử lại.")
-                .explanation(correct ? lesson.getCheckpointExplanation() : null)
-                .build();
     }
 
     @Override

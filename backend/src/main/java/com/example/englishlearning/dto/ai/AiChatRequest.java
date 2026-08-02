@@ -10,8 +10,6 @@ import lombok.Setter;
 public class AiChatRequest {
     private Long conversationId;
 
-    private AiLearningContextRequest context;
-
     @Size(max = 80, message = "Topic must be at most 80 characters")
     private String topic;
 

@@ -5,7 +5,6 @@ import com.example.englishlearning.dto.progress.CourseProgressResponse;
 import com.example.englishlearning.dto.progress.LessonProgressRequest;
 import com.example.englishlearning.dto.progress.ProgressDashboardResponse;
 import com.example.englishlearning.dto.progress.LearningRecommendationResponse;
-import com.example.englishlearning.dto.progress.CheckpointVerificationResponse;
 import com.example.englishlearning.service.ProgressService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,15 +83,6 @@ public class ProgressController {
     ) {
         return ApiResponse.success("Lesson completed", progressService.completeLesson(
                 authentication.getName(), lessonId, request == null ? new LessonProgressRequest() : request));
-    }
-
-    @PostMapping("/progress/lessons/{lessonId}/checkpoint")
-    public ApiResponse<CheckpointVerificationResponse> verifyCheckpoint(
-            Authentication authentication,
-            @PathVariable Long lessonId,
-            @RequestBody LessonProgressRequest request
-    ) {
-        return ApiResponse.success(progressService.verifyCheckpoint(authentication.getName(), lessonId, request));
     }
 
     @PostMapping("/progress/vocabulary/complete")

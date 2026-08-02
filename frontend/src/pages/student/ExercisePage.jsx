@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import AssessmentQuestion from "../../components/student/AssessmentQuestion";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { getExercises, saveAnswer, startExercise, submitAttempt } from "../../services/assessmentService";
-import { useAiLimoPageContext } from "../../context/AiLimoContext";
 
 const IconArrowLeft = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -746,12 +745,6 @@ export default function ExercisePage() {
   const rawQuestions = attempt?.questions;
   const questions = (rawQuestions && rawQuestions.length > 0) ? rawQuestions : targetExFallback.questions;
   const question = questions[current];
-  const hasServerAttempt = attempt?.id != null && !String(attempt.id).startsWith("10");
-  useAiLimoPageContext(hasServerAttempt && question ? {
-    type: "ASSESSMENT",
-    attemptId: Number(attempt.id),
-    questionId: Number(question.id),
-  } : null);
   const answeredCount = questions.filter((item) => answered(answers.get(item.id))).length;
   const skillItems = requestedSkill
     ? items.filter((item) => (item.exerciseType || item.type) === requestedSkill)

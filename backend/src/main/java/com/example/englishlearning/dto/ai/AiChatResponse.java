@@ -11,5 +11,4 @@ public class AiChatResponse {
     private String provider;
     private Integer totalTokens;
     private boolean fallback;
-    private String guidanceMode;
 }

@@ -15,7 +15,6 @@ import com.example.englishlearning.repository.AiUsageLogRepository;
 import com.example.englishlearning.repository.UserRepository;
 import com.example.englishlearning.repository.WritingSubmissionRepository;
 import com.example.englishlearning.service.impl.AiServiceImpl;
-import com.example.englishlearning.service.impl.AiLearningContextResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,9 +54,6 @@ class AiServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private AiLearningContextResolver contextResolver;
-
     private AiServiceImpl aiService;
 
     @BeforeEach
@@ -71,7 +67,6 @@ class AiServiceImplTest {
                 usageLogRepository,
                 userRepository,
                 new ObjectMapper(),
-                contextResolver,
                 50,
                 true
         );
@@ -97,9 +92,6 @@ class AiServiceImplTest {
                 .build();
 
         when(userRepository.findByEmailAndDeletedAtIsNull(email)).thenReturn(Optional.of(user));
-        when(contextResolver.resolve(eq(email), isNull())).thenReturn(
-                new AiLearningContextResolver.ResolvedContext(AiLearningContextResolver.FREE_CHAT, "")
-        );
         when(openAiProvider.isAvailable()).thenReturn(true);
         when(openAiProvider.name()).thenReturn("openai");
         when(openAiProvider.chat(any(AiPromptRequest.class))).thenReturn(mockResult);
@@ -142,9 +134,6 @@ class AiServiceImplTest {
                 .build();
 
         when(userRepository.findByEmailAndDeletedAtIsNull(email)).thenReturn(Optional.of(user));
-        when(contextResolver.resolve(eq(email), isNull())).thenReturn(
-                new AiLearningContextResolver.ResolvedContext(AiLearningContextResolver.FREE_CHAT, "")
-        );
         when(openAiProvider.isAvailable()).thenReturn(true);
         when(openAiProvider.chat(any(AiPromptRequest.class))).thenThrow(new BadRequestException("OpenAI error"));
         
