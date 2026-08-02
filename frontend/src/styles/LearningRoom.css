@@ -129,6 +129,7 @@
 .learning-sidebar-card {
   width: 100%;
   min-width: 0;
+  min-height: 660px;
   box-sizing: border-box;
   background: #ffffff;
   border-radius: 20px;
@@ -249,6 +250,7 @@
 .learning-main-card {
   width: 100%;
   min-width: 0;
+  min-height: 660px;
   box-sizing: border-box;
   background: #ffffff;
   border-radius: 20px;
@@ -291,10 +293,16 @@
   font-weight: 800;
 }
 
+.tab-content-area {
+  min-height: 240px;
+  flex: 1;
+}
+
 /* ── Right Panel: Completion Checklist Card ── */
 .learning-progress-panel {
   width: 100%;
   min-width: 0;
+  min-height: 660px;
   box-sizing: border-box;
   background: #ffffff;
   border-radius: 20px;

@@ -517,58 +517,61 @@ export default function CourseLearningPage() {
                 )}
               </div>
 
-              {/* Tab 1: Content Body */}
-              {activeTab === "content" && (
-                <div style={{ lineHeight: 1.75, color: "#334155" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
-                    <span style={{ padding: "4px 10px", background: "#e0f2fe", color: "#0284c7", borderRadius: "999px", fontSize: "0.78rem", fontWeight: 800 }}>
-                      {lesson.lessonType}
-                    </span>
-                    <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "#0f172a" }}>
-                      {lesson.title}
-                    </h3>
-                  </div>
-                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", whiteSpace: "pre-line", fontSize: "0.98rem" }}>
-                    {lesson.content || "Nội dung bài giảng đang được cập nhật."}
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 2: Interactive Quiz */}
-              {activeTab === "quiz" && hasQuestion && (
-                <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "16px", padding: "1.5rem" }}>
-                  <h4 style={{ margin: "0 0 0.8rem 0", color: "#0369a1", fontSize: "1.05rem", fontWeight: 800 }}>
-                    ✍️ Thử thách kiểm tra bài học
-                  </h4>
-                  <p style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem", marginBottom: "1rem" }}>
-                    {lesson.checkpointQuestion}
-                  </p>
-                  <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", width: "100%", boxSizing: "border-box" }}>
-                    <input
-                      type="text"
-                      className="checkpoint-input-field"
-                      style={{ flex: 1, minWidth: 0 }}
-                      value={checkpointAnswer}
-                      onChange={(e) => handleAnswerInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleVerifyQuiz()}
-                      placeholder="Nhập câu trả lời của bạn..."
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyQuiz}
-                      style={{ padding: "10px 20px", background: "#0284c7", color: "#ffffff", fontWeight: 800, border: "none", borderRadius: "10px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
-                    >
-                      Kiểm tra
-                    </button>
-                  </div>
-                  {quizChecked && (
-                    <div style={{ padding: "1rem", borderRadius: "12px", background: quizSuccess ? "#dcfce7" : "#fee2e2", color: quizSuccess ? "#15803d" : "#b91c1c", border: `1px solid ${quizSuccess ? "#86efac" : "#fca5a5"}`, fontSize: "0.9rem" }}>
-                      <strong>{quizSuccess ? "🎉 Chính xác!" : "⚠️ Chưa chính xác!"}</strong>
-                      <p style={{ margin: "4px 0 0 0" }}>{lesson.checkpointExplanation || "Hãy đọc lại nội dung bài giảng để chọn đáp án đúng."}</p>
+              {/* Tab Content Container (Fixed Height Shell) */}
+              <div className="tab-content-area">
+                {/* Tab 1: Content Body */}
+                {activeTab === "content" && (
+                  <div style={{ lineHeight: 1.75, color: "#334155" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
+                      <span style={{ padding: "4px 10px", background: "#e0f2fe", color: "#0284c7", borderRadius: "999px", fontSize: "0.78rem", fontWeight: 800 }}>
+                        {lesson.lessonType}
+                      </span>
+                      <h3 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800, color: "#0f172a" }}>
+                        {lesson.title}
+                      </h3>
                     </div>
-                  )}
-                </div>
-              )}
+                    <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "1.5rem", whiteSpace: "pre-line", fontSize: "0.98rem" }}>
+                      {lesson.content || "Nội dung bài giảng đang được cập nhật."}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Interactive Quiz */}
+                {activeTab === "quiz" && hasQuestion && (
+                  <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "16px", padding: "1.5rem" }}>
+                    <h4 style={{ margin: "0 0 0.8rem 0", color: "#0369a1", fontSize: "1.05rem", fontWeight: 800 }}>
+                      ✍️ Thử thách kiểm tra bài học
+                    </h4>
+                    <p style={{ fontWeight: 700, color: "#0f172a", fontSize: "1rem", marginBottom: "1rem" }}>
+                      {lesson.checkpointQuestion}
+                    </p>
+                    <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", width: "100%", boxSizing: "border-box" }}>
+                      <input
+                        type="text"
+                        className="checkpoint-input-field"
+                        style={{ flex: 1, minWidth: 0 }}
+                        value={checkpointAnswer}
+                        onChange={(e) => handleAnswerInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleVerifyQuiz()}
+                        placeholder="Nhập câu trả lời của bạn..."
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyQuiz}
+                        style={{ padding: "10px 20px", background: "#0284c7", color: "#ffffff", fontWeight: 800, border: "none", borderRadius: "10px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+                      >
+                        Kiểm tra
+                      </button>
+                    </div>
+                    {quizChecked && (
+                      <div style={{ padding: "1rem", borderRadius: "12px", background: quizSuccess ? "#dcfce7" : "#fee2e2", color: quizSuccess ? "#15803d" : "#b91c1c", border: `1px solid ${quizSuccess ? "#86efac" : "#fca5a5"}`, fontSize: "0.9rem" }}>
+                        <strong>{quizSuccess ? "🎉 Chính xác!" : "⚠️ Chưa chính xác!"}</strong>
+                        <p style={{ margin: "4px 0 0 0" }}>{lesson.checkpointExplanation || "Hãy đọc lại nội dung bài giảng để chọn đáp án đúng."}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           ) : null}
         </article>
