@@ -427,8 +427,8 @@ export default function TestPage() {
         </section>
       )}
 
-      <div className="assessment-workspace" style={{ flex: 1, minHeight: 0, display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.25rem", alignItems: "stretch", overflow: "hidden" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.75rem", height: "100%", minHeight: 0, boxSizing: "border-box", justifyContent: "space-between", padding: "1.25rem", overflow: "hidden" }}>
+      <div className="assessment-workspace" style={{ flex: 1, minHeight: "560px", display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.25rem", alignItems: "stretch", width: "100%", boxSizing: "border-box" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.75rem", minHeight: "560px", boxSizing: "border-box", justifyContent: "space-between", padding: "1.25rem", background: "#ffffff", borderRadius: "20px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           <div className="assessment-counter" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "0.65rem 0.9rem", borderRadius: "10px", border: "1px solid #e2e8f0", flexShrink: 0 }}>
             <span style={{ fontWeight: "700", color: "#0f172a" }}>Câu {current + 1} / {questions.length}</span>
             {!submitted && (
@@ -467,7 +467,7 @@ export default function TestPage() {
               <button 
                 type="button" 
                 onClick={() => setCurrent((v) => v + 1)}
-                style={{ padding: "0.6rem 1.2rem", borderRadius: "10px", border: "1px solid #0d9488", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}
+                style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
               >
                 Câu tiếp theo
               </button>
@@ -477,7 +477,7 @@ export default function TestPage() {
                   className="primary" 
                   type="button" 
                   onClick={() => setShowConfirmModal(true)}
-                  style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer" }}
+                  style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", border: "none", background: "#0d9488", color: "#ffffff", fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 10px rgba(13, 148, 136, 0.2)" }}
                 >
                   Nộp bài
                 </button>
@@ -495,7 +495,7 @@ export default function TestPage() {
           )}
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", height: "100%", minHeight: 0, boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", overflowY: "auto" }}>
+        <aside className="assessment-question-map" style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "20px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "1rem", minHeight: "560px", boxSizing: "border-box", justifyContent: submitted ? "flex-start" : "space-between", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           {submitted && recommendations.length > 0 && (
             <div className="assessment-recommendations">
               <div className="assessment-recommendations-heading">
