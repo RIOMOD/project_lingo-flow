@@ -33,14 +33,14 @@ export default function CourseApprovalPage() {
     <div className="course-page">
       <section className="page-hero">
         <span className="page-badge">Admin</span>
-        <h2 className="page-title">Duyet khoa hoc</h2>
-        <p className="page-description">Kiem tra khoa hoc giao vien gui len, duyet noi dung/gia va xuat ban.</p>
+        <h2 className="page-title">Duyệt khóa học</h2>
+        <p className="page-description">Kiểm tra khóa học giáo viên gửi lên, duyệt nội dung/giá và xuất bản.</p>
         <div className="course-filter-row">
           <select value={status} onChange={(event) => setStatus(event.target.value)}>
-            <option value="SUBMITTED">Cho duyet</option>
-            <option value="APPROVED">Da duyet</option>
-            <option value="PUBLISHED">Da xuat ban</option>
-            <option value="REJECTED">Da tu choi</option>
+            <option value="SUBMITTED">Chờ duyệt</option>
+            <option value="APPROVED">Đã duyệt</option>
+            <option value="PUBLISHED">Đã xuất bản</option>
+            <option value="REJECTED">Đã từ chối</option>
           </select>
         </div>
       </section>
