@@ -140,24 +140,8 @@ export default function NotificationDropdown({ onClose }) {
 
   return (
     <div 
-      className="notif-dropdown-menu"
+      className="app-notif-popover notif-dropdown-menu"
       ref={containerRef}
-      style={{
-        position: "absolute",
-        top: "calc(100% + 10px)",
-        right: 0,
-        width: "380px",
-        maxHeight: "520px",
-        background: "#ffffff",
-        borderRadius: "20px",
-        boxShadow: "0 20px 40px rgba(15, 23, 42, 0.15), 0 0 1px rgba(15, 23, 42, 0.1)",
-        border: "1px solid #e2e8f0",
-        zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        animation: "notifSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-      }}
     >
       {/* ─── Header ────────────────────────────────────── */}
       <div 
