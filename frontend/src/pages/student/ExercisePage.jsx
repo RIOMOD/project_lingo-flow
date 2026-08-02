@@ -883,7 +883,7 @@ export default function ExercisePage() {
   }
 
   return (
-    <div className="assessment-page focused-assessment" style={{ padding: "0.5rem 1rem" }}>
+    <div className="assessment-page focused-assessment" style={{ width: "100%", maxWidth: "1200px", margin: "0 auto", padding: "0.5rem 1rem", boxSizing: "border-box" }}>
       <header 
         style={{ 
           display: "flex", 

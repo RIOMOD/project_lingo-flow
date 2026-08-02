@@ -341,14 +341,13 @@ export default function TestPage() {
     <div 
       className="assessment-page focused-assessment"
       style={{
-        height: "680px",
-        minHeight: "680px",
-        maxHeight: "680px",
+        width: "100%",
+        maxWidth: "1200px",
+        margin: "0 auto",
         display: "flex",
         flexDirection: "column",
         gap: "1rem",
-        boxSizing: "border-box",
-        overflow: "hidden"
+        boxSizing: "border-box"
       }}
     >
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
