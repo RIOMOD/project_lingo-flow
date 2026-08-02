@@ -104,78 +104,49 @@ export default function NotificationDropdown({ onClose }) {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllRead = async () => {
+  function markAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    try {
-      await apiRequest("/notifications/read-all", { method: "PUT" });
-    } catch (e) {}
-  };
+  }
 
-  const markSingleRead = async (id) => {
+  function markSingleRead(id) {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    if (typeof id === "number") {
-      try {
-        await apiRequest(`/notifications/${id}/read`, { method: "PUT" });
-      } catch (e) {}
-    }
-  };
+  }
 
-  const deleteNotif = async (id, e) => {
-    e.stopPropagation();
+  function deleteNotif(id, e) {
     e.preventDefault();
+    e.stopPropagation();
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-    if (typeof id === "number") {
-      try {
-        await apiRequest(`/notifications/${id}`, { method: "DELETE" });
-      } catch (e) {}
-    }
-  };
+  }
 
-  const filteredItems = notifications.filter((item) => {
-    if (filter === "unread") return !item.read;
-    if (filter === "course") return item.type === "course";
-    if (filter === "system") return item.type === "payment" || item.type === "leaderboard";
+  const filteredItems = notifications.filter((n) => {
+    if (filter === "unread") return !n.read;
+    if (filter === "course") return n.type === "course";
+    if (filter === "system") return n.type === "system" || n.type === "payment" || n.type === "reminder";
     return true;
   });
 
   return (
-    <div 
-      className="app-notif-popover notif-dropdown-menu"
-      ref={containerRef}
-    >
-      {/* ─── Header ────────────────────────────────────── */}
-      <div 
-        style={{
-          padding: "1.2rem 1.25rem 0.8rem 1.25rem",
-          borderBottom: "1px solid #f1f5f9",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          background: "#ffffff"
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "800", color: "#0f172a" }}>Thông báo</h3>
+    <div className="app-notif-popover notif-dropdown-menu" ref={containerRef}>
+      {/* Header */}
+      <div className="app-notif-header">
+        <div className="app-notif-title-row">
+          <h3 className="app-notif-title">Thông báo</h3>
           {unreadCount > 0 && (
-            <span style={{ background: "#0d9488", color: "#ffffff", fontSize: "0.72rem", fontWeight: "700", padding: "0.15rem 0.5rem", borderRadius: "99px" }}>
+            <span className="app-notif-badge">
               {unreadCount} mới
             </span>
           )}
         </div>
 
         {unreadCount > 0 && (
-          <button 
-            type="button" 
-            onClick={markAllRead}
-            style={{ background: "none", border: "none", color: "#0d9488", fontSize: "0.82rem", fontWeight: "700", cursor: "pointer", padding: 0 }}
-          >
+          <button type="button" className="app-notif-readall-btn" onClick={markAllRead}>
             Đọc tất cả
           </button>
         )}
       </div>
 
-      {/* ─── Filter Tabs ────────────────────────────────────── */}
-      <div style={{ display: "flex", gap: "0.35rem", padding: "0.6rem 1.25rem", borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
+      {/* Filter Tabs */}
+      <div className="app-notif-filter-bar">
         {[
           { key: "all", label: "Tất cả" },
           { key: "unread", label: `Chưa đọc (${unreadCount})` },
@@ -185,97 +156,56 @@ export default function NotificationDropdown({ onClose }) {
           <button
             key={tab.key}
             type="button"
+            className={`app-notif-tab ${filter === tab.key ? "is-active" : ""}`}
             onClick={() => setFilter(tab.key)}
-            style={{
-              padding: "0.35rem 0.7rem",
-              borderRadius: "8px",
-              border: "none",
-              background: filter === tab.key ? "#ffffff" : "transparent",
-              color: filter === tab.key ? "#0f172a" : "#64748b",
-              fontWeight: filter === tab.key ? "700" : "500",
-              fontSize: "0.78rem",
-              boxShadow: filter === tab.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-              cursor: "pointer",
-              transition: "all 0.15s ease"
-            }}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* ─── Notifications List ────────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "0.5rem 0" }}>
+      {/* Notifications List */}
+      <div className="app-notif-list">
         {filteredItems.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#94a3b8" }}>
+          <div className="app-notif-empty">
             <span style={{ fontSize: "2rem", display: "block", marginBottom: "0.5rem" }}>🔔</span>
-            <strong style={{ display: "block", color: "#475569", fontSize: "0.95rem" }}>Không có thông báo nào</strong>
-            <small style={{ fontSize: "0.82rem" }}>Bạn đã xem hết các thông báo cập nhật.</small>
+            <strong>Không có thông báo nào</strong>
+            <small>Bạn đã xem hết các thông báo cập nhật.</small>
           </div>
         ) : (
           filteredItems.map((item) => (
             <Link
               key={item.id}
               to={item.link}
+              className={`app-notif-item ${item.read ? "is-read" : "is-unread"}`}
               onClick={() => {
                 markSingleRead(item.id);
                 if (onClose) onClose();
               }}
-              style={{
-                display: "flex",
-                gap: "0.9rem",
-                padding: "0.9rem 1.25rem",
-                textDecoration: "none",
-                background: item.read ? "#ffffff" : "#f0fdfa",
-                borderBottom: "1px solid #f1f5f9",
-                transition: "background 0.15s ease",
-                position: "relative"
-              }}
             >
-              <div 
-                style={{
-                  width: "38px",
-                  height: "38px",
-                  borderRadius: "12px",
-                  background: item.bg,
-                  color: item.color,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.1rem",
-                  flexShrink: 0
-                }}
-              >
+              <div className="app-notif-icon-badge" style={{ background: item.bg, color: item.color }}>
                 {item.icon}
               </div>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.2rem" }}>
-                  <strong style={{ fontSize: "0.9rem", color: item.read ? "#334155" : "#0f172a", fontWeight: "700" }}>
+              <div className="app-notif-info">
+                <div className="app-notif-item-header">
+                  <strong className="app-notif-item-title">
                     {item.title}
                   </strong>
-                  <span style={{ fontSize: "0.72rem", color: "#94a3b8", flexShrink: 0, marginLeft: "0.5rem" }}>
+                  <span className="app-notif-item-time">
                     {item.time}
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b", lineHeight: "1.4", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                <p className="app-notif-item-desc">
                   {item.message}
                 </p>
               </div>
 
               <button
                 type="button"
+                className="app-notif-del-btn"
                 onClick={(e) => deleteNotif(item.id, e)}
                 title="Xóa thông báo này"
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#cbd5e1",
-                  fontSize: "1rem",
-                  cursor: "pointer",
-                  padding: "0 0.2rem",
-                  alignSelf: "flex-start"
-                }}
               >
                 ×
               </button>
@@ -284,20 +214,9 @@ export default function NotificationDropdown({ onClose }) {
         )}
       </div>
 
-      {/* ─── Footer ────────────────────────────────────── */}
-      <div 
-        style={{
-          padding: "0.75rem 1.25rem",
-          background: "#f8fafc",
-          borderTop: "1px solid #f1f5f9",
-          textAlign: "center"
-        }}
-      >
-        <Link 
-          to="/student/settings" 
-          onClick={onClose}
-          style={{ fontSize: "0.82rem", color: "#0d9488", fontWeight: "700", textDecoration: "none" }}
-        >
+      {/* Footer */}
+      <div className="app-notif-footer">
+        <Link to="/student/settings" onClick={onClose} className="app-notif-settings-link">
           ⚙️ Tùy chỉnh cài đặt nhận thông báo
         </Link>
       </div>
