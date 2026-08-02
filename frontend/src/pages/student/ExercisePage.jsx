@@ -883,53 +883,71 @@ export default function ExercisePage() {
   }
 
   return (
-    <div className="assessment-page focused-assessment">
-      <div style={{ marginBottom: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <button
-          type="button"
-          onClick={handleBackClick}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.4rem",
-            padding: "0.45rem 0.9rem",
-            borderRadius: "10px",
-            border: "1px solid #cbd5e1",
-            background: "#ffffff",
-            color: "#0f172a",
-            fontSize: "0.85rem",
-            fontWeight: 700,
-            cursor: "pointer"
-          }}
-        >
-          ← Quay lại danh sách bài tập
-        </button>
-      </div>
+    <div className="assessment-page focused-assessment" style={{ padding: "0.5rem 1rem" }}>
+      <header 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between", 
+          background: "#ffffff", 
+          padding: "0.65rem 1.1rem", 
+          borderRadius: "14px", 
+          border: "1px solid #e2e8f0", 
+          marginBottom: "0.75rem",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.02)"
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+          <button
+            type="button"
+            onClick={handleBackClick}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.4rem 0.8rem",
+              borderRadius: "8px",
+              border: "1px solid #cbd5e1",
+              background: "#f8fafc",
+              color: "#0f172a",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            ← Quay lại
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", background: "#e0f2fe", color: "#0369a1", padding: "0.2rem 0.5rem", borderRadius: "6px" }}>
+              Bài tập
+            </span>
+            <h2 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>
+              {attempt.title}
+            </h2>
+          </div>
+        </div>
 
-      <header className="assessment-run-header">
-        <div>
-          <span className="page-badge">Bài tập</span>
-          <h2>{attempt.title}</h2>
-          <p>{submitted ? "Kết quả đánh giá bài tập." : `${answeredCount}/${questions.length} câu đã hoàn thành`}</p>
+        <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0d9488", background: "#f0fdfa", border: "1px solid #ccfbf1", padding: "0.35rem 0.8rem", borderRadius: "8px" }}>
+          {submitted ? "Đã nộp bài" : `Tiến độ: ${answeredCount}/${questions.length} câu`}
         </div>
       </header>
 
       {submitted && (
-        <section className={`assessment-result-banner ${attempt.passed ? "is-pass" : "is-fail"}`}>
+        <section className={`assessment-result-banner ${attempt.passed ? "is-pass" : "is-fail"}`} style={{ marginBottom: "0.75rem", padding: "0.75rem 1rem" }}>
           <div>
-            <h3>{attempt.passed ? "🎉 Đạt kết quả xuất sắc!" : "⚠️ Bạn chưa đạt điểm yêu cầu"}</h3>
-            <p>
+            <h3 style={{ margin: 0, fontSize: "1rem" }}>{attempt.passed ? "🎉 Đạt kết quả xuất sắc!" : "⚠️ Bạn chưa đạt điểm yêu cầu"}</h3>
+            <p style={{ margin: "0.2rem 0 0 0", fontSize: "0.85rem" }}>
               Điểm: {attempt.score}/{attempt.totalPoints || 100} ({percent.toFixed(0)}%) · Đúng {attempt.correctAnswers}/{questions.length} câu.
             </p>
           </div>
-          <button type="button" onClick={() => begin(attempt.targetId || attempt.id)}>
+          <button type="button" onClick={() => begin(attempt.targetId || attempt.id)} style={{ padding: "0.4rem 0.9rem", fontSize: "0.85rem" }}>
             Làm lại bài tập
           </button>
         </section>
       )}
 
-      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1.25rem", alignItems: "stretch", width: "100%", boxSizing: "border-box", minHeight: "560px" }}>
-        <main style={{ display: "flex", flexDirection: "column", gap: "0.75rem", minHeight: "560px", boxSizing: "border-box", justifyContent: "space-between", padding: "1.25rem", background: "#ffffff", borderRadius: "20px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
+      <div className="assessment-workspace" style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "stretch", width: "100%", boxSizing: "border-box", minHeight: "460px" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minHeight: "460px", boxSizing: "border-box", justifyContent: "space-between", padding: "1rem 1.25rem", background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           <div className="assessment-counter" style={{ marginBottom: "1rem", fontWeight: 700, color: "#0f172a" }}>
             Câu {current + 1} / {questions.length}
           </div>
@@ -976,7 +994,7 @@ export default function ExercisePage() {
           </div>
         </main>
 
-        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1.25rem", borderRadius: "20px", border: "1px solid #e2e8f0", minHeight: "560px", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
+        <aside className="assessment-question-map" style={{ background: "#fff", padding: "1rem 1.25rem", borderRadius: "16px", border: "1px solid #e2e8f0", minHeight: "460px", boxSizing: "border-box", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03)" }}>
           <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem" }}>Danh sách {questions.length} câu hỏi</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
             {questions.map((item, index) => {
