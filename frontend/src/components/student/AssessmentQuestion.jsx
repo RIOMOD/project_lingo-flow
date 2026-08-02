@@ -22,7 +22,7 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
 
   const rawType = question.questionType || question.type || "SINGLE_CHOICE";
   const qType = rawType;
-  const qText = question.questionText || question.prompt || "Nội dung câu hỏi";
+  const qText = question.questionText || question.prompt || question.content || question.title || question.text || "Nội dung câu hỏi";
   const points = question.points || 1;
   const options = question.options ?? [];
 
