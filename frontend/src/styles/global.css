@@ -4044,6 +4044,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .assessment-explanation p { margin: 3px 0 0; color: #607087; }
 .assessment-explanation.is-correct { background: #edf8f2; color: #28754c; }
 .assessment-explanation.is-incorrect { background: #fff2f0; color: #a33b34; }
+/* Student Workstation Full Header-Width Match Rule */
+.settings-page,
+.settings-container,
+.pronunciation-page,
+.pronunciation-container,
+.vocab-dashboard-page,
+.leaderboard-page,
+.writing-page,
+.chatbot-page,
+.support-page,
+.order-history-page,
+.order-detail-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
 /* Premium Assessment Button System */
 .assessment-nav { display: flex; justify-content: space-between; gap: 0.75rem; margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
 

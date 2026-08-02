@@ -44,6 +44,7 @@ const WritingCorrectionPage = lazy(() => import("../pages/student/WritingCorrect
 const ProgressPage = lazy(() => import("../pages/student/ProgressPage"));
 const StudentProfilePage = lazy(() => import("../pages/student/ProfilePage"));
 const SettingsPage = lazy(() => import("../pages/student/SettingsPage"));
+const SupportPage = lazy(() => import("../pages/student/SupportPage"));
 
 // Teacher Pages
 const TeacherDashboardPage = lazy(() => import("../pages/teacher/DashboardPage"));
@@ -121,6 +122,7 @@ export default function AppRoutes() {
                 <Route path="path" element={<ProgressPage />} />
                 <Route path="profile" element={<StudentProfilePage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="support" element={<SupportPage />} />
               </Route>
             </Route>
 
