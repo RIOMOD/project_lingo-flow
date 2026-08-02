@@ -3,7 +3,7 @@
 .writing-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 165px);
+  height: calc(100vh - 110px);
   max-width: 1280px;
   margin: 0 auto;
   gap: 0.75rem;

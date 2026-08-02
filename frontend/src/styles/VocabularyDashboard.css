@@ -1,8 +1,8 @@
 /* VocabularyDashboard.css - Refactored for clean modern theme integration */
 
 .vocab-dashboard-page {
-  padding: 1.5rem;
-  max-width: 1200px;
+  padding: 0.5rem 1rem;
+  max-width: 1280px;
   margin: 0 auto;
   font-family: inherit;
   color: #1e293b;
@@ -11,58 +11,59 @@
 .vocab-hero {
   background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 20px;
-  padding: 2.5rem;
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   animation: slideUp 0.6s ease-out;
 }
 
 .vocab-hero-content h1 {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.4rem;
   background: linear-gradient(135deg, #0d9488, #2563eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .vocab-hero-content p {
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   color: #64748b;
   max-width: 520px;
-  line-height: 1.6;
+  line-height: 1.5;
+  margin: 0;
 }
 
 .vocab-stats {
   display: flex;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .vocab-stat-card {
   background: rgba(255, 255, 255, 0.9);
-  padding: 1.25rem 1.5rem;
-  border-radius: 16px;
+  padding: 0.85rem 1.25rem;
+  border-radius: 14px;
   text-align: center;
-  min-width: 130px;
+  min-width: 110px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .vocab-stat-card h3 {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   margin: 0;
   color: #0d9488;
 }
 
 .vocab-stat-card p {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #64748b;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -73,23 +74,35 @@
 }
 
 .vocab-topics-section h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: #0f172a;
 }
 
 .vocab-topic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .vocab-topic-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .vocab-topic-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .vocab-topic-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
