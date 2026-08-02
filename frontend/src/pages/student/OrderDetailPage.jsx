@@ -101,32 +101,32 @@ export default function OrderDetailPage() {
   const items = order?.items ?? [];
 
   return (
-    <div className="settings-container" style={{ width: "100%", margin: "0 auto", padding: "1.5rem" }}>
+    <div className="order-detail-page" style={{ width: "100%", margin: "0 auto", padding: "1rem 0" }}>
       {/* Breadcrumbs */}
-      <nav style={{ display: "flex", gap: "8px", fontSize: "0.88rem", color: "#64748b", marginBottom: "1.2rem" }}>
-        <Link to="/" style={{ color: "#64748b", textDecoration: "none" }}>Trang chủ</Link>
+      <nav className="order-detail-breadcrumb" style={{ display: "flex", gap: "8px", fontSize: "0.88rem", marginBottom: "1.2rem" }}>
+        <Link to="/" style={{ textDecoration: "none" }}>Trang chủ</Link>
         <span>/</span>
-        <Link to="/student/orders" style={{ color: "#64748b", textDecoration: "none" }}>Lịch sử mua hàng</Link>
+        <Link to="/student/orders" style={{ textDecoration: "none" }}>Lịch sử mua hàng</Link>
         <span>/</span>
-        <span style={{ color: "#0f172a", fontWeight: 600 }}>Đơn hàng #{orderCode}</span>
+        <strong className="order-code-text">Đơn hàng #{orderCode}</strong>
       </nav>
 
       {/* Header Panel */}
-      <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.5rem 1.8rem", border: "1px solid #e2e8f0", marginBottom: "1.8rem", boxShadow: "0 4px 16px rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="order-detail-header-card">
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+            <h1 className="order-hero-title">
               Đơn hàng #{orderCode}
             </h1>
             <button
               type="button"
+              className="order-copy-btn"
               onClick={handleCopyCode}
-              style={{ background: "#f1f5f9", border: "none", color: "#475569", borderRadius: "6px", padding: "4px 8px", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600 }}
             >
               {copied ? "✓ Đã chép" : "📋 Sao chép"}
             </button>
           </div>
-          <p style={{ margin: "4px 0 0 0", color: "#64748b", fontSize: "0.88rem" }}>
+          <p className="order-hero-sub">
             Ngày đặt hàng: {formatDate(order?.createdAt)}
           </p>
         </div>
@@ -152,7 +152,7 @@ export default function OrderDetailPage() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "18px", border: "1px solid #e2e8f0" }}>
+        <div className="order-detail-card-panel" style={{ textAlign: "center", padding: "3rem 1rem" }}>
           <div className="auth-state">Đang tải chi tiết đơn hàng...</div>
         </div>
       )}
@@ -168,28 +168,17 @@ export default function OrderDetailPage() {
           {/* Left Column: Purchased Courses & Billing Profile */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             {/* Registered Courses List */}
-            <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
-              <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>📚 Khóa học trong đơn hàng ({items.length})</h3>
+            <div className="order-detail-card-panel">
+              <h3 className="order-panel-title">📚 Khóa học trong đơn hàng ({items.length})</h3>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
                 {items.map((item, idx) => (
-                  <div
-                    key={item.courseId || idx}
-                    style={{
-                      display: "flex",
-                      gap: "14px",
-                      alignItems: "center",
-                      padding: "0.9rem 1rem",
-                      background: "#f8fafc",
-                      borderRadius: "14px",
-                      border: "1px solid #f1f5f9",
-                    }}
-                  >
+                  <div key={item.courseId || idx} className="order-detail-course-row">
                     <CourseImage item={item} index={idx} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link
                         to={`/student/courses/${item.slug || item.courseId}`}
-                        style={{ display: "block", fontSize: "0.98rem", fontWeight: 700, color: "#0f172a", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                        className="order-course-title"
                       >
                         {item.title}
                       </Link>
@@ -199,7 +188,7 @@ export default function OrderDetailPage() {
                             {money.format(item.originalPrice)}
                           </span>
                         )}
-                        <span style={{ fontSize: "0.95rem", color: "#2563eb", fontWeight: 800 }}>
+                        <span className="order-course-price">
                           {money.format(item.finalPrice || item.price || 0)}
                         </span>
                       </div>
@@ -229,24 +218,24 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Buyer Info Profile */}
-            <div style={{ background: "#ffffff", borderRadius: "18px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.02)" }}>
-              <h3 style={{ margin: "0 0 1rem 0", fontSize: "1.1rem", fontWeight: 700, color: "#0f172a" }}>👤 Thông tin học viên đăng ký</h3>
+            <div className="order-detail-card-panel">
+              <h3 className="order-panel-title">👤 Thông tin học viên đăng ký</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", fontSize: "0.92rem" }}>
                 <div>
-                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Họ và tên</span>
-                  <strong style={{ color: "#1e293b" }}>{user?.fullName || "Học viên LingoFlow"}</strong>
+                  <span className="order-field-label">Họ và tên</span>
+                  <strong className="order-field-value">{user?.fullName || "Học viên LingoFlow"}</strong>
                 </div>
                 <div>
-                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Email nhận kích hoạt</span>
-                  <strong style={{ color: "#1e293b" }}>{user?.email || "student@example.com"}</strong>
+                  <span className="order-field-label">Email nhận kích hoạt</span>
+                  <strong className="order-field-value">{user?.email || "student@example.com"}</strong>
                 </div>
                 <div>
-                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Mã đơn hàng</span>
+                  <span className="order-field-label">Mã đơn hàng</span>
                   <strong style={{ color: "#2563eb" }}>{orderCode}</strong>
                 </div>
                 <div>
-                  <span style={{ display: "block", color: "#64748b", fontSize: "0.82rem" }}>Thời gian khởi tạo</span>
-                  <strong style={{ color: "#1e293b" }}>{formatDate(order?.createdAt)}</strong>
+                  <span className="order-field-label">Thời gian khởi tạo</span>
+                  <strong className="order-field-value">{formatDate(order?.createdAt)}</strong>
                 </div>
               </div>
             </div>
@@ -254,18 +243,18 @@ export default function OrderDetailPage() {
 
           {/* Right Column: Order Summary & Actions */}
           <div style={{ position: "sticky", top: "2rem" }}>
-            <div style={{ background: "#ffffff", borderRadius: "20px", padding: "1.8rem", border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-              <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#0f172a" }}>Chi tiết thanh toán</h3>
+            <div className="order-detail-summary-card">
+              <h3 className="order-panel-title">Chi tiết thanh toán</h3>
 
               {/* Invoice Breakdown */}
-              <div style={{ background: "#f8fafc", borderRadius: "14px", padding: "1.2rem", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.7rem", fontSize: "0.9rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
-                  <span>Tạm tính ({items.length} khóa):</span>
-                  <strong style={{ color: "#1e293b" }}>{money.format(order?.subtotalAmount || order?.totalAmount || 0)}</strong>
+              <div className="order-summary-box">
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span className="order-field-label">Tạm tính ({items.length} khóa):</span>
+                  <strong className="order-field-value">{money.format(order?.subtotalAmount || order?.totalAmount || 0)}</strong>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
-                  <span>Giảm giá voucher:</span>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span className="order-field-label">Giảm giá voucher:</span>
                   <strong style={{ color: order?.discountAmount > 0 ? "#16a34a" : "#64748b" }}>
                     -{money.format(order?.discountAmount || 0)}
                   </strong>
@@ -273,7 +262,7 @@ export default function OrderDetailPage() {
 
                 {order?.couponCode && (
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#64748b" }}>Mã ưu đãi đã dùng:</span>
+                    <span className="order-field-label">Mã ưu đãi đã dùng:</span>
                     <span style={{ background: "#dcfce7", color: "#15803d", fontWeight: 800, fontSize: "0.78rem", padding: "2px 8px", borderRadius: "6px" }}>
                       🏷️ {order.couponCode}
                     </span>
@@ -281,7 +270,7 @@ export default function OrderDetailPage() {
                 )}
 
                 <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "0.7rem", borderTop: "1px solid #e2e8f0", fontSize: "1.05rem" }}>
-                  <span style={{ fontWeight: 700, color: "#0f172a" }}>Tổng thanh toán:</span>
+                  <span style={{ fontWeight: 700 }}>Tổng thanh toán:</span>
                   <strong style={{ fontSize: "1.55rem", fontWeight: 800, color: "#2563eb" }}>
                     {money.format(order?.totalAmount || 0)}
                   </strong>
@@ -313,18 +302,7 @@ export default function OrderDetailPage() {
                     {order.invoice && (
                       <Link
                         to={`/student/orders/${order.orderCode}/invoice`}
-                        style={{
-                          display: "block",
-                          textAlign: "center",
-                          padding: "11px",
-                          borderRadius: "12px",
-                          background: "#f8fafc",
-                          color: "#334155",
-                          border: "1px solid #cbd5e1",
-                          fontWeight: 600,
-                          fontSize: "0.92rem",
-                          textDecoration: "none",
-                        }}
+                        className="order-invoice-btn"
                       >
                         📄 Xem & Tải Hóa đơn VAT
                       </Link>
@@ -376,15 +354,7 @@ export default function OrderDetailPage() {
 
                 <Link
                   to="/student/orders"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    padding: "10px",
-                    color: "#64748b",
-                    fontSize: "0.88rem",
-                    fontWeight: 600,
-                    textDecoration: "none",
-                  }}
+                  className="order-back-link"
                 >
                   ← Quay lại Lịch sử mua hàng
                 </Link>

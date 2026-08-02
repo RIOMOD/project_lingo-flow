@@ -6083,4 +6083,244 @@ html[data-theme="dark"] .app-shell {
   color: #94a3b8 !important;
 }
 
+/* ==========================================================================
+   8. COMPREHENSIVE DARK MODE ENGINE OVERRIDES (DASHBOARD, PROGRESS, CHATBOT, PROFILE, ORDERS)
+   ========================================================================== */
+
+/* Order Detail Base & Dark Mode Rules */
+.order-detail-header-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem 1.8rem;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.order-detail-card-panel {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.order-detail-summary-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.8rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.order-detail-course-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+}
+
+.order-summary-box {
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 1.2rem;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  font-size: 0.9rem;
+}
+
+.order-hero-title { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0; }
+.order-hero-sub { margin: 4px 0 0 0; color: #64748b; font-size: 0.88rem; }
+.order-panel-title { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+.order-course-title { display: block; font-size: 0.98rem; font-weight: 700; color: #0f172a; text-decoration: none; }
+.order-course-price { font-size: 0.95rem; color: #2563eb; font-weight: 800; }
+.order-field-label { display: block; color: #64748b; font-size: 0.82rem; }
+.order-field-value { color: #1e293b; font-weight: 700; }
+.order-copy-btn { background: #f1f5f9; border: none; color: #475569; border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
+.order-invoice-btn { display: block; text-align: center; padding: 11px; border-radius: 12px; background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.92rem; text-decoration: none; }
+.order-back-link { display: block; text-align: center; padding: 10px; color: #64748b; font-size: 0.88rem; font-weight: 600; text-decoration: none; }
+
+/* Dark Mode Overrides for Order Detail Page */
+[data-theme="dark"] .order-detail-header-card,
+[data-theme="dark"] .order-detail-card-panel,
+[data-theme="dark"] .order-detail-summary-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .order-detail-course-row,
+[data-theme="dark"] .order-summary-box {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .order-hero-title,
+[data-theme="dark"] .order-panel-title,
+[data-theme="dark"] .order-course-title,
+[data-theme="dark"] .order-field-value,
+[data-theme="dark"] .order-code-text {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .order-hero-sub,
+[data-theme="dark"] .order-field-label,
+[data-theme="dark"] .order-back-link,
+[data-theme="dark"] .order-detail-breadcrumb a,
+[data-theme="dark"] .order-detail-breadcrumb span {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .order-copy-btn,
+[data-theme="dark"] .order-invoice-btn {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* Student Dashboard Dark Mode Fixes */
+[data-theme="dark"] .stu-panel,
+[data-theme="dark"] .stu-stat-card,
+[data-theme="dark"] .stu-continue-card,
+[data-theme="dark"] .stu-path-item,
+[data-theme="dark"] .stu-metric-card,
+[data-theme="dark"] .student-panel,
+[data-theme="dark"] .student-course-progress,
+[data-theme="dark"] .student-learning-meta {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme="dark"] .stu-stat-card:hover,
+[data-theme="dark"] .stu-continue-card:hover,
+[data-theme="dark"] .stu-path-item:hover,
+[data-theme="dark"] .student-course-progress:hover {
+  background-color: #0f172a !important;
+  border-color: #0d9488 !important;
+}
+
+[data-theme="dark"] .stu-stat-info span {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .stu-stat-info strong,
+[data-theme="dark"] .stu-continue-content h3,
+[data-theme="dark"] .stu-panel-title,
+[data-theme="dark"] .stu-path-info strong,
+[data-theme="dark"] .student-course-progress strong {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .stu-next-lesson,
+[data-theme="dark"] .stu-next-lesson strong,
+[data-theme="dark"] .stu-path-info small,
+[data-theme="dark"] .student-course-progress span,
+[data-theme="dark"] .student-course-progress p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .stu-progress-bar,
+[data-theme="dark"] .student-progress-bar,
+[data-theme="dark"] .student-chart-row div {
+  background-color: #0f172a !important;
+}
+
+/* Progress Calendar Dark Mode Fixes */
+[data-theme="dark"] .student-calendar-weekdays span,
+[data-theme="dark"] .student-chart-row span {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .student-calendar-cell {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .student-calendar-cell.has-activity {
+  background-color: #065f46 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* Chatbot Page Dark Mode Fixes */
+[data-theme="dark"] .chatbot-header,
+[data-theme="dark"] .chatbot-main,
+[data-theme="dark"] .chatbot-input-container,
+[data-theme="dark"] .chatbot-suggestion-card,
+[data-theme="dark"] .chatbot-history-item.active,
+[data-theme="dark"] .chat-bubble.ai {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .chatbot-input-wrapper,
+[data-theme="dark"] .chatbot-history-item:hover,
+[data-theme="dark"] .chatbot-usage-badge,
+[data-theme="dark"] .chatbot-speed-selector {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .chatbot-header-title,
+[data-theme="dark"] .chatbot-empty-title,
+[data-theme="dark"] .chatbot-card-body strong,
+[data-theme="dark"] .chat-h3,
+[data-theme="dark"] .chat-h4 {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .chatbot-header-sub,
+[data-theme="dark"] .chatbot-empty-sub,
+[data-theme="dark"] .chatbot-card-body p,
+[data-theme="dark"] .chatbot-history-title,
+[data-theme="dark"] .chat-message-list li {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .chat-input-box,
+[data-theme="dark"] .chatbot-textarea {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* Profile Page Dark Mode Fixes */
+[data-theme="dark"] .profile-avatar-card,
+[data-theme="dark"] .profile-info-card,
+[data-theme="dark"] .profile-section {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-avatar-info h4,
+[data-theme="dark"] .profile-avatar-info strong,
+[data-theme="dark"] .profile-info-card h3 {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-avatar-info p,
+[data-theme="dark"] .profile-avatar-info span {
+  color: #cbd5e1 !important;
+}
+
+
 
