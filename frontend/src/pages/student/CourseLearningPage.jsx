@@ -570,7 +570,7 @@ export default function CourseLearningPage() {
                 </div>
               )}
             </>
-          )}
+          ) : null}
         </article>
 
         {/* ── Right Panel (Completion Checklist & Actions) ── */}
