@@ -352,9 +352,21 @@ export default function PronunciationPage() {
           </div>
 
           {isRecording && (
-            <div className="recording-status">
-              <span className="pulse-dot" />
-              <span>Đang lắng nghe giọng nói của bạn... Hãy nói to câu tiếng Anh trên!</span>
+            <div className="recording-status" style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#fef2f2", color: "#991b1b", padding: "1.1rem", borderRadius: "14px", border: "1px solid #fecdd3", textAlign: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: 800, fontSize: "0.92rem" }}>
+                <span className="pulse-dot" />
+                <span>🔴 Đang ghi âm & Nhận diện giọng nói theo thời gian thực...</span>
+              </div>
+
+              <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "#7f1d1d", padding: "10px 14px", background: "#ffffff", borderRadius: "12px", border: "1.5px dashed #fca5a5", minHeight: "42px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                {transcript ? (
+                  <span style={{ wordBreak: "break-word" }}>"{transcript}"</span>
+                ) : (
+                  <span style={{ fontSize: "0.88rem", color: "#94a3b8", fontWeight: 500, fontStyle: "italic" }}>
+                    (Hãy đọc to câu tiếng Anh trên, chữ của bạn sẽ tự động xuất hiện ở đây theo thời gian thực...)
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
@@ -379,8 +391,8 @@ export default function PronunciationPage() {
             </form>
           )}
 
-          {/* Live Transcript & Word-by-Word Analysis */}
-          {transcript && (
+          {/* Final Recognized Transcript & Analysis */}
+          {!isRecording && transcript && (
             <div className="transcript-box">
               <small>Giọng nói nhận diện được:</small>
               <p>"{transcript}"</p>
