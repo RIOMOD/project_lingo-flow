@@ -243,6 +243,7 @@ export default function ChatbotPage() {
             : item
         ),
         {
+          id: response.messageId,
           sender: "AI",
           message: response.reply,
           meta: `${response.provider ?? "Gemini AI"}${response.fallback ? " (dự phòng)" : ""} · ${response.totalTokens ?? 0} tokens`,

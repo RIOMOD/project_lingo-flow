@@ -141,6 +141,7 @@ export default function MiniChatWidget({ onClose }) {
 
       if (paragraphs.length > 0) {
         const newBubbles = paragraphs.map((p) => ({
+          id: response.messageId,
           sender: "AI",
           text: p,
         }));
@@ -148,7 +149,7 @@ export default function MiniChatWidget({ onClose }) {
       } else {
         setMessages((prev) => [
           ...prev,
-          { sender: "AI", text: rawReply },
+          { id: response.messageId, sender: "AI", text: rawReply },
         ]);
       }
     } catch (err) {

@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class AiChatResponse {
     private Long conversationId;
+    private Long messageId;
     private String reply;
     private String provider;
     private Integer totalTokens;

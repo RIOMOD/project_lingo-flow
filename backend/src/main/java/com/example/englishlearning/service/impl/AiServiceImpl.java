@@ -102,12 +102,13 @@ public class AiServiceImpl implements AiService {
                         """)
                 .build();
         AiProviderResult result = callChatProvider(prompt);
-        saveMessage(conversation, AiMessage.Sender.AI, result.getText(), result.getCompletionTokens());
+        AiMessage aiMsg = saveMessage(conversation, AiMessage.Sender.AI, result.getText(), result.getCompletionTokens());
         conversation.setUpdatedAt(LocalDateTime.now());
         conversationRepository.save(conversation);
         saveUsage(user, "CHATBOT", result, result.isFallback() ? fallbackAiProvider.name() : openAiProvider.name());
         return AiChatResponse.builder()
                 .conversationId(conversation.getId())
+                .messageId(aiMsg.getId())
                 .reply(result.getText())
                 .provider(result.isFallback() ? fallbackAiProvider.name() : openAiProvider.name())
                 .totalTokens(result.getTotalTokens())
@@ -239,6 +240,19 @@ public class AiServiceImpl implements AiService {
                                 userPromptText = msgs.get(i - 1).getMessage();
                                 break;
                             }
+                        }
+                    }
+                }
+            } else {
+                // Fallback for feedback rows saved without explicit messageId
+                var userConversations = conversationRepository.findByUserIdAndDeletedAtIsNullOrderByUpdatedAtDesc(item.getUser().getId());
+                if (!userConversations.isEmpty()) {
+                    var msgs = messageRepository.findByConversationIdOrderByCreatedAtAsc(userConversations.get(0).getId());
+                    for (int i = msgs.size() - 1; i >= 0; i--) {
+                        if (msgs.get(i).getSender() == AiMessage.Sender.AI) {
+                            aiMessageText = msgs.get(i).getMessage();
+                            if (i > 0) userPromptText = msgs.get(i - 1).getMessage();
+                            break;
                         }
                     }
                 }
