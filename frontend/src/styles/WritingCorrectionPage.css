@@ -3,11 +3,11 @@
 .writing-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 110px);
+  min-height: calc(100vh - 110px);
   max-width: 1280px;
   margin: 0 auto;
   gap: 0.75rem;
-  padding: 0 0 0.25rem;
+  padding: 0 0 1.5rem;
   box-sizing: border-box;
 }
 

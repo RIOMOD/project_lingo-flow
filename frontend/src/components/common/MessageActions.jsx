@@ -52,23 +52,34 @@ export default function MessageActions({ messageId, text }) {
   };
 
   return (
-    <div className="message-actions-container mt-2 flex items-center gap-3 text-xs text-slate-400 select-none">
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px", fontSize: "12px", color: "#94a3b8", userSelect: "none" }}>
       <button
         type="button"
         onClick={handleCopy}
-        className={`flex items-center gap-1 hover:text-slate-200 transition-colors ${copied ? "text-green-400 font-medium" : ""}`}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          background: "transparent",
+          border: "none",
+          padding: "2px 6px",
+          borderRadius: "6px",
+          color: copied ? "#10b981" : "inherit",
+          cursor: "pointer",
+          fontSize: "12px"
+        }}
         title="Sao chép nội dung"
       >
         {copied ? (
           <>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: "14px", height: "14px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
             </svg>
             <span>Đã chép</span>
           </>
         ) : (
           <>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: "14px", height: "14px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             <span>Sao chép</span>
@@ -79,10 +90,21 @@ export default function MessageActions({ messageId, text }) {
       <button
         type="button"
         onClick={handleLike}
-        className={`flex items-center gap-1 hover:text-emerald-400 transition-colors ${rating === "LIKE" ? "text-emerald-400 font-bold" : ""}`}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          background: "transparent",
+          border: "none",
+          padding: "2px 6px",
+          borderRadius: "6px",
+          color: rating === "LIKE" ? "#10b981" : "inherit",
+          cursor: "pointer",
+          fontSize: "12px"
+        }}
         title="Hài lòng"
       >
-        <svg className="w-3.5 h-3.5" fill={rating === "LIKE" ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+        <svg style={{ width: "14px", height: "14px" }} fill={rating === "LIKE" ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2" />
         </svg>
       </button>
@@ -90,10 +112,21 @@ export default function MessageActions({ messageId, text }) {
       <button
         type="button"
         onClick={handleDislikeClick}
-        className={`flex items-center gap-1 hover:text-rose-400 transition-colors ${rating === "DISLIKE" ? "text-rose-400 font-bold" : ""}`}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          background: "transparent",
+          border: "none",
+          padding: "2px 6px",
+          borderRadius: "6px",
+          color: rating === "DISLIKE" ? "#f43f5e" : "inherit",
+          cursor: "pointer",
+          fontSize: "12px"
+        }}
         title="Chưa hài lòng"
       >
-        <svg className="w-3.5 h-3.5" fill={rating === "DISLIKE" ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+        <svg style={{ width: "14px", height: "14px" }} fill={rating === "DISLIKE" ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v5a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2" />
         </svg>
       </button>
