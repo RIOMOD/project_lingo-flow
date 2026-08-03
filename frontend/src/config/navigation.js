@@ -249,6 +249,12 @@ export const navigationByRole = {
         { label: "Báo cáo", to: demoPaths.adminReports },
       ],
     },
+    {
+      title: "CÔNG CỤ AI",
+      items: [
+        { label: "🤖 Quản lý Phản hồi AI", to: "/admin/ai-feedbacks" },
+      ],
+    },
   ],
 };
 

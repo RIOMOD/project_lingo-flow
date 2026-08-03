@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import { deleteAiConversation, getAiConversation, getAiConversations, getAiUsage, sendAiChat } from "../../services/aiService";
+import MessageActions from "../../components/common/MessageActions";
 import "../../styles/ChatbotPage.css";
 
 const LEVELS = [
@@ -614,7 +614,10 @@ export default function ChatbotPage() {
                     {item.sender === "USER" ? (
                       <div>{item.message}</div>
                     ) : (
-                      <FormattedMessage text={item.message} />
+                      <>
+                        <FormattedMessage text={item.message} />
+                        <MessageActions messageId={item.id} text={item.message} />
+                      </>
                     )}
                   </div>
 

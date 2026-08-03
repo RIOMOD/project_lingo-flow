@@ -33,3 +33,18 @@ export async function requestWritingFeedback(payload) {
 export async function getAiUsage() {
   return unwrap(await apiRequest("/ai/usage"));
 }
+
+export async function submitAiFeedback(payload) {
+  return unwrap(await apiRequest("/ai/feedback", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }));
+}
+
+export async function getAdminAiFeedbacks(rating = "", page = 0, size = 20) {
+  const query = new URLSearchParams();
+  if (rating) query.append("rating", rating);
+  query.append("page", page);
+  query.append("size", size);
+  return unwrap(await apiRequest(`/ai/admin/feedbacks?${query.toString()}`));
+}

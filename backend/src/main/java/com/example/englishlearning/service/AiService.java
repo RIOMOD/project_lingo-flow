@@ -16,4 +16,6 @@ public interface AiService {
     void deleteConversation(String email, Long id);
     WritingFeedbackResponse writingFeedback(String email, WritingFeedbackRequest request);
     AiUsageResponse getUsage(String email);
+    void submitFeedback(String email, com.example.englishlearning.dto.ai.AiFeedbackSubmitRequest request);
+    org.springframework.data.domain.Page<com.example.englishlearning.dto.ai.AiFeedbackResponse> getAdminFeedbacks(String rating, int page, int size);
 }

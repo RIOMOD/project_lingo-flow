@@ -69,4 +69,23 @@ public class AiController {
     public ApiResponse<AiUsageResponse> getUsage(Authentication authentication) {
         return ApiResponse.success(aiService.getUsage(authentication.getName()));
     }
+
+    @PostMapping("/feedback")
+    public ApiResponse<Void> submitFeedback(
+            Authentication authentication,
+            @Valid @RequestBody com.example.englishlearning.dto.ai.AiFeedbackSubmitRequest request
+    ) {
+        aiService.submitFeedback(authentication.getName(), request);
+        return ApiResponse.success("Feedback submitted successfully", null);
+    }
+
+    @GetMapping("/admin/feedbacks")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<org.springframework.data.domain.Page<com.example.englishlearning.dto.ai.AiFeedbackResponse>> getAdminFeedbacks(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String rating,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "20") int size
+    ) {
+        return ApiResponse.success(aiService.getAdminFeedbacks(rating, page, size));
+    }
 }

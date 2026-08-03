@@ -74,6 +74,7 @@ const RefundManagementPage = lazy(() => import("../pages/admin/RefundManagementP
 const ReportPage = lazy(() => import("../pages/admin/ReportPage"));
 const SystemActivityPage = lazy(() => import("../pages/admin/SystemActivityPage"));
 const RoleManagementPage = lazy(() => import("../pages/admin/RoleManagementPage"));
+const AdminAiFeedbackPage = lazy(() => import("../pages/admin/AdminAiFeedbackPage"));
 
 export default function AppRoutes() {
   return (
@@ -159,6 +160,7 @@ export default function AppRoutes() {
                 <Route path="reports" element={<ReportPage />} />
                 <Route path="system-activity" element={<SystemActivityPage />} />
                 <Route path="roles" element={<RoleManagementPage />} />
+                <Route path="ai-feedbacks" element={<AdminAiFeedbackPage />} />
               </Route>
             </Route>
 

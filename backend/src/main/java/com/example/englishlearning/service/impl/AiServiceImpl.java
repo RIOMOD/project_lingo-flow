@@ -50,6 +50,7 @@ public class AiServiceImpl implements AiService {
     private final WritingSubmissionRepository writingRepository;
     private final AiUsageLogRepository usageLogRepository;
     private final UserRepository userRepository;
+    private final com.example.englishlearning.repository.AiMessageFeedbackRepository feedbackRepository;
     private final ObjectMapper objectMapper;
     private final String provider;
     private final int dailyUsageLimit;
@@ -63,6 +64,7 @@ public class AiServiceImpl implements AiService {
             WritingSubmissionRepository writingRepository,
             AiUsageLogRepository usageLogRepository,
             UserRepository userRepository,
+            com.example.englishlearning.repository.AiMessageFeedbackRepository feedbackRepository,
             ObjectMapper objectMapper,
             @Value("${app.ai.provider:openai}") String provider,
             @Value("${app.ai.daily-usage-limit:50}") int dailyUsageLimit,
@@ -75,6 +77,7 @@ public class AiServiceImpl implements AiService {
         this.writingRepository = writingRepository;
         this.usageLogRepository = usageLogRepository;
         this.userRepository = userRepository;
+        this.feedbackRepository = feedbackRepository;
         this.objectMapper = objectMapper;
         this.provider = provider == null ? "openai" : provider.trim();
         this.dailyUsageLimit = dailyUsageLimit;
@@ -181,6 +184,78 @@ public class AiServiceImpl implements AiService {
                 .remainingToday(Math.max(0, dailyUsageLimit - used))
                 .recentLogs(logs)
                 .build();
+    }
+
+    @Override
+    public void submitFeedback(String email, com.example.englishlearning.dto.ai.AiFeedbackSubmitRequest request) {
+        User user = getUser(email);
+        com.example.englishlearning.entity.AiMessageFeedback.Rating ratingEnum;
+        try {
+            ratingEnum = com.example.englishlearning.entity.AiMessageFeedback.Rating.valueOf(request.getRating().toUpperCase());
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid rating. Must be LIKE or DISLIKE");
+        }
+
+        com.example.englishlearning.entity.AiMessageFeedback feedback = request.getMessageId() != null
+                ? feedbackRepository.findByUserIdAndMessageId(user.getId(), request.getMessageId()).orElse(new com.example.englishlearning.entity.AiMessageFeedback())
+                : new com.example.englishlearning.entity.AiMessageFeedback();
+
+        feedback.setUser(user);
+        feedback.setMessageId(request.getMessageId());
+        feedback.setRating(ratingEnum);
+        feedback.setComment(request.getComment());
+        feedbackRepository.save(feedback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<com.example.englishlearning.dto.ai.AiFeedbackResponse> getAdminFeedbacks(String rating, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, size));
+        org.springframework.data.domain.Page<com.example.englishlearning.entity.AiMessageFeedback> feedbacks;
+
+        if (rating != null && !rating.isBlank()) {
+            try {
+                com.example.englishlearning.entity.AiMessageFeedback.Rating r = com.example.englishlearning.entity.AiMessageFeedback.Rating.valueOf(rating.toUpperCase());
+                feedbacks = feedbackRepository.findByRatingOrderByCreatedAtDesc(r, pageable);
+            } catch (Exception e) {
+                feedbacks = feedbackRepository.findAllByOrderByCreatedAtDesc(pageable);
+            }
+        } else {
+            feedbacks = feedbackRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+
+        return feedbacks.map(item -> {
+            String aiMessageText = "";
+            String userPromptText = "";
+            if (item.getMessageId() != null) {
+                var aiMsgOpt = messageRepository.findById(item.getMessageId());
+                if (aiMsgOpt.isPresent()) {
+                    var aiMsg = aiMsgOpt.get();
+                    aiMessageText = aiMsg.getMessage();
+                    if (aiMsg.getConversation() != null) {
+                        var msgs = messageRepository.findByConversationIdOrderByCreatedAtAsc(aiMsg.getConversation().getId());
+                        for (int i = 0; i < msgs.size(); i++) {
+                            if (msgs.get(i).getId().equals(aiMsg.getId()) && i > 0) {
+                                userPromptText = msgs.get(i - 1).getMessage();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return com.example.englishlearning.dto.ai.AiFeedbackResponse.builder()
+                    .id(item.getId())
+                    .messageId(item.getMessageId())
+                    .userEmail(item.getUser().getEmail())
+                    .userFullName(item.getUser().getFullName())
+                    .rating(item.getRating().name())
+                    .comment(item.getComment())
+                    .userMessage(userPromptText)
+                    .aiResponse(aiMessageText)
+                    .createdAt(item.getCreatedAt())
+                    .build();
+        });
     }
 
     private AiConversation resolveConversation(User user, AiChatRequest request) {
