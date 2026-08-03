@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { submitAiFeedback } from "../../services/aiService";
 
 export default function MessageActions({ messageId, text }) {
@@ -9,14 +10,16 @@ export default function MessageActions({ messageId, text }) {
   const [submitting, setSubmitting] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
 
-  const handleCopy = () => {
+  const handleCopy = (e) => {
+    e.stopPropagation();
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleLike = async () => {
+  const handleLike = async (e) => {
+    e.stopPropagation();
     if (rating === "LIKE") return;
     setRating("LIKE");
     try {
@@ -27,7 +30,8 @@ export default function MessageActions({ messageId, text }) {
     }
   };
 
-  const handleDislikeClick = () => {
+  const handleDislikeClick = (e) => {
+    e.stopPropagation();
     setShowModal(true);
   };
 
@@ -52,23 +56,26 @@ export default function MessageActions({ messageId, text }) {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px", fontSize: "12px", color: "#94a3b8", userSelect: "none" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "10px", fontSize: "12px", color: "#64748b", userSelect: "none" }}>
       <button
         type="button"
         onClick={handleCopy}
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: "4px",
+          gap: "5px",
           background: "transparent",
           border: "none",
-          padding: "2px 6px",
+          padding: "3px 8px",
           borderRadius: "6px",
-          color: copied ? "#10b981" : "inherit",
+          color: copied ? "#10b981" : "#64748b",
           cursor: "pointer",
-          fontSize: "12px"
+          fontSize: "12px",
+          whiteSpace: "nowrap",
+          fontWeight: 500,
+          transition: "all 0.15s ease"
         }}
-        title="Sao chép nội dung"
+        title="Sao chép câu trả lời"
       >
         {copied ? (
           <>
@@ -93,14 +100,17 @@ export default function MessageActions({ messageId, text }) {
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: "4px",
+          gap: "5px",
           background: "transparent",
           border: "none",
-          padding: "2px 6px",
+          padding: "3px 8px",
           borderRadius: "6px",
-          color: rating === "LIKE" ? "#10b981" : "inherit",
+          color: rating === "LIKE" ? "#10b981" : "#64748b",
           cursor: "pointer",
-          fontSize: "12px"
+          fontSize: "12px",
+          whiteSpace: "nowrap",
+          fontWeight: 500,
+          transition: "all 0.15s ease"
         }}
         title="Hài lòng"
       >
@@ -115,14 +125,17 @@ export default function MessageActions({ messageId, text }) {
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: "4px",
+          gap: "5px",
           background: "transparent",
           border: "none",
-          padding: "2px 6px",
+          padding: "3px 8px",
           borderRadius: "6px",
-          color: rating === "DISLIKE" ? "#f43f5e" : "inherit",
+          color: rating === "DISLIKE" ? "#f43f5e" : "#64748b",
           cursor: "pointer",
-          fontSize: "12px"
+          fontSize: "12px",
+          whiteSpace: "nowrap",
+          fontWeight: 500,
+          transition: "all 0.15s ease"
         }}
         title="Chưa hài lòng"
       >
@@ -132,60 +145,122 @@ export default function MessageActions({ messageId, text }) {
       </button>
 
       {toastMsg && (
-        <span className="text-[11px] text-emerald-400 font-medium animate-pulse ml-1">
+        <span style={{ fontSize: "11px", color: "#10b981", fontWeight: 600 }}>
           {toastMsg}
         </span>
       )}
 
-      {/* Modal góp ý khi Dislike */}
-      {showModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 text-slate-800">
-          <div className="bg-white dark:bg-slate-900 dark:text-white rounded-xl shadow-2xl max-w-md w-full p-5 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span>💡 Góp ý cải thiện câu trả lời AI</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleDislikeSubmit} className="mt-4">
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Điều gì khiến câu trả lời chưa như ý muốn của bạn? (Không bắt buộc)
-              </label>
-              <textarea
-                rows="3"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Ví dụ: AI trả lời chưa đúng trọng tâm, dịch sai từ vựng, thông tin chưa đầy đủ..."
-                className="w-full text-xs p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
-              />
-
-              <div className="flex justify-end gap-2 mt-4">
+      {/* Dislike Feedback Modal rendered directly on document.body using React Portal */}
+      {showModal &&
+        createPortal(
+          <div
+            onClick={() => setShowModal(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(15, 23, 42, 0.6)",
+              backdropFilter: "blur(4px)",
+              padding: "16px",
+              boxSizing: "border-box"
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "16px",
+                padding: "24px",
+                maxWidth: "450px",
+                width: "100%",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                border: "1px solid #e2e8f0",
+                color: "#0f172a",
+                boxSizing: "border-box"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #f1f5f9" }}>
+                <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#0f172a", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span>💡 Góp ý cải thiện câu trả lời AI</span>
+                </h3>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  style={{ background: "none", border: "none", fontSize: "16px", color: "#94a3b8", cursor: "pointer", padding: "4px" }}
                 >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors disabled:opacity-50"
-                >
-                  {submitting ? "Đang gửi..." : "Gửi góp ý"}
+                  ✕
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              <form onSubmit={handleDislikeSubmit} style={{ marginTop: "16px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#475569", marginBottom: "8px" }}>
+                  Điều gì khiến câu trả lời chưa như ý muốn của bạn? (Không bắt buộc)
+                </label>
+                <textarea
+                  rows="3"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Ví dụ: AI trả lời chưa đúng trọng tâm, dịch sai từ vựng, thông tin chưa đầy đủ..."
+                  style={{
+                    width: "100%",
+                    fontSize: "13px",
+                    padding: "10px 12px",
+                    borderRadius: "10px",
+                    border: "1px solid #cbd5e1",
+                    backgroundColor: "#f8fafc",
+                    outline: "none",
+                    resize: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit"
+                  }}
+                />
+
+                <div style={{ display: "flex", justify: "flex-end", gap: "8px", marginTop: "16px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    style={{
+                      padding: "8px 14px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "#64748b",
+                      backgroundColor: "#f1f5f9",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    style={{
+                      padding: "8px 16px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "#ffffff",
+                      backgroundColor: "#4f46e5",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: submitting ? "not-allowed" : "pointer",
+                      opacity: submitting ? 0.7 : 1
+                    }}
+                  >
+                    {submitting ? "Đang gửi..." : "Gửi góp ý"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
