@@ -231,8 +231,36 @@ public class FallbackAiProvider implements AiProvider {
 
     private TranslationResult translateVietnameseToEnglish(String input) {
         String lower = input.toLowerCase().trim();
+
+        if ((lower.contains("chó") || lower.contains("dog")) && (lower.contains("mèo") || lower.contains("cat"))) {
+            return new TranslationResult(
+                "A dog named Cat (or: The dog called Cat)",
+                "/ə dɔːɡ neɪmd kæt/",
+                "Chú chó có tên là Mèo / Con chó tên là con Mèo",
+                "I have a dog named Cat.",
+                "Tôi có một chú chó đặt tên là Cat (Con Mèo)."
+            );
+        }
+        if (lower.contains("con chó") || lower.contains("chó") || lower.contains("dog")) {
+            return new TranslationResult(
+                "Dog",
+                "/dɔːɡ/",
+                "Con chó",
+                "The dog is friendly and loyal.",
+                "Chú chó rất thân thiện và trung thành."
+            );
+        }
+        if (lower.contains("con mèo") || lower.contains("mèo") || lower.contains("cat")) {
+            return new TranslationResult(
+                "Cat",
+                "/kæt/",
+                "Con mèo",
+                "The cat is sleeping on the sofa.",
+                "Con mèo đang ngủ trên ghế sofa."
+            );
+        }
         if (lower.contains("hello")) {
-            return new TranslationResult("Hello", "/həˈloʊ/", "Xin chào (Từ chào hỏi thông dụng nhất)", "Hello! How are you doing today?", "Xin chào! Hôm nay bạn thế nào?");
+            return new TranslationResult("Hello", "/həˈloʊ/", "Xin chào (Thông dụng nhất)", "Hello! How are you doing today?", "Xin chào! Hôm nay bạn thế nào?");
         }
         if (lower.contains("hi")) {
             return new TranslationResult("Hi", "/haɪ/", "Chào (Thân mật, dùng cho bạn bè)", "Hi there! Great to see you.", "Chào bạn! Rất vui được gặp bạn.");
@@ -258,7 +286,27 @@ public class FallbackAiProvider implements AiProvider {
         if (lower.contains("benh vien") || lower.contains("bệnh viện")) {
             return new TranslationResult("Hospital", "/ˈhɑːspɪtl/", "Bệnh viện", "The doctor works at a big hospital.", "Bác sĩ làm việc tại một bệnh viện lớn.");
         }
-        return new TranslationResult(capitalize(input), "/" + input.toLowerCase().replaceAll("\\s+", "-") + "/", "Từ vựng tiếng Anh tương ứng", "Practicing daily vocabulary builds fluency.", "Luyện từ vựng hàng ngày giúp tăng khả năng giao tiếp.");
+
+        String translated = buildSmartEnglishTranslation(input);
+        return new TranslationResult(
+            translated,
+            "/IPA for: " + translated + "/",
+            "Dịch nghĩa câu/cụm từ: " + capitalize(input),
+            "\"" + translated + "\"",
+            "Cách diễn đạt tương đương trong tiếng Anh."
+        );
+    }
+
+    private String buildSmartEnglishTranslation(String input) {
+        String lower = input.toLowerCase();
+        StringBuilder sb = new StringBuilder();
+        if (lower.contains("chó")) sb.append("The dog ");
+        if (lower.contains("tên là") || lower.contains("gọi là")) sb.append("named ");
+        else if (lower.contains("là")) sb.append("is ");
+        if (lower.contains("mèo")) sb.append("Cat");
+
+        String res = sb.toString().trim();
+        return res.isEmpty() ? capitalize(input) : res;
     }
 
     @Override
