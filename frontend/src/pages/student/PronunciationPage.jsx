@@ -1,42 +1,106 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { speakText } from "../../utils/sound";
 import "../../styles/PronunciationPage.css";
 
 const practiceSentences = [
-  { id: 1, text: "I am passionate about learning new languages every day.", translation: "Tôi đam mê học các ngôn ngữ mới mỗi ngày.", level: "B1" },
-  { id: 2, text: "Consistency and dedication are key factors to mastering English.", translation: "Sự kiên trì và tận tụy là yếu tố then chốt để thành thạo tiếng Anh.", level: "B2" },
-  { id: 3, text: "Could you please explain how to improve my speaking skills?", translation: "Bạn có thể giải thích cách nâng cao kỹ năng nói của tôi không?", level: "A2" },
-  { id: 4, text: "Technology has revolutionized the way we communicate globally.", translation: "Công nghệ đã cách mạng hóa cách chúng ta giao tiếp toàn cầu.", level: "C1" },
-  { id: 5, text: "Practice makes perfect when you keep going forward.", translation: "Luyện tập tạo nên sự hoàn hảo khi bạn liên tục tiến lên.", level: "A1" },
+  {
+    id: 1,
+    text: "I am passionate about learning new languages every day.",
+    ipa: "/aɪ æm ˈpæʃənət əˈbaʊt ˈlɜːnɪŋ njuː ˈlæŋɡwɪʤɪz ˈɛvri deɪ/",
+    translation: "Tôi đam mê học các ngôn ngữ mới mỗi ngày.",
+    level: "B1",
+    topic: "Giao tiếp hàng ngày"
+  },
+  {
+    id: 2,
+    text: "Consistency and dedication are key factors to mastering English.",
+    ipa: "/kənˈsɪstənsi ænd ˌdɛdɪˈkeɪʃən ɑː kiː ˈfæktəz tuː ˈmɑːstərɪŋ ˈɪŋɡlɪʃ/",
+    translation: "Sự kiên trì và tận tụy là yếu tố then chốt để thành thạo tiếng Anh.",
+    level: "B2",
+    topic: "Học tập & Phát triển"
+  },
+  {
+    id: 3,
+    text: "Could you please explain how to improve my speaking skills?",
+    ipa: "/kʊd juː pliːz ɪkˈspleɪn haʊ tuː ɪmˈpruːv maɪ ˈspiːkɪŋ skɪlz/",
+    translation: "Bạn có thể giải thích cách nâng cao kỹ năng nói của tôi không?",
+    level: "A2",
+    topic: "Giao tiếp hàng ngày"
+  },
+  {
+    id: 4,
+    text: "Technology has revolutionized the way we communicate globally.",
+    ipa: "/tɛkˈnɒləʤi hæz ˌrɛvəˈluːʃənaɪzd ðə weɪ wiː kəˈmjuːnɪkeɪt ˈɡləʊbəli/",
+    translation: "Công nghệ đã cách mạng hóa cách chúng ta giao tiếp toàn cầu.",
+    level: "C1",
+    topic: "Công nghệ & Xã hội"
+  },
+  {
+    id: 5,
+    text: "Practice makes perfect when you keep going forward.",
+    ipa: "/ˈpræktɪs meɪks ˈpɜːfɪkt wɛn juː kiːp ˈɡəʊɪŋ ˈfɔːwəd/",
+    translation: "Luyện tập tạo nên sự hoàn hảo khi bạn liên tục tiến lên.",
+    level: "A1",
+    topic: "Tục ngữ & Động lực"
+  },
+  {
+    id: 6,
+    text: "Effective communication requires active listening and clear expression.",
+    ipa: "/ɪˈfɛktɪv kəˌmjuːnɪˈkeɪʃən rɪˈkwaɪəz ˈæktɪv ˈlɪsnɪŋ ænd klɪər ɪksˈprɛʃən/",
+    translation: "Giao tiếp hiệu quả đòi hỏi sự lắng nghe chủ động và diễn đạt rõ ràng.",
+    level: "B2",
+    topic: "Kỹ năng làm việc"
+  }
 ];
 
-function calculateSimilarity(str1, str2) {
-  const clean1 = str1.toLowerCase().replace(/[^\w\s]/gi, "").trim();
-  const clean2 = str2.toLowerCase().replace(/[^\w\s]/gi, "").trim();
-  if (!clean1 || !clean2) return 0;
-  if (clean1 === clean2) return 100;
+function cleanWord(word) {
+  return word.toLowerCase().replace(/[^\w]/g, "");
+}
 
-  const words1 = clean1.split(/\s+/);
-  const words2 = clean2.split(/\s+/);
-  
-  let matches = 0;
-  words1.forEach((word) => {
-    if (words2.includes(word)) matches += 1;
+function analyzePronunciation(targetText, userText) {
+  if (!targetText || !userText) return { score: 0, wordAnalysis: [] };
+
+  const targetWords = targetText.split(/\s+/);
+  const userWords = userText.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/);
+
+  let matchCount = 0;
+  const wordAnalysis = targetWords.map((word) => {
+    const clean = cleanWord(word);
+    const found = userWords.includes(clean);
+    if (found) matchCount += 1;
+    return {
+      word,
+      status: found ? "correct" : "missing"
+    };
   });
 
-  const accuracy = Math.round((matches / Math.max(words1.length, words2.length)) * 100);
-  return Math.min(100, Math.max(0, accuracy));
+  const accuracy = Math.round((matchCount / targetWords.length) * 100);
+  return {
+    score: Math.min(100, Math.max(0, accuracy)),
+    wordAnalysis
+  };
 }
 
 export default function PronunciationPage() {
+  const [selectedLevel, setSelectedLevel] = useState("ALL");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [score, setScore] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
   const [error, setError] = useState("");
+  const [playbackSpeed, setPlaybackSpeed] = useState(0.9);
+  const [showSimulateInput, setShowSimulateInput] = useState(false);
+  const [simulatedText, setSimulatedText] = useState("");
+
   const recognitionRef = useRef(null);
 
-  const currentSentence = practiceSentences[currentIndex];
+  // Filter sentences by level
+  const filteredSentences = selectedLevel === "ALL"
+    ? practiceSentences
+    : practiceSentences.filter((s) => s.level === selectedLevel);
+
+  const safeIndex = Math.min(currentIndex, filteredSentences.length - 1);
+  const currentSentence = filteredSentences[safeIndex] || practiceSentences[0];
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -56,7 +120,11 @@ export default function PronunciationPage() {
       rec.onerror = (evt) => {
         console.warn("Speech recognition error:", evt);
         setIsRecording(false);
-        setError("Không thể nhận diện giọng nói. Vui lòng kiểm tra micro.");
+        if (evt.error === "not-allowed") {
+          setError("Chưa cấp quyền Micro. Vui lòng cho phép trình duyệt truy cập Micro.");
+        } else {
+          setError("Không thể nhận diện giọng nói. Vui lòng thử lại hoặc dùng chế độ mô phỏng.");
+        }
       };
 
       rec.onend = () => {
@@ -67,79 +135,159 @@ export default function PronunciationPage() {
     }
   }, []);
 
-  function handleListenSample() {
-    speakText(currentSentence.text);
+  // Auto score when transcript is finalized and recording stops
+  useEffect(() => {
+    if (!isRecording && transcript.trim()) {
+      const res = analyzePronunciation(currentSentence.text, transcript);
+      setAnalysis(res);
+    }
+  }, [isRecording, transcript, currentSentence]);
+
+  function handleListenSample(speed = 0.9) {
+    setPlaybackSpeed(speed);
+    speakText(currentSentence.text, "en-US", speed);
   }
 
   function startRecording() {
     setError("");
     setTranscript("");
-    setScore(null);
+    setAnalysis(null);
+
     if (!recognitionRef.current) {
-      setError("Trình duyệt của bạn không hỗ trợ Micro Speech Recognition.");
+      setError("Trình duyệt không hỗ trợ nhận diện giọng nói tự động. Bạn có thể sử dụng nút 'Mô phỏng phát âm' bên dưới để kiểm tra!");
+      setShowSimulateInput(true);
       return;
     }
+
     try {
       recognitionRef.current.start();
       setIsRecording(true);
     } catch (err) {
-      console.warn(err);
+      console.warn("Recording start failed:", err);
+      setIsRecording(false);
     }
   }
 
   function stopRecording() {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
-      setIsRecording(false);
-
-      if (transcript.trim()) {
-        const simScore = calculateSimilarity(currentSentence.text, transcript);
-        setScore(simScore);
-      }
     }
+    setIsRecording(false);
   }
 
-  function handleCheckScore() {
-    if (!transcript.trim()) {
-      setError("Bạn chưa ghi âm. Hãy nhấn nút Ghi âm và nói mẫu câu.");
-      return;
-    }
-    const simScore = calculateSimilarity(currentSentence.text, transcript);
-    setScore(simScore);
+  function handleSimulatedSubmit(e) {
+    e.preventDefault();
+    if (!simulatedText.trim()) return;
+    setTranscript(simulatedText.trim());
+    const res = analyzePronunciation(currentSentence.text, simulatedText.trim());
+    setAnalysis(res);
+    setShowSimulateInput(false);
   }
 
   function handleNext() {
-    setCurrentIndex((prev) => (prev + 1) % practiceSentences.length);
+    if (currentIndex < filteredSentences.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      setCurrentIndex(0);
+    }
+    resetState();
+  }
+
+  function handlePrev() {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    } else {
+      setCurrentIndex(filteredSentences.length - 1);
+    }
+    resetState();
+  }
+
+  function resetState() {
     setTranscript("");
-    setScore(null);
+    setAnalysis(null);
     setError("");
+    setSimulatedText("");
   }
 
   return (
     <div className="pronunciation-page">
       <div className="pronunciation-container">
+        {/* Banner Hero */}
         <section className="pronunciation-hero">
-          <span className="page-badge">AI Speech</span>
-          <h2>Luyện phát âm & Giao tiếp AI</h2>
-          <p>Luyện nói tiếng Anh chuẩn Native với công nghệ AI nhận diện giọng nói và chấm điểm phát âm.</p>
+          <span className="page-badge">AI Speech & Pronunciation</span>
+          <h2>Luyện Phát Âm & Giao Tiếp AI</h2>
+          <p>Luyện nói tiếng Anh chuẩn Native với công nghệ AI nhận diện giọng nói, hỗ trợ phát âm IPA và chấm điểm chi tiết từng từ.</p>
         </section>
 
-        {error && <div className="pronunciation-alert error">{error}</div>}
+        {/* Level Filters */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", margin: "0.25rem 0" }}>
+          <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#64748b" }}>Trình độ:</span>
+          {["ALL", "A1", "A2", "B1", "B2", "C1"].map((lvl) => (
+            <button
+              key={lvl}
+              type="button"
+              onClick={() => {
+                setSelectedLevel(lvl);
+                setCurrentIndex(0);
+                resetState();
+              }}
+              style={{
+                padding: "5px 14px",
+                borderRadius: "20px",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                border: selectedLevel === lvl ? "1px solid #0d9488" : "1px solid #cbd5e1",
+                background: selectedLevel === lvl ? "#0d9488" : "#ffffff",
+                color: selectedLevel === lvl ? "#ffffff" : "#475569",
+                cursor: "pointer",
+                transition: "all 0.15s ease"
+              }}
+            >
+              {lvl === "ALL" ? "Tất cả bài luyện" : lvl}
+            </button>
+          ))}
+        </div>
 
+        {error && (
+          <div className="pronunciation-alert error" style={{ background: "#fef2f2", color: "#991b1b", padding: "10px 14px", borderRadius: "12px", border: "1px solid #fecdd3", fontSize: "0.88rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>⚠️ {error}</span>
+            <button type="button" onClick={() => setShowSimulateInput(true)} style={{ background: "#991b1b", color: "#fff", border: "none", padding: "4px 10px", borderRadius: "8px", fontSize: "0.8rem", cursor: "pointer", fontWeight: 700 }}>
+              Mở chế độ gõ kiểm tra
+            </button>
+          </div>
+        )}
+
+        {/* Practice Card */}
         <section className="pronunciation-card">
           <div className="sentence-header">
-            <span className="level-badge">{currentSentence.level}</span>
-            <span>Câu {currentIndex + 1} / {practiceSentences.length}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span className="level-badge">{currentSentence.level}</span>
+              <span style={{ fontSize: "0.8rem", background: "#f1f5f9", padding: "2px 8px", borderRadius: "6px", color: "#475569", fontWeight: 600 }}>
+                {currentSentence.topic}
+              </span>
+            </div>
+            <span>Câu {safeIndex + 1} / {filteredSentences.length}</span>
           </div>
 
           <div className="sentence-body">
             <h3 className="target-text">{currentSentence.text}</h3>
+
+            {/* IPA Phonetics */}
+            <div style={{ fontSize: "0.95rem", color: "#0d9488", fontFamily: "monospace", fontWeight: 700, margin: "0.2rem 0 0.6rem 0", background: "#f0fdfa", display: "inline-block", padding: "3px 12px", borderRadius: "8px", border: "1px solid #ccfbf1" }}>
+              {currentSentence.ipa}
+            </div>
+
             <p className="translation-text">{currentSentence.translation}</p>
           </div>
 
+          {/* Audio & Mic Actions */}
           <div className="sentence-actions">
-            <button className="pron-btn listen-btn" type="button" onClick={handleListenSample}>
-              🔊 Nghe mẫu chuẩn
+            <button className="pron-btn listen-btn" type="button" onClick={() => handleListenSample(0.9)} title="Nghe với tốc độ chuẩn">
+              🔊 Nghe mẫu (1.0x)
+            </button>
+
+            <button className="pron-btn listen-btn" type="button" onClick={() => handleListenSample(0.65)} style={{ background: "#f8fafc" }} title="Nghe chậm để luyện từng từ">
+              🐢 Nghe chậm (0.75x)
             </button>
 
             {!isRecording ? (
@@ -156,40 +304,86 @@ export default function PronunciationPage() {
           {isRecording && (
             <div className="recording-status">
               <span className="pulse-dot" />
-              <span>Đang lắng nghe giọng nói của bạn... Hãy phát âm câu trên!</span>
+              <span>Đang lắng nghe giọng nói của bạn... Hãy nói to câu tiếng Anh trên!</span>
             </div>
           )}
 
+          {/* Simulated Speech Input for Unsupported Browsers */}
+          {showSimulateInput && (
+            <form onSubmit={handleSimulatedSubmit} style={{ marginTop: "1rem", padding: "12px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+              <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "#334155", marginBottom: "6px" }}>
+                🧪 Chế độ mô phỏng phát âm (Gõ từ bạn vừa nói để kiểm tra):
+              </label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input
+                  type="text"
+                  value={simulatedText}
+                  onChange={(e) => setSimulatedText(e.target.value)}
+                  placeholder={currentSentence.text}
+                  style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "0.9rem" }}
+                />
+                <button type="submit" style={{ padding: "8px 16px", background: "#4f46e5", color: "#fff", border: "none", borderRadius: "8px", fontWeight: 700, cursor: "pointer" }}>
+                  Chấm điểm
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Live Transcript & Word-by-Word Analysis */}
           {transcript && (
             <div className="transcript-box">
               <small>Giọng nói nhận diện được:</small>
               <p>"{transcript}"</p>
-              {!score && (
-                <button className="pron-btn check-btn" type="button" onClick={handleCheckScore}>
-                  🔍 Chấm điểm phát âm
-                </button>
-              )}
             </div>
           )}
 
-          {score !== null && (
-            <div className={`score-result-card ${score >= 70 ? "pass" : "retry"}`}>
+          {/* Detailed Score Result Card */}
+          {analysis && (
+            <div className={`score-result-card ${analysis.score >= 70 ? "pass" : "retry"}`}>
               <div className="score-circle">
-                <strong>{score}%</strong>
+                <strong style={{ color: analysis.score >= 70 ? "#059669" : "#e11d48" }}>{analysis.score}%</strong>
                 <small>Chính xác</small>
               </div>
-              <div className="score-details">
-                <h4>{score >= 85 ? "Phát âm xuất sắc! 🎉" : score >= 70 ? "Phát âm tốt! 👍" : "Hãy luyện tập thêm nhé! 💪"}</h4>
-                <p>
-                  {score >= 70
-                    ? "Bạn phát âm rất chuẩn ngữ điệu và từ vựng. Tiếp tục phát huy nhé!"
-                    : "Một số từ phát âm chưa rõ. Hãy nhấn 'Nghe mẫu chuẩn' và thử lại."}
+
+              <div className="score-details" style={{ flex: 1 }}>
+                <h4>
+                  {analysis.score >= 85 ? "Phát âm xuất sắc! 🎉" : analysis.score >= 70 ? "Phát âm khá tốt! 👍" : "Cần luyện tập thêm nhé! 💪"}
+                </h4>
+                <p style={{ fontSize: "0.88rem", marginBottom: "0.6rem" }}>
+                  {analysis.score >= 70
+                    ? "Bạn phát âm đúng hầu hết các từ. Hãy chú ý nối âm và ngữ điệu để tự nhiên hơn!"
+                    : "Một số từ phát âm chưa chính xác. Nhấn 'Nghe chậm' để luyện từng từ nhé."}
                 </p>
+
+                {/* Word by Word Highlight Analysis */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
+                  {analysis.wordAnalysis.map((item, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                        fontSize: "0.85rem",
+                        fontWeight: 700,
+                        background: item.status === "correct" ? "#dcfce7" : "#fee2e2",
+                        color: item.status === "correct" ? "#15803d" : "#b91c1c",
+                        border: `1px solid ${item.status === "correct" ? "#86efac" : "#fca5a5"}`
+                      }}
+                    >
+                      {item.word} {item.status === "correct" ? "✓" : "✗"}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          <div className="card-footer">
+          {/* Navigation Controls Footer */}
+          <div className="card-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <button className="pron-btn listen-btn" type="button" onClick={handlePrev}>
+              ⬅️ Câu trước
+            </button>
+
             <button className="pron-btn next-btn" type="button" onClick={handleNext}>
               Câu tiếp theo ➔
             </button>

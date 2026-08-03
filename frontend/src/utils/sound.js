@@ -1,6 +1,6 @@
 // Sound utility for Text-to-Speech (TTS) using Web Speech API
 
-export function speakText(text, lang = "en-US") {
+export function speakText(text, lang = "en-US", rate = 0.9) {
   if (!("speechSynthesis" in window)) {
     console.warn("Speech synthesis is not supported in this browser.");
     return;
@@ -11,7 +11,7 @@ export function speakText(text, lang = "en-US") {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang;
-  utterance.rate = 0.9; // Slightly slower for clear pronunciation
+  utterance.rate = rate; // Custom speed rate (e.g. 1.0 for normal, 0.75 for slow)
   utterance.pitch = 1.0;
 
   // Try to find a high quality English voice
