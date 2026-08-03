@@ -28,7 +28,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
     private final UserRepository userRepository;
     private final TestAttemptRepository attemptRepository;
     private final QuestionRepository questionRepository;
-    private final OptionRepository optionRepository;
+    private final AnswerOptionRepository optionRepository;
     private final UserAnswerRepository answerRepository;
     private final LearningRecommendationService recommendationService;
     private final PersonalizedReviewSessionRepository sessionRepository;
@@ -38,7 +38,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
             UserRepository userRepository,
             TestAttemptRepository attemptRepository,
             QuestionRepository questionRepository,
-            OptionRepository optionRepository,
+            AnswerOptionRepository optionRepository,
             UserAnswerRepository answerRepository,
             LearningRecommendationService recommendationService,
             PersonalizedReviewSessionRepository sessionRepository,
@@ -218,15 +218,15 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
             Question q = prq.getQuestion();
             PersonalizedReviewSubmitRequest.UserAnswerSubmission submission = userSubmissions.get(q.getId());
 
-            List<Option> options = optionRepository.findByQuestionIdOrderByPositionAsc(q.getId());
-            Option correctOpt = options.stream().filter(o -> Boolean.TRUE.equals(o.getCorrect())).findFirst().orElse(null);
+            List<AnswerOption> options = optionRepository.findByQuestionIdOrderByPositionAsc(q.getId());
+            AnswerOption correctOpt = options.stream().filter(o -> Boolean.TRUE.equals(o.getCorrect())).findFirst().orElse(null);
 
             String selectedOptionText = "(Chưa chọn đáp án)";
             boolean isCorrect = false;
 
             if (submission != null && submission.getSelectedOptionId() != null) {
                 Long selectedId = parseLongSafe(submission.getSelectedOptionId());
-                Option selectedOpt = options.stream().filter(o -> o.getId().equals(selectedId)).findFirst().orElse(null);
+                AnswerOption selectedOpt = options.stream().filter(o -> o.getId().equals(selectedId)).findFirst().orElse(null);
                 if (selectedOpt != null) {
                     selectedOptionText = selectedOpt.getOptionText();
                     if (correctOpt != null && correctOpt.getId().equals(selectedId)) {
@@ -326,7 +326,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
         try { return Long.parseLong(str); } catch (Exception e) { return null; }
     }
 
-    private String generateAiExplanationFallback(Question q, Option correctOpt) {
+    private String generateAiExplanationFallback(Question q, AnswerOption correctOpt) {
         String answerStr = correctOpt != null ? correctOpt.getOptionText() : "đáp án chuẩn";
         return "Đáp án đúng là '" + answerStr + "' vì tuân theo cấu trúc ngữ pháp và nghĩa ngữ cảnh chuẩn trong bài học " + (q.getTopic() != null ? q.getTopic() : "tiếng Anh") + ".";
     }
