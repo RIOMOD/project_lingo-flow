@@ -54,6 +54,9 @@ class AiServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private com.example.englishlearning.repository.AiMessageFeedbackRepository feedbackRepository;
+
     private AiServiceImpl aiService;
 
     @BeforeEach
@@ -66,6 +69,7 @@ class AiServiceImplTest {
                 writingRepository,
                 usageLogRepository,
                 userRepository,
+                feedbackRepository,
                 new ObjectMapper(),
                 "openai",
                 50,
@@ -168,6 +172,7 @@ class AiServiceImplTest {
                 writingRepository,
                 usageLogRepository,
                 userRepository,
+                feedbackRepository,
                 new ObjectMapper(),
                 "fallback",
                 50,
