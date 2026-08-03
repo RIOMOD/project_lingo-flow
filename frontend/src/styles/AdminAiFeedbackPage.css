@@ -1,0 +1,328 @@
+/* AdminAiFeedbackPage.css - Premium Modern Admin AI Feedback Management Portal */
+
+.admin-feedback-page {
+  padding: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Header Banner Card */
+.admin-feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+}
+
+.admin-feedback-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-feedback-desc {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0.3rem 0 0 0;
+}
+
+.admin-feedback-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-feedback-refresh-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Filter Tabs Bar */
+.admin-feedback-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-feedback-tab {
+  padding: 0.55rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-feedback-tab:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.admin-feedback-tab.active {
+  background: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.admin-feedback-total {
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.admin-feedback-total strong {
+  color: #4f46e5;
+  font-weight: 800;
+}
+
+/* Feedbacks List */
+.admin-feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-feedback-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+  transition: all 0.15s ease;
+}
+
+.admin-feedback-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+}
+
+/* Card Header Top Row */
+.admin-feedback-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-feedback-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.admin-feedback-badge.like {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.admin-feedback-badge.dislike {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.admin-feedback-user-info {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.admin-feedback-user-name {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.admin-feedback-time {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Student Comment Callout */
+.admin-feedback-comment-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Side-by-side QA Comparison Grid */
+.admin-feedback-qa-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.admin-feedback-qa-box {
+  padding: 1rem;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.admin-feedback-qa-box.user {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-feedback-qa-box.ai {
+  background: #f0f5ff;
+  border: 1px solid #c7d2fe;
+}
+
+.admin-feedback-qa-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-feedback-qa-label.user { color: #64748b; }
+.admin-feedback-qa-label.ai { color: #4338ca; }
+
+.admin-feedback-qa-text {
+  color: #1e293b;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Pagination Bar */
+.admin-feedback-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 1rem;
+}
+
+.admin-feedback-page-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-feedback-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-feedback-page-btn:not(:disabled):hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.admin-feedback-page-info {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Empty State */
+.admin-feedback-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.admin-feedback-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Dark Theme Support */
+[data-theme="dark"] .admin-feedback-header,
+[data-theme="dark"] .admin-feedback-card,
+[data-theme="dark"] .admin-feedback-empty {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .admin-feedback-title,
+[data-theme="dark"] .admin-feedback-user-name {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .admin-feedback-desc,
+[data-theme="dark"] .admin-feedback-user-info,
+[data-theme="dark"] .admin-feedback-time {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .admin-feedback-qa-box.user {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .admin-feedback-qa-box.ai {
+  background: rgba(99, 102, 241, 0.12) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+[data-theme="dark"] .admin-feedback-qa-text {
+  color: #f8fafc !important;
+}
+
+@media (max-width: 768px) {
+  .admin-feedback-qa-grid {
+    grid-template-columns: 1fr;
+  }
+}

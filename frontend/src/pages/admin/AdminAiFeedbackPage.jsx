@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getAdminAiFeedbacks } from "../../services/aiService";
+import FormattedMessage from "../../components/common/FormattedMessage";
+import "../../styles/AdminAiFeedbackPage.css";
 
 export default function AdminAiFeedbackPage() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -28,28 +30,29 @@ export default function AdminAiFeedbackPage() {
   }, [filterRating, page]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+    <div className="admin-feedback-page">
+      {/* Header Banner Card */}
+      <div className="admin-feedback-header">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="admin-feedback-title">
             <span>🤖 Quản Lý Phản Hồi AI</span>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Theo dõi đánh giá (Like/Dislike) và góp ý của học viên để liên tục cải thiện bộ mô hình AI.
+          <p className="admin-feedback-desc">
+            Theo dõi đánh giá (Like/Dislike) và góp ý của học viên để liên tục tinh chỉnh bộ mô hình AI.
           </p>
         </div>
 
         <button
           onClick={fetchFeedbacks}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+          className="admin-feedback-refresh-btn"
+          type="button"
         >
           🔄 Tải lại
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+      {/* Filter Tabs Bar */}
+      <div className="admin-feedback-filters">
         {[
           { key: "", label: "Tất cả phản hồi", icon: "📊" },
           { key: "LIKE", label: "Hài lòng (Like)", icon: "👍" },
@@ -57,91 +60,85 @@ export default function AdminAiFeedbackPage() {
         ].map((tab) => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => {
               setFilterRating(tab.key);
               setPage(0);
             }}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              filterRating === tab.key
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
+            className={`admin-feedback-tab ${filterRating === tab.key ? "active" : ""}`}
           >
-            <span className="mr-1.5">{tab.icon}</span>
-            {tab.label}
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
           </button>
         ))}
 
-        <div className="ml-auto text-xs text-slate-500 font-medium">
-          Tổng số: <strong className="text-indigo-600 dark:text-indigo-400">{totalElements}</strong> phản hồi
+        <div className="admin-feedback-total">
+          Tổng số: <strong>{totalElements}</strong> phản hồi
         </div>
       </div>
 
-      {/* List / Table */}
+      {/* Feedbacks List */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+        <div style={{ textAlign: "center", padding: "3rem" }}>
+          <div style={{ display: "inline-block", width: "32px", height: "32px", borderRadius: "50%", border: "3px solid #cbd5e1", borderTopColor: "#4f46e5", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ marginTop: "12px", fontSize: "14px", color: "#64748b" }}>Đang tải phản hồi...</p>
         </div>
       ) : feedbacks.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-          <span className="text-4xl">💬</span>
-          <p className="mt-2 text-sm text-slate-500">Chưa có phản hồi nào phù hợp với bộ lọc.</p>
+        <div className="admin-feedback-empty">
+          <div className="admin-feedback-empty-icon">💬</div>
+          <p style={{ margin: 0, fontWeight: 600 }}>Chưa có phản hồi nào phù hợp với bộ lọc.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="admin-feedback-list">
           {feedbacks.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3"
-            >
-              <div className="flex items-center justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                      item.rating === "LIKE"
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                        : "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
-                    }`}
-                  >
+            <div key={item.id} className="admin-feedback-card">
+              {/* Card Header */}
+              <div className="admin-feedback-card-header">
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span className={`admin-feedback-badge ${item.rating === "LIKE" ? "like" : "dislike"}`}>
                     {item.rating === "LIKE" ? "👍 Hài lòng" : "👎 Chưa hài lòng"}
                   </span>
-                  <div className="text-xs text-slate-500">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  <div className="admin-feedback-user-info">
+                    <span className="admin-feedback-user-name">
                       {item.userFullName || "Học viên"}
                     </span>{" "}
                     ({item.userEmail})
                   </div>
                 </div>
 
-                <span className="text-xs text-slate-400">
+                <span className="admin-feedback-time">
                   {new Date(item.createdAt).toLocaleString("vi-VN")}
                 </span>
               </div>
 
-              {/* User Comment if any */}
+              {/* Student Comment Callout */}
               {item.comment && (
-                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs font-medium">
-                  💡 <strong>Góp ý học viên:</strong> "{item.comment}"
+                <div className="admin-feedback-comment-box">
+                  💡 <strong>Góp ý của học viên:</strong> "{item.comment}"
                 </div>
               )}
 
-              {/* User Question vs AI Answer */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                  <div className="text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
+              {/* QA Comparison Grid */}
+              <div className="admin-feedback-qa-grid">
+                <div className="admin-feedback-qa-box user">
+                  <div className="admin-feedback-qa-label user">
                     <span>👤</span> Câu hỏi của học viên:
                   </div>
-                  <div className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
+                  <div className="admin-feedback-qa-text">
                     {item.userMessage || "(Không tìm thấy câu hỏi trước đó)"}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50">
-                  <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1 flex items-center gap-1">
+                <div className="admin-feedback-qa-box ai">
+                  <div className="admin-feedback-qa-label ai">
                     <span>🤖</span> Câu trả lời từ AI:
                   </div>
-                  <div className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-h-48 overflow-y-auto">
-                    {item.aiResponse || "(Không tìm thấy câu trả lời AI)"}
+                  <div className="admin-feedback-qa-text">
+                    {item.aiResponse ? (
+                      <FormattedMessage text={item.aiResponse} />
+                    ) : (
+                      "(Không tìm thấy câu trả lời AI)"
+                    )}
                   </div>
                 </div>
               </div>
@@ -150,23 +147,25 @@ export default function AdminAiFeedbackPage() {
         </div>
       )}
 
-      {/* Pagination */}
+      {/* Pagination Bar */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 pt-4">
+        <div className="admin-feedback-pagination">
           <button
+            type="button"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40"
+            className="admin-feedback-page-btn"
           >
             Trang trước
           </button>
-          <span className="text-xs text-slate-500">
+          <span className="admin-feedback-page-info">
             Trang {page + 1} / {totalPages}
           </span>
           <button
+            type="button"
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40"
+            className="admin-feedback-page-btn"
           >
             Trang sau
           </button>
