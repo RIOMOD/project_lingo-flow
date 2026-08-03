@@ -123,9 +123,49 @@ export default function ChatbotPage() {
   }
 
   useEffect(() => {
-    Promise.all([refreshConversations(), getAiUsage().then(setUsage).catch(() => {})])
-      .catch((err) => setError(err.message || "Không tải được lịch sử hội thoại."))
-      .finally(() => setHistoryLoading(false));
+    async function initData() {
+      try {
+        const [items, usageData] = await Promise.all([
+          refreshConversations(),
+          getAiUsage().catch(() => null),
+        ]);
+        if (usageData) setUsage(usageData);
+        if (items && items.length > 0 && !conversationId) {
+          // Auto load the latest conversation on page open
+          const latestId = items[0].id;
+          setConversationId(latestId);
+          const full = await getAiConversation(latestId);
+          setMessages(full.messages || []);
+          if (full.topic) setTopic(full.topic);
+          if (full.level) setLevel(full.level);
+        }
+      } catch (err) {
+        setError(err.message || "Không tải được lịch sử hội thoại.");
+      } finally {
+        setHistoryLoading(false);
+      }
+    }
+
+    initData();
+
+    // Listen for custom event when AI chat is updated anywhere in the app
+    const handleAiUpdate = async (e) => {
+      const items = await refreshConversations();
+      getAiUsage().then(setUsage).catch(() => {});
+      const activeId = e.detail?.conversationId || (items && items.length > 0 ? items[0].id : null);
+      if (activeId) {
+        try {
+          const full = await getAiConversation(activeId);
+          setConversationId(activeId);
+          setMessages(full.messages || []);
+        } catch {
+          // Silent catch
+        }
+      }
+    };
+
+    window.addEventListener("ai_chat_updated", handleAiUpdate);
+    return () => window.removeEventListener("ai_chat_updated", handleAiUpdate);
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { sendAiChat } from "../../services/aiService";
+import { deleteAiConversation, getAiConversation, getAiConversations, sendAiChat } from "../../services/aiService";
 import "../../styles/MiniChatWidget.css";
 import FormattedMessage from "./FormattedMessage";
 
@@ -11,6 +11,33 @@ export default function MiniChatWidget({ onClose }) {
   const [conversationId, setConversationId] = useState(null);
   
   const bottomRef = useRef(null);
+
+  // Load latest conversation history when opening or mounting
+  useEffect(() => {
+    async function loadLatestChat() {
+      try {
+        const list = await getAiConversations();
+        if (list && list.length > 0) {
+          const latest = list[0];
+          setConversationId(latest.id);
+          const full = await getAiConversation(latest.id);
+          if (full && full.messages) {
+            const formatted = full.messages.map((m) => ({
+              sender: m.sender,
+              text: m.message,
+            }));
+            setMessages(formatted);
+          }
+        }
+      } catch (e) {
+        // Silent catch for guest/network issues
+      }
+    }
+
+    if (isOpen && messages.length === 0) {
+      loadLatestChat();
+    }
+  }, [isOpen]);
   const inactivityTimerRef = useRef(null);
 
   // Dragging state
@@ -96,6 +123,13 @@ export default function MiniChatWidget({ onClose }) {
       if (response.conversationId) {
         setConversationId(response.conversationId);
       }
+
+      // Notify rest of the app (e.g. ChatbotPage) to refresh conversation history
+      window.dispatchEvent(
+        new CustomEvent("ai_chat_updated", {
+          detail: { conversationId: response.conversationId },
+        })
+      );
 
       // Split AI response into separate paragraph bubbles for a natural chat experience
       const rawReply = response.reply || "";
