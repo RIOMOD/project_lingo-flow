@@ -153,26 +153,76 @@ export default function PronunciationPage() {
     setTranscript("");
     setAnalysis(null);
 
-    if (!recognitionRef.current) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
       setError("Trình duyệt không hỗ trợ nhận diện giọng nói tự động. Bạn có thể sử dụng nút 'Mô phỏng phát âm' bên dưới để kiểm tra!");
       setShowSimulateInput(true);
       return;
     }
 
+    // Safely cleanup existing recognition instance if any
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (e) {}
+    }
+
     try {
-      recognitionRef.current.start();
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = "en-US";
+
+      let finalCapturedText = "";
+
+      rec.onresult = (event) => {
+        const text = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join("");
+        finalCapturedText = text;
+        setTranscript(text);
+      };
+
+      rec.onerror = (evt) => {
+        console.warn("Speech recognition error:", evt);
+        setIsRecording(false);
+        if (evt.error === "no-speech") {
+          setError("Chưa nghe thấy giọng nói. Vui lòng nhấn lại và nói to hơn!");
+        } else if (evt.error === "not-allowed") {
+          setError("Chưa cấp quyền Micro. Vui lòng cho phép trình duyệt truy cập Micro.");
+        } else if (evt.error !== "aborted") {
+          setError("Không thể nhận diện giọng nói. Vui lòng nhấn nút Bắt đầu để thử lại.");
+        }
+      };
+
+      rec.onend = () => {
+        setIsRecording(false);
+        if (finalCapturedText.trim()) {
+          const res = analyzePronunciation(currentSentence.text, finalCapturedText.trim());
+          setAnalysis(res);
+        }
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
       setIsRecording(true);
     } catch (err) {
       console.warn("Recording start failed:", err);
       setIsRecording(false);
+      setError("Không thể khởi động Micro. Vui lòng nhấn lại 'Bắt đầu phát âm'.");
     }
   }
 
   function stopRecording() {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
     setIsRecording(false);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+    }
   }
 
   function handleSimulatedSubmit(e) {
