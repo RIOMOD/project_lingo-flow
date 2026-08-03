@@ -44,6 +44,30 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
     }
   }
 
+  const correctOption = options.find((o) => o.correct || o.isCorrect);
+  const correctOptionIdx = options.findIndex((o) => o.correct || o.isCorrect);
+  const correctLetter = correctOptionIdx >= 0 ? (OPTION_LETTERS[correctOptionIdx] || String.fromCharCode(65 + correctOptionIdx)) : "";
+  const correctOptionText = correctOption 
+    ? `${correctLetter ? correctLetter + ". " : ""}${correctOption.optionText || correctOption.content || correctOption.text}`
+    : (question.correctAnswer ? question.correctAnswer : "");
+
+  const userSelectedOptId = answer?.selectedOptionId || (multiple.length > 0 ? multiple[multiple.length - 1] : null);
+  const userOptionIdx = options.findIndex((o) => String(o.id) === String(userSelectedOptId));
+  const userLetter = userOptionIdx >= 0 ? (OPTION_LETTERS[userOptionIdx] || String.fromCharCode(65 + userOptionIdx)) : "";
+  const userOptionText = userOptionIdx >= 0 
+    ? `${userLetter}. ${options[userOptionIdx].optionText || options[userOptionIdx].content || options[userOptionIdx].text}`
+    : (answer?.answerText ? answer.answerText : "(Chưa chọn đáp án)");
+
+  const isAnswerCorrect = Boolean(
+    answer?.correct != null ? answer.correct : (
+      correctOption ? String(userSelectedOptId) === String(correctOption.id) : false
+    )
+  );
+
+  const explanationText = question.explanation || (
+    correctOptionText ? `Đáp án chính xác là "${correctOptionText}" theo quy tắc từ vựng và ngữ pháp chuẩn.` : "Vui lòng xem lại kiến thức về " + (question.topic || "bài học này") + "."
+  );
+
   return (
     <div 
       className="assessment-question-card" 
@@ -167,27 +191,50 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
 
           {disabled && (
             <div 
-              className={`assessment-explanation ${answer?.correct ? "is-correct" : "is-incorrect"}`}
+              className={`assessment-explanation ${isAnswerCorrect ? "is-correct" : "is-incorrect"}`}
               style={{
-                marginTop: "0.4rem",
-                padding: "0.65rem 0.85rem",
-                borderRadius: "10px",
-                background: answer?.correct ? "#f0fdf4" : "#fef2f2",
-                border: answer?.correct ? "1px solid #bbf7d0" : "1px solid #fecaca",
-                color: answer?.correct ? "#15803d" : "#b91c1c",
-                fontSize: "0.85rem"
+                marginTop: "0.6rem",
+                padding: "0.85rem 1rem",
+                borderRadius: "12px",
+                background: isAnswerCorrect ? "#f0fdf4" : "#fef2f2",
+                border: isAnswerCorrect ? "1px solid #bbf7d0" : "1px solid #fecaca",
+                color: isAnswerCorrect ? "#15803d" : "#b91c1c",
+                fontSize: "0.88rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.4rem"
               }}
             >
-              <strong>{answer?.correct ? "✓ Chính xác" : "✗ Chưa đúng"}</strong>
-              {question.explanation && <p style={{ margin: "0.2rem 0 0 0" }}>{question.explanation}</p>}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ fontSize: "0.95rem" }}>{isAnswerCorrect ? "✅ ĐÚNG BÀI" : "❌ CHƯA ĐÚNG"}</strong>
+                {correctOptionText && (
+                  <span style={{ fontSize: "0.82rem", background: isAnswerCorrect ? "#dcfce7" : "#fee2e2", padding: "2px 10px", borderRadius: "6px", fontWeight: 700, color: isAnswerCorrect ? "#166534" : "#991b1b" }}>
+                    Đáp án đúng: {correctOptionText}
+                  </span>
+                )}
+              </div>
+
+              {!isAnswerCorrect && (
+                <div style={{ fontSize: "0.82rem", color: "#475569", background: "#ffffff", padding: "6px 10px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                  <strong>Bạn đã chọn:</strong> <span style={{ color: "#991b1b", fontWeight: 700 }}>{userOptionText}</span>
+                </div>
+              )}
+
+              <div style={{ fontSize: "0.85rem", color: "#334155", marginTop: "2px", lineHeight: "1.45" }}>
+                💡 <strong>Giải thích lý do:</strong> {explanationText}
+              </div>
               
-              {!answer?.correct && question.recommendedLessonId && question.recommendedLessonCourseId && (
-                <div style={{ marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px dashed rgba(185, 28, 28, 0.2)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                   <span style={{ fontSize: "1.1rem" }}>💡</span>
+              {!isAnswerCorrect && (question.recommendedLessonTitle || (question.recommendedLessonId && question.recommendedLessonCourseId)) && (
+                <div style={{ marginTop: "0.4rem", paddingTop: "0.4rem", borderTop: "1px dashed rgba(185, 28, 28, 0.2)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                   <span style={{ fontSize: "1rem" }}>📌</span>
                    <span style={{ fontWeight: 600 }}>Gợi ý ôn tập:</span>
-                   <Link to={`/student/learn/${question.recommendedLessonCourseId}/${question.recommendedLessonId}`} style={{ color: "#b91c1c", textDecoration: "underline", fontWeight: 700 }}>
-                     {question.recommendedLessonTitle || "Xem bài học liên quan"}
-                   </Link>
+                   {question.recommendedLessonCourseId && question.recommendedLessonId ? (
+                     <Link to={`/student/learn/${question.recommendedLessonCourseId}/${question.recommendedLessonId}`} style={{ color: "#b91c1c", textDecoration: "underline", fontWeight: 700 }}>
+                       {question.recommendedLessonTitle || "Xem bài học liên quan"}
+                     </Link>
+                   ) : (
+                     <strong style={{ color: "#b91c1c" }}>{question.recommendedLessonTitle || question.topic || "Củng cố kiến thức ngữ pháp & từ vựng"}</strong>
+                   )}
                 </div>
               )}
             </div>
