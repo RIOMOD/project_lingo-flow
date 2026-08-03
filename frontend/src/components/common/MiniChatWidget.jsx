@@ -13,6 +13,41 @@ export default function MiniChatWidget({ onClose }) {
   const bottomRef = useRef(null);
   const inactivityTimerRef = useRef(null);
 
+  // Dragging state
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  const handlePointerDown = (e) => {
+    if (e.target.closest('.mini-chat-header') || e.target.closest('.mini-chat-fab')) {
+      isDragging.current = true;
+      dragStart.current = {
+        x: e.clientX - offset.x,
+        y: e.clientY - offset.y
+      };
+      document.body.style.userSelect = 'none';
+      document.addEventListener("pointermove", handlePointerMove);
+      document.addEventListener("pointerup", handlePointerUp);
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (isDragging.current) {
+      setOffset({
+        x: e.clientX - dragStart.current.x,
+        y: e.clientY - dragStart.current.y
+      });
+    }
+  };
+
+  const handlePointerUp = () => {
+    isDragging.current = false;
+    document.body.style.userSelect = '';
+    document.removeEventListener("pointermove", handlePointerMove);
+    document.removeEventListener("pointerup", handlePointerUp);
+  };
+
+
   const resetTimer = () => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
@@ -78,9 +113,21 @@ export default function MiniChatWidget({ onClose }) {
         { sender: "AI", text: response.reply },
       ]);
     } catch (err) {
+      let errorText = "Xin lỗi, đã có lỗi kết nối. Vui lòng thử lại sau.";
+      if (err?.message) {
+        if (err.message.includes("401") || err.message.includes("Unauthorized") || err.message.includes("Authentication")) {
+          errorText = "Bạn cần đăng nhập để sử dụng tính năng AI. Vui lòng đăng nhập lại.";
+        } else if (err.message.includes("API key") || err.message.includes("401") || err.message.includes("403")) {
+          errorText = "Lỗi xác thực API. Vui lòng kiểm tra cấu hình AI.";
+        } else if (err.message.includes("backend") || err.message.includes("kết nối máy chủ")) {
+          errorText = "Không thể kết nối máy chủ. Vui lòng đảm bảo backend đang chạy.";
+        } else {
+          errorText = err.message;
+        }
+      }
       setMessages((prev) => [
         ...prev,
-        { sender: "AI", text: "Xin lỗi, đã có lỗi kết nối. Vui lòng thử lại sau.", isError: true },
+        { sender: "AI", text: errorText, isError: true },
       ]);
     } finally {
       setLoading(false);
@@ -88,10 +135,16 @@ export default function MiniChatWidget({ onClose }) {
   };
 
   return (
-    <div className="mini-chat-widget" onClick={handleInteraction} onKeyDown={handleInteraction}>
+    <div 
+      className="mini-chat-widget" 
+      onClick={handleInteraction} 
+      onKeyDown={handleInteraction}
+      onPointerDown={handlePointerDown}
+      style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
+    >
       {isOpen && (
         <div className="mini-chat-window">
-          <div className="mini-chat-header">
+          <div className="mini-chat-header" style={{ cursor: 'grab' }}>
             <div className="mini-chat-title">
               <span className="mini-chat-avatar">🤖</span> AI Trợ Lý
             </div>

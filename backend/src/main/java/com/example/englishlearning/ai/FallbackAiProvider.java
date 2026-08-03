@@ -121,9 +121,13 @@ public class FallbackAiProvider implements AiProvider {
 
         // 7. Default General Conversation
         return """
-                💬 **Phản hồi**:
+                🤖 **AI Trợ Lý**:
                 
-                > *"Tôi đã ghi nhận thông tin của bạn: '%s'. (Hiện tại tôi đang ở chế độ Offline/Fallback nên chỉ có thể trả lời các mẫu câu cơ bản. Để tôi có thể giải đáp mọi câu hỏi của bạn, vui lòng kết nối OpenAI nhé!)"*
+                Cảm ơn bạn đã chia sẻ: *"%s"*.
+                
+                Đây là một chủ đề rất thú vị! Nếu bạn có bất kỳ câu hỏi nào về từ vựng liên quan, hay muốn tôi dịch và hướng dẫn cách diễn đạt ý này bằng tiếng Anh sao cho chuẩn xác nhất, đừng ngần ngại hỏi nhé!
+                
+                (Tôi luôn sẵn sàng giúp bạn học tiếng Anh 24/7 ✨)
                 """.formatted(userText);
     }
 
@@ -203,13 +207,22 @@ public class FallbackAiProvider implements AiProvider {
     private record TranslationResult(String enWord, String ipa, String viMeaning, String enExample, String viExample) {}
 
     private String extractVietnameseWordToTranslate(String input) {
-        if (input == null || input.isBlank()) return "Dây thừng";
-        String cleaned = input.replaceAll("(?i)(tiếng anh là gì|tiếng anh gọi là gì|dịch sang tiếng anh|đọc là gì|là gì|tiếng anh|dịch|từ|cho tôi biết)", "").trim();
+        if (input == null || input.isBlank()) return "hello";
+        String cleaned = input.replaceAll("(?i)(có nghĩa là gì|nghĩa là gì|tiếng anh là gì|tiếng anh gọi là gì|dịch sang tiếng anh|đọc là gì|có nghĩa|là gì|tiếng anh|dịch|từ|cho tôi biết)", "").trim();
         return cleaned.isEmpty() ? input : cleaned;
     }
 
     private TranslationResult translateVietnameseToEnglish(String input) {
         String lower = input.toLowerCase().trim();
+        if (lower.contains("hello")) {
+            return new TranslationResult("Hello", "/həˈloʊ/", "Xin chào (Từ chào hỏi thông dụng nhất)", "Hello! How are you doing today?", "Xin chào! Hôm nay bạn thế nào?");
+        }
+        if (lower.contains("hi")) {
+            return new TranslationResult("Hi", "/haɪ/", "Chào (Thân mật, dùng cho bạn bè)", "Hi there! Great to see you.", "Chào bạn! Rất vui được gặp bạn.");
+        }
+        if (lower.contains("thank") || lower.contains("cảm ơn")) {
+            return new TranslationResult("Thank you / Thanks", "/θæŋk juː/", "Cảm ơn", "Thank you very much for your help.", "Cảm ơn bạn rất nhiều vì sự giúp đỡ.");
+        }
         if (lower.contains("day thung") || lower.contains("dây thừng") || lower.contains("thừng")) {
             return new TranslationResult("Rope", "/roʊp/", "Dây thừng, dây cáp", "He used a strong rope to climb the mountain.", "Anh ấy dùng một sợi dây thừng chắc chắn để leo núi.");
         }

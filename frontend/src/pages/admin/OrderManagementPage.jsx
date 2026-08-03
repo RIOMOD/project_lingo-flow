@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export default function OrderManagementPage() {
-  const [orders, setOrders] = useState([
-    { id: "ORD-9821", user: "nguyen.van.a@gmail.com", course: "Speaking with Confidence", amount: 699000, status: "COMPLETED", date: "2026-08-02 18:30" },
-    { id: "ORD-9820", user: "le.thi.b@gmail.com", course: "IELTS Writing Task 2 Intensive", amount: 1290000, status: "COMPLETED", date: "2026-08-02 15:45" },
-    { id: "ORD-9819", user: "tran.van.c@gmail.com", course: "Practical Writing for Study and Work", amount: 599000, status: "PENDING", date: "2026-08-02 12:10" },
-    { id: "ORD-9818", user: "pham.minh.d@gmail.com", course: "Vocabulary Through Word Patterns", amount: 499000, status: "CANCELLED", date: "2026-08-01 09:20" },
-  ]);
+  const [orders, setOrders] = useState(() => {
+    const saved = localStorage.getItem("lingoflow_orders");
+    if (saved) return JSON.parse(saved);
+    const initial = [
+      { id: "ORD-9821", user: "nguyen.van.a@gmail.com", course: "Speaking with Confidence", amount: 699000, status: "COMPLETED", date: "2026-08-02 18:30" },
+      { id: "ORD-9820", user: "le.thi.b@gmail.com", course: "IELTS Writing Task 2 Intensive", amount: 1290000, status: "COMPLETED", date: "2026-08-02 15:45" },
+      { id: "ORD-9819", user: "tran.van.c@gmail.com", course: "Practical Writing for Study and Work", amount: 599000, status: "PENDING", date: "2026-08-02 12:10" },
+      { id: "ORD-9818", user: "pham.minh.d@gmail.com", course: "Vocabulary Through Word Patterns", amount: 499000, status: "CANCELLED", date: "2026-08-01 09:20" },
+    ];
+    localStorage.setItem("lingoflow_orders", JSON.stringify(initial));
+    return initial;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("lingoflow_orders", JSON.stringify(orders));
+  }, [orders]);
+
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");

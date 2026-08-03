@@ -24,6 +24,7 @@ public class OpenAiProvider implements AiProvider {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
     private final String apiKey;
+    private final String baseUrl;
     private final String model;
     private final int maxRetries;
 
@@ -37,6 +38,7 @@ public class OpenAiProvider implements AiProvider {
     ) {
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
+        this.baseUrl = baseUrl;
         this.model = model;
         this.maxRetries = Math.max(0, maxRetries);
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -83,8 +85,8 @@ public class OpenAiProvider implements AiProvider {
         String text = extractText(node);
         return AiProviderResult.builder()
                 .text(text)
-                .promptTokens(extractUsage(node, "input_tokens"))
-                .completionTokens(extractUsage(node, "output_tokens"))
+                .promptTokens(extractUsage(node, "prompt_tokens"))
+                .completionTokens(extractUsage(node, "completion_tokens"))
                 .totalTokens(extractUsage(node, "total_tokens"))
                 .fallback(false)
                 .build();
@@ -130,8 +132,8 @@ public class OpenAiProvider implements AiProvider {
                     .coherenceScore(decimal(data, "coherenceScore"))
                     .taskResponseScore(decimal(data, "taskResponseScore"))
                     .suggestedLessons(list(data, "suggestedLessons"))
-                    .promptTokens(extractUsage(node, "input_tokens"))
-                    .completionTokens(extractUsage(node, "output_tokens"))
+                    .promptTokens(extractUsage(node, "prompt_tokens"))
+                    .completionTokens(extractUsage(node, "completion_tokens"))
                     .totalTokens(extractUsage(node, "total_tokens"))
                     .fallback(false)
                     .build();
@@ -149,11 +151,11 @@ public class OpenAiProvider implements AiProvider {
             try {
                 Map<String, Object> body = new LinkedHashMap<>();
                 body.put("model", model);
-                body.put("input", messages);
-                body.put("max_output_tokens", 900);
-                body.put("store", false);
+                body.put("messages", messages);
+                body.put("max_tokens", 900);
+                String path = baseUrl.endsWith("/") ? "chat/completions" : "/chat/completions";
                 String response = restClient.post()
-                        .uri("/responses")
+                        .uri(path)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + apiKey)
                         .body(body)
@@ -182,22 +184,11 @@ public class OpenAiProvider implements AiProvider {
     }
 
     private String extractText(JsonNode node) {
-        JsonNode outputText = node.path("output_text");
-        if (outputText.isTextual() && !outputText.asText().isBlank()) {
-            return outputText.asText().trim();
-        }
-        JsonNode output = node.path("output");
-        if (output.isArray()) {
-            for (JsonNode item : output) {
-                JsonNode content = item.path("content");
-                if (!content.isArray()) continue;
-                for (JsonNode part : content) {
-                    JsonNode text = part.path("text");
-                    if ("output_text".equals(part.path("type").asText())
-                            && text.isTextual() && !text.asText().isBlank()) {
-                        return text.asText().trim();
-                    }
-                }
+        JsonNode choices = node.path("choices");
+        if (choices.isArray() && !choices.isEmpty()) {
+            JsonNode message = choices.get(0).path("message");
+            if (message.has("content")) {
+                return message.path("content").asText().trim();
             }
         }
         throw new BadRequestException("AI response does not contain output text");

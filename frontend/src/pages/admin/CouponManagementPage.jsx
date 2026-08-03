@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export default function CouponManagementPage() {
-  const [coupons, setCoupons] = useState([
-    { id: 1, code: "LINGO2026", discount: "20%", discountType: "PERCENT", value: 20, usage: 142, maxUsage: 500, status: "ACTIVE", exp: "2026-12-31" },
-    { id: 2, code: "HELLOSUMMER", discount: "50,000đ", discountType: "FIXED", value: 50000, usage: 50, maxUsage: 50, status: "EXPIRED", exp: "2026-07-01" },
-    { id: 3, code: "VIPNEWUSER", discount: "30%", discountType: "PERCENT", value: 30, usage: 12, maxUsage: 100, status: "ACTIVE", exp: "2026-10-15" },
-  ]);
+  const [coupons, setCoupons] = useState(() => {
+    const saved = localStorage.getItem("lingoflow_coupons");
+    if (saved) return JSON.parse(saved);
+    const initial = [
+      { id: 1, code: "LINGO2026", discount: "20%", discountType: "PERCENT", value: 20, usage: 142, maxUsage: 500, status: "ACTIVE", exp: "2026-12-31" },
+      { id: 2, code: "HELLOSUMMER", discount: "50,000đ", discountType: "FIXED", value: 50000, usage: 50, maxUsage: 50, status: "EXPIRED", exp: "2026-07-01" },
+      { id: 3, code: "VIPNEWUSER", discount: "30%", discountType: "PERCENT", value: 30, usage: 12, maxUsage: 100, status: "ACTIVE", exp: "2026-10-15" },
+    ];
+    localStorage.setItem("lingoflow_coupons", JSON.stringify(initial));
+    return initial;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("lingoflow_coupons", JSON.stringify(coupons));
+  }, [coupons]);
+
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");

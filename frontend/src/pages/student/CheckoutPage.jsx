@@ -118,6 +118,32 @@ export default function CheckoutPage() {
       setSimulating(true);
       setScanStep(2);
       await simulatePayment(order.orderCode);
+      
+      // Save order to localStorage mock
+      const savedOrders = JSON.parse(localStorage.getItem("lingoflow_orders") || "[]");
+      const courseName = (order.items && order.items.length > 0) ? order.items[0].title : "Multiple Courses";
+      const newOrderMock = {
+        id: order.orderCode,
+        user: "student@lingoflow.com",
+        course: courseName,
+        amount: order.totalAmount,
+        status: "COMPLETED",
+        date: new Date().toISOString().slice(0, 16).replace("T", " "),
+      };
+      localStorage.setItem("lingoflow_orders", JSON.stringify([newOrderMock, ...savedOrders]));
+
+      // Save transaction to localStorage mock
+      const savedTxs = JSON.parse(localStorage.getItem("lingoflow_txs") || "[]");
+      const newTxMock = {
+        id: `TXN-${Math.floor(Math.random() * 9000) + 1000}`,
+        orderId: order.orderCode,
+        gateway: "VNPAY",
+        amount: order.totalAmount,
+        status: "SUCCESS",
+        time: new Date().toISOString().slice(0, 16).replace("T", " "),
+      };
+      localStorage.setItem("lingoflow_txs", JSON.stringify([newTxMock, ...savedTxs]));
+
       setTimeout(() => {
         toast.success("Thanh toán thành công!");
         navigate(`/student/payment/success?orderCode=${order.orderCode}`);

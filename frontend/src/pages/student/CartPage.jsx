@@ -39,6 +39,7 @@ function CourseImage({ item, index }) {
 export default function CartPage() {
   const [cart, setCart] = useState(null);
   const [couponCode, setCouponCode] = useState("");
+  const [suggestedCoupons, setSuggestedCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
@@ -59,6 +60,18 @@ export default function CartPage() {
 
   useEffect(() => {
     loadCart();
+    try {
+      const saved = localStorage.getItem("lingoflow_coupons");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const active = parsed
+          .filter(c => c.status === "ACTIVE")
+          .map(c => ({ code: c.code, label: c.discount }));
+        setSuggestedCoupons(active);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
   async function runAction(action, successMsg) {
@@ -292,13 +305,7 @@ export default function CartPage() {
                       <small style={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600, width: "100%", marginBottom: "2px" }}>
                         Gợi ý mã hot:
                       </small>
-                      {[
-                        { code: "CHAO2026", label: "-20%" },
-                        { code: "GIAM10", label: "-10%" },
-                        { code: "GIAM30", label: "-30%" },
-                        { code: "GIAM50", label: "-50%" },
-                        { code: "SUPER90", label: "-90%" },
-                      ].map((v) => (
+                      {suggestedCoupons.map((v) => (
                         <button
                           key={v.code}
                           type="button"

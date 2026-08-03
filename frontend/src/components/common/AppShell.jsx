@@ -557,9 +557,7 @@ export default function AppShell({ roleKey = "student" }) {
         </main>
       </div>
 
-      {isStudent && location.pathname !== "/student/chatbot" && (
-        <MiniChatWidget />
-      )}
+      {user && isStudent && <MiniChatWidget />}
     </div>
   );
 }

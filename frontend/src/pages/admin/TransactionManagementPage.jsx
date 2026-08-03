@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export default function TransactionManagementPage() {
-  const [txs, setTxs] = useState([
-    { id: "TXN-8821", orderId: "ORD-9821", gateway: "VNPAY", amount: 699000, status: "SUCCESS", time: "2026-08-02 18:31" },
-    { id: "TXN-8820", orderId: "ORD-9820", gateway: "MOMO", amount: 1290000, status: "SUCCESS", time: "2026-08-02 15:46" },
-    { id: "TXN-8819", orderId: "ORD-9819", gateway: "BANK_TRANSFER", amount: 599000, status: "PENDING", time: "2026-08-02 12:12" },
-  ]);
+  const [txs, setTxs] = useState(() => {
+    const saved = localStorage.getItem("lingoflow_txs");
+    if (saved) return JSON.parse(saved);
+    const initial = [
+      { id: "TXN-8821", orderId: "ORD-9821", gateway: "VNPAY", amount: 699000, status: "SUCCESS", time: "2026-08-02 18:31" },
+      { id: "TXN-8820", orderId: "ORD-9820", gateway: "MOMO", amount: 1290000, status: "SUCCESS", time: "2026-08-02 15:46" },
+      { id: "TXN-8819", orderId: "ORD-9819", gateway: "BANK_TRANSFER", amount: 599000, status: "PENDING", time: "2026-08-02 12:12" },
+    ];
+    localStorage.setItem("lingoflow_txs", JSON.stringify(initial));
+    return initial;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("lingoflow_txs", JSON.stringify(txs));
+  }, [txs]);
+
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
