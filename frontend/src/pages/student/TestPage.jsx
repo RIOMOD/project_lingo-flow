@@ -422,7 +422,8 @@ export default function TestPage() {
           scorePercent: finalScore,
           passed: finalScore >= 60,
           correctAnswers: correctCount,
-          incorrectAnswers: total - correctCount,
+          incorrectAnswers: Math.max(0, total - correctCount),
+          totalQuestions: total,
           elapsedSeconds: 180,
           submittedAt: new Date().toISOString()
         };
@@ -571,7 +572,7 @@ export default function TestPage() {
                     <div>
                       <span style={{ display: "block", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>Số câu trả lời</span>
                       <strong style={{ fontSize: "0.95rem", fontWeight: 800, color: "#334155" }}>
-                        {item.correctAnswers != null ? `${item.correctAnswers} / ${item.totalQuestions || 40} câu đúng` : "Đã nộp bài"}
+                        {item.correctAnswers != null ? `${item.correctAnswers} / ${item.totalQuestions || (item.questions ? item.questions.length : 10)} câu đúng` : `${item.answers?.length || 0} / ${item.totalQuestions || (item.questions ? item.questions.length : 10)} câu đã làm`}
                       </strong>
                     </div>
 
@@ -636,8 +637,34 @@ export default function TestPage() {
   );
 
   const submitted = attempt.status !== "IN_PROGRESS"; 
-  const percent = Number(attempt.scorePercent || 0); 
-  const passed = Boolean(attempt.passed);
+  const totalQCount = questions.length || attempt.totalQuestions || 10;
+  
+  let correctCountVal = attempt.correctAnswers != null ? Number(attempt.correctAnswers) : null;
+  if (correctCountVal == null && attempt.answers) {
+    correctCountVal = questions.filter((q) => {
+      const userAns = answers.get(q.id);
+      const correctOpt = (q.options || []).find((o) => o.correct || o.isCorrect);
+      return userAns && (
+        (correctOpt && (userAns.selectedOptionId === correctOpt.id || userAns.selectedOptionId === String(correctOpt.id))) ||
+        (userAns.selectedOptionId && q.correctAnswer && (userAns.selectedOptionId === q.correctAnswer || userAns.answerText === q.correctAnswer))
+      );
+    }).length;
+  }
+  if (correctCountVal == null) correctCountVal = 0;
+  
+  const incorrectCountVal = attempt.incorrectAnswers != null ? Number(attempt.incorrectAnswers)
+    : Math.max(0, totalQCount - correctCountVal);
+
+  const percent = attempt.scorePercent != null ? Number(attempt.scorePercent)
+    : (totalQCount > 0 ? Math.round((correctCountVal / totalQCount) * 100) : 0);
+
+  const maxPointsVal = attempt.totalPoints != null && attempt.totalPoints > 0 ? Number(attempt.totalPoints)
+    : (attempt.score != null && Number(attempt.score) <= totalQCount ? totalQCount : 100);
+
+  const scoreDisplayVal = attempt.score != null ? Math.round(Number(attempt.score))
+    : Math.round((correctCountVal / totalQCount) * 100);
+
+  const passed = attempt.passed != null ? Boolean(attempt.passed) : percent >= 60;
   const missingCount = questions.length - answeredCount;
   const recommendations = attempt.recommendations ?? [];
 
@@ -695,7 +722,7 @@ export default function TestPage() {
                 {passed ? "Bạn đã đạt yêu cầu" : "Bạn chưa đạt yêu cầu"}
               </h3>
               <p style={{ margin: "0.15rem 0 0 0", color: "#475569", fontSize: "0.88rem" }}>
-                Điểm {attempt.score}/{attempt.totalPoints || 100} ({percent.toFixed(0)}%) · Đúng {attempt.correctAnswers || 0} · Sai {attempt.incorrectAnswers || 0} · Thời gian {clock(attempt.elapsedSeconds || 180)}
+                Điểm {scoreDisplayVal}/{maxPointsVal} ({percent.toFixed(0)}%) · Đúng {correctCountVal} · Sai {incorrectCountVal} · Thời gian {clock(attempt.elapsedSeconds || 180)}
               </p>
             </div>
           </div>
