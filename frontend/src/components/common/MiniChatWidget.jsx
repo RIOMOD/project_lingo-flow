@@ -17,10 +17,17 @@ export default function MiniChatWidget({ onClose }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
+  const hasDragged = useRef(false);
 
   const handlePointerDown = (e) => {
+    // Don't drag when clicking close button or inputs
+    if (e.target.closest('.mini-chat-close') || e.target.closest('input') || e.target.closest('form')) {
+      return;
+    }
+
     if (e.target.closest('.mini-chat-header') || e.target.closest('.mini-chat-fab')) {
       isDragging.current = true;
+      hasDragged.current = false;
       dragStart.current = {
         x: e.clientX - offset.x,
         y: e.clientY - offset.y
@@ -33,6 +40,11 @@ export default function MiniChatWidget({ onClose }) {
 
   const handlePointerMove = (e) => {
     if (isDragging.current) {
+      const dx = Math.abs(e.clientX - (dragStart.current.x + offset.x));
+      const dy = Math.abs(e.clientY - (dragStart.current.y + offset.y));
+      if (dx > 4 || dy > 4) {
+        hasDragged.current = true;
+      }
       setOffset({
         x: e.clientX - dragStart.current.x,
         y: e.clientY - dragStart.current.y
@@ -47,47 +59,24 @@ export default function MiniChatWidget({ onClose }) {
     document.removeEventListener("pointerup", handlePointerUp);
   };
 
-
-  const resetTimer = () => {
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
-    // Only set timer if the widget is open
-    if (isOpen) {
-      inactivityTimerRef.current = setTimeout(() => {
-        setIsOpen(false);
-      }, 30000); // 30 seconds
-    }
-  };
-
-  useEffect(() => {
-    resetTimer();
-    return () => {
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    };
-  }, [isOpen, messages]);
-
   useEffect(() => {
     if (isOpen) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen, loading]);
 
-  const handleOpenToggle = () => {
-    setIsOpen(!isOpen);
-    if (!isOpen) {
-      // User opens the chat manually
-      resetTimer();
+  const handleFabClick = (e) => {
+    // If the user just dragged the FAB button, don't open/close the chat window
+    if (hasDragged.current) {
+      e.stopPropagation();
+      hasDragged.current = false;
+      return;
     }
-  };
-
-  const handleInteraction = () => {
-    resetTimer();
+    setIsOpen(!isOpen);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    handleInteraction();
     
     const textToSend = message.trim();
     if (!textToSend || loading) return;
@@ -100,7 +89,7 @@ export default function MiniChatWidget({ onClose }) {
       const response = await sendAiChat({
         conversationId,
         topic: "General Chat",
-        level: "B1", // Default level
+        level: "B1",
         message: textToSend,
       });
 
@@ -108,10 +97,25 @@ export default function MiniChatWidget({ onClose }) {
         setConversationId(response.conversationId);
       }
 
-      setMessages((prev) => [
-        ...prev,
-        { sender: "AI", text: response.reply },
-      ]);
+      // Split AI response into separate paragraph bubbles for a natural chat experience
+      const rawReply = response.reply || "";
+      const paragraphs = rawReply
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      if (paragraphs.length > 0) {
+        const newBubbles = paragraphs.map((p) => ({
+          sender: "AI",
+          text: p,
+        }));
+        setMessages((prev) => [...prev, ...newBubbles]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "AI", text: rawReply },
+        ]);
+      }
     } catch (err) {
       let errorText = "Xin lỗi, đã có lỗi kết nối. Vui lòng thử lại sau.";
       if (err?.message) {
@@ -137,8 +141,6 @@ export default function MiniChatWidget({ onClose }) {
   return (
     <div 
       className="mini-chat-widget" 
-      onClick={handleInteraction} 
-      onKeyDown={handleInteraction}
       onPointerDown={handlePointerDown}
       style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
     >
@@ -191,7 +193,7 @@ export default function MiniChatWidget({ onClose }) {
       {!isOpen && (
         <button
           className="mini-chat-fab"
-          onClick={handleOpenToggle}
+          onClick={handleFabClick}
           title="Chat với Trợ lý AI"
         >
           🤖
