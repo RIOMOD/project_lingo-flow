@@ -91,8 +91,8 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
         BigDecimal preAccuracy = recommendations.isEmpty() ? new BigDecimal("50.00")
                 : preAccuracySum.divide(BigDecimal.valueOf(recommendations.size()), 2, RoundingMode.HALF_UP);
 
-        // Fetch questions for review quiz (Target: 8 questions total)
-        int targetTotal = 8;
+        // Fetch questions for review quiz (Target: 10 questions total)
+        int targetTotal = 10;
         Set<Long> alreadyAnsweredQuestionIds = answerRepository.findByAttemptUserId(user.getId()).stream()
                 .map(a -> a.getQuestion().getId())
                 .collect(Collectors.toSet());
@@ -100,9 +100,6 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
         List<Question> selectedQuestions = new ArrayList<>();
         Set<Long> selectedQuestionIds = new HashSet<>();
         List<PersonalizedReviewQuestion> reviewQuestionEntries = new ArrayList<>();
-
-        // Weighted allocation: Weight 1 (40%), Weight 2 (30%), Weight 3 (30%)
-        int[] weights = {4, 2, 2};
 
         PersonalizedReviewSession session = PersonalizedReviewSession.builder()
                 .user(user)
@@ -114,9 +111,32 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
 
         session = sessionRepository.save(session);
 
-        for (int i = 0; i < recommendations.size(); i++) {
+        // Priority 1: Pick all questions the user answered incorrectly in the source attempt
+        if (sourceAttempt != null) {
+            List<UserAnswer> failedAnswers = answerRepository.findByAttemptId(sourceAttempt.getId()).stream()
+                    .filter(ua -> Boolean.FALSE.equals(ua.getCorrect()))
+                    .toList();
+            for (UserAnswer ua : failedAnswers) {
+                Question q = ua.getQuestion();
+                if (q != null && !selectedQuestionIds.contains(q.getId())) {
+                    selectedQuestions.add(q);
+                    selectedQuestionIds.add(q.getId());
+                    reviewQuestionEntries.add(PersonalizedReviewQuestion.builder()
+                            .session(session)
+                            .question(q)
+                            .topic(q.getTopic() != null ? q.getTopic() : "Khắc phục câu làm sai")
+                            .skillType(q.getSkillType())
+                            .weightOrder(1)
+                            .build());
+                }
+            }
+        }
+
+        // Priority 2: Add candidate questions matching weak topic recommendations
+        int[] weights = {4, 3, 3};
+        for (int i = 0; i < recommendations.size() && selectedQuestions.size() < targetTotal; i++) {
             LearningRecommendationResponse rec = recommendations.get(i);
-            int needed = (i < weights.length) ? weights[i] : 2;
+            int needed = Math.min((i < weights.length) ? weights[i] : 2, targetTotal - selectedQuestions.size());
 
             List<Question> candidates = questionRepository.findAll().stream()
                     .filter(q -> q.getDeletedAt() == null)
@@ -139,12 +159,12 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
             }
         }
 
-        // Bù đắp nếu chưa đủ 5 câu
-        if (selectedQuestions.size() < 5) {
+        // Priority 3: Fill remaining slots up to 10 questions with general practice questions
+        if (selectedQuestions.size() < targetTotal) {
             List<Question> fillCandidates = questionRepository.findAll().stream()
                     .filter(q -> q.getDeletedAt() == null)
                     .filter(q -> !selectedQuestionIds.contains(q.getId()))
-                    .limit(5 - selectedQuestions.size())
+                    .limit(targetTotal - selectedQuestions.size())
                     .toList();
             for (Question q : fillCandidates) {
                 selectedQuestions.add(q);
@@ -152,9 +172,9 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
                 reviewQuestionEntries.add(PersonalizedReviewQuestion.builder()
                         .session(session)
                         .question(q)
-                        .topic("Ôn tập kiến thức tổng hợp")
+                        .topic(q.getTopic() != null ? q.getTopic() : "Ôn tập kiến thức tổng hợp")
                         .skillType(q.getSkillType())
-                        .weightOrder(1)
+                        .weightOrder(2)
                         .build());
             }
         }
@@ -381,6 +401,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
                 .map(o -> OptionResponse.builder()
                         .id(o.getId())
                         .optionText(o.getOptionText())
+                        .correct(o.getCorrect())
                         .position(o.getPosition())
                         .build())
                 .toList();
@@ -396,9 +417,12 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
                 .skillType(q.getSkillType())
                 .topic(q.getTopic())
                 .position(q.getPosition())
+                .explanation(q.getExplanation())
+                .correctAnswer(q.getCorrectAnswer())
                 .options(options)
                 .build();
     }
+
     private List<OptionResponse> buildFallbackOptions(Question q) {
         String correctText = (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank())
                 ? q.getCorrectAnswer() : null;
@@ -465,10 +489,10 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
         }
 
         return List.of(
-                OptionResponse.builder().id(q.getId() * 10 + 1).optionText(correctText).position(1).build(),
-                OptionResponse.builder().id(q.getId() * 10 + 2).optionText(optB).position(2).build(),
-                OptionResponse.builder().id(q.getId() * 10 + 3).optionText(optC).position(3).build(),
-                OptionResponse.builder().id(q.getId() * 10 + 4).optionText(optD).position(4).build()
+                OptionResponse.builder().id(q.getId() * 10 + 1).optionText(correctText).correct(true).position(1).build(),
+                OptionResponse.builder().id(q.getId() * 10 + 2).optionText(optB).correct(false).position(2).build(),
+                OptionResponse.builder().id(q.getId() * 10 + 3).optionText(optC).correct(false).position(3).build(),
+                OptionResponse.builder().id(q.getId() * 10 + 4).optionText(optD).correct(false).position(4).build()
         );
     }
 }
