@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { deleteAiConversation, getAiConversation, getAiConversations, sendAiChat } from "../../services/aiService";
 import MessageActions from "./MessageActions";
 import "../../styles/MiniChatWidget.css";
