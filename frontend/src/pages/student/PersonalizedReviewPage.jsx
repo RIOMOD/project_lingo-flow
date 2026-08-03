@@ -109,10 +109,10 @@ export default function PersonalizedReviewPage() {
           {/* Options List */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {(currentQuestion?.options?.length ? currentQuestion.options : [
-              { id: (currentQuestion?.id || 1) * 10 + 1, optionText: "Phương án A (Chính xác)" },
-              { id: (currentQuestion?.id || 1) * 10 + 2, optionText: "Phương án B" },
-              { id: (currentQuestion?.id || 1) * 10 + 3, optionText: "Phương án C" },
-              { id: (currentQuestion?.id || 1) * 10 + 4, optionText: "Phương án D" }
+              { id: (currentQuestion?.id || 1) * 10 + 1, optionText: currentQuestion?.correctAnswer || "Đặt một phòng đôi cho 2 đêm" },
+              { id: (currentQuestion?.id || 1) * 10 + 2, optionText: "Đặt một phòng đơn cho 1 đêm" },
+              { id: (currentQuestion?.id || 1) * 10 + 3, optionText: "Trả phòng khách sạn sớm" },
+              { id: (currentQuestion?.id || 1) * 10 + 4, optionText: "Đặt bàn ăn tối cho 2 người" }
             ]).map((opt) => {
               const isSelected = answers[currentQuestion?.id] === String(opt.id);
               const labelText = opt.optionText || opt.text || opt.content || opt.label || "Phương án lựa chọn";

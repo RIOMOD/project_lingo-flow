@@ -386,14 +386,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
                 .toList();
 
         if (options.isEmpty()) {
-            String correctText = (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank())
-                    ? q.getCorrectAnswer() : "Đáp án A (Chính xác)";
-            options = List.of(
-                    OptionResponse.builder().id(q.getId() * 10 + 1).optionText(correctText).position(1).build(),
-                    OptionResponse.builder().id(q.getId() * 10 + 2).optionText("Phương án B").position(2).build(),
-                    OptionResponse.builder().id(q.getId() * 10 + 3).optionText("Phương án C").position(3).build(),
-                    OptionResponse.builder().id(q.getId() * 10 + 4).optionText("Phương án D").position(4).build()
-            );
+            options = buildFallbackOptions(q);
         }
 
         return QuestionResponse.builder()
@@ -405,5 +398,77 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
                 .position(q.getPosition())
                 .options(options)
                 .build();
+    }
+    private List<OptionResponse> buildFallbackOptions(Question q) {
+        String correctText = (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank())
+                ? q.getCorrectAnswer() : null;
+
+        if (correctText == null && q.getExplanation() != null && q.getExplanation().contains("=")) {
+            int eqIdx = q.getExplanation().indexOf("=");
+            correctText = q.getExplanation().substring(eqIdx + 1).replace(".", "").trim();
+        }
+
+        if (correctText == null || correctText.isBlank()) {
+            correctText = "Phương án đúng theo ngữ cảnh bài học";
+        }
+
+        String qText = q.getQuestionText() != null ? q.getQuestionText().toLowerCase() : "";
+        String optB = "Lựa chọn phương án 2";
+        String optC = "Lựa chọn phương án 3";
+        String optD = "Lựa chọn phương án 4";
+
+        if (qText.contains("book a double room") || qText.contains("đặt phòng")) {
+            correctText = "Đặt một phòng đôi cho 2 đêm";
+            optB = "Đặt một phòng đơn cho 1 đêm";
+            optC = "Trả phòng khách sạn sớm";
+            optD = "Đặt bàn ăn tối cho 2 người";
+        } else if (qText.contains("subway station") || qText.contains("địa điểm")) {
+            correctText = "Ga tàu điện ngầm";
+            optB = "Trạm xe buýt trung tâm";
+            optC = "Sân bay quốc tế";
+            optD = "Bến tàu thủy";
+        } else if (qText.contains("check") || qText.contains("hóa đơn")) {
+            correctText = "Here is your check/bill, sir.";
+            optB = "Yes, I would like some coffee.";
+            optC = "The room is ready now.";
+            optD = "I am looking for a taxi.";
+        } else if (qText.contains("sounds great") || qText.contains("đồng ý")) {
+            correctText = "That sounds great! Let us go.";
+            optB = "Sorry, I am too busy today.";
+            optC = "I do not think so.";
+            optD = "No, thank you very much.";
+        } else if (qText.contains("departure time") || qText.contains("khởi hành")) {
+            correctText = "Giờ khởi hành chuyến bay";
+            optB = "Giờ hạ cánh dự kiến";
+            optC = "Số ghế trên tàu";
+            optD = "Hạn cân hành lý ký gửi";
+        } else if (qText.contains("mind the gap") || qText.contains("khoảng trống")) {
+            correctText = "Chú ý khoảng trống giữa tàu và mép sân ga";
+            optB = "Vui lòng giữ trật tự trên toa tàu";
+            optC = "Không mang vật dễ cháy nổ";
+            optD = "Xin xuất trình vé cho soát vé";
+        } else if (qText.contains("thank you") || qText.contains("cảm ơn")) {
+            correctText = "You are very welcome!";
+            optB = "Yes, please.";
+            optC = "Never mind.";
+            optD = "See you next time.";
+        } else if (qText.contains("boarding pass") || qText.contains("lên máy bay")) {
+            correctText = "Thẻ lên máy bay";
+            optB = "Hộ chiếu cá nhân";
+            optC = "Tờ khai y tế";
+            optD = "Hóa đơn tiền phòng";
+        } else if (qText.contains("round-trip") || qText.contains("khứ hồi")) {
+            correctText = "Vé khứ hồi (2 chiều)";
+            optB = "Vé một chiều";
+            optC = "Vé xem phim cuối tuần";
+            optD = "Thẻ thành viên giảm giá";
+        }
+
+        return List.of(
+                OptionResponse.builder().id(q.getId() * 10 + 1).optionText(correctText).position(1).build(),
+                OptionResponse.builder().id(q.getId() * 10 + 2).optionText(optB).position(2).build(),
+                OptionResponse.builder().id(q.getId() * 10 + 3).optionText(optC).position(3).build(),
+                OptionResponse.builder().id(q.getId() * 10 + 4).optionText(optD).position(4).build()
+        );
     }
 }
