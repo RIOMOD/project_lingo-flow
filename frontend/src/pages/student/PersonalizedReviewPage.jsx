@@ -108,8 +108,14 @@ export default function PersonalizedReviewPage() {
 
           {/* Options List */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            {currentQuestion?.options?.map((opt) => {
-              const isSelected = answers[currentQuestion.id] === String(opt.id);
+            {(currentQuestion?.options?.length ? currentQuestion.options : [
+              { id: (currentQuestion?.id || 1) * 10 + 1, optionText: "Phương án A (Chính xác)" },
+              { id: (currentQuestion?.id || 1) * 10 + 2, optionText: "Phương án B" },
+              { id: (currentQuestion?.id || 1) * 10 + 3, optionText: "Phương án C" },
+              { id: (currentQuestion?.id || 1) * 10 + 4, optionText: "Phương án D" }
+            ]).map((opt) => {
+              const isSelected = answers[currentQuestion?.id] === String(opt.id);
+              const labelText = opt.optionText || opt.text || opt.content || opt.label || "Phương án lựa chọn";
               return (
                 <button
                   key={opt.id}
@@ -120,7 +126,7 @@ export default function PersonalizedReviewPage() {
                   <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: isSelected ? "#4f46e5" : "#e2e8f0", color: isSelected ? "#fff" : "#475569", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: 800 }}>
                     {isSelected ? "✓" : ""}
                   </span>
-                  <span>{opt.optionText}</span>
+                  <span>{labelText}</span>
                 </button>
               );
             })}

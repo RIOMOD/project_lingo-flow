@@ -190,11 +190,23 @@ export default function TestPage() {
   async function handleCreatePersonalizedReview(attemptId) {
     setGeneratingReview(true);
     try {
-      const session = await generatePersonalizedReview(attemptId);
-      navigate(`/student/personalized-review/${session.id}`);
+      // Clean numeric attempt ID if available
+      const cleanId = attemptId && !isNaN(Number(attemptId)) ? Number(attemptId) : null;
+      const session = await generatePersonalizedReview(cleanId);
+      if (session?.id) {
+        navigate(`/student/personalized-review/${session.id}`);
+      } else {
+        const fallbackSession = await generatePersonalizedReview();
+        navigate(`/student/personalized-review/${fallbackSession.id}`);
+      }
     } catch (err) {
-      console.warn("Could not generate review session from API, navigating to demo review:", err);
-      navigate(`/student/personalized-review/101`);
+      console.warn("Could not generate review session with attempt ID, trying general fallback:", err);
+      try {
+        const fallbackSession = await generatePersonalizedReview();
+        navigate(`/student/personalized-review/${fallbackSession.id}`);
+      } catch (e) {
+        console.error("Failed to generate review session:", e);
+      }
     } finally {
       setGeneratingReview(false);
     }

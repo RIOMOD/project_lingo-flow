@@ -22,7 +22,7 @@ public class PersonalizedReviewController {
     @PostMapping("/generate")
     public ApiResponse<PersonalizedReviewSessionResponse> generateReviewSession(
             Authentication authentication,
-            @RequestParam(required = false) Long sourceAttemptId
+            @RequestParam(required = false) String sourceAttemptId
     ) {
         return ApiResponse.success(reviewService.generateReviewSession(authentication.getName(), sourceAttemptId));
     }
