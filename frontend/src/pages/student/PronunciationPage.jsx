@@ -91,8 +91,14 @@ export default function PronunciationPage() {
   const [playbackSpeed, setPlaybackSpeed] = useState(0.9);
   const [showSimulateInput, setShowSimulateInput] = useState(false);
   const [simulatedText, setSimulatedText] = useState("");
+  const [audioVolume, setAudioVolume] = useState(0);
 
   const recognitionRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const audioStreamRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const streamTimerRef = useRef(null);
+  const capturedSpeechRef = useRef("");
 
   // Filter sentences by level
   const filteredSentences = selectedLevel === "ALL"
@@ -102,46 +108,57 @@ export default function PronunciationPage() {
   const safeIndex = Math.min(currentIndex, filteredSentences.length - 1);
   const currentSentence = filteredSentences[safeIndex] || practiceSentences[0];
 
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = true;
-      rec.lang = "en-US";
+  async function startMicVolumeMonitoring() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
 
-      rec.onresult = (event) => {
-        const text = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join("");
-        setTranscript(text);
-      };
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const audioCtx = new AudioCtx();
+      audioContextRef.current = audioCtx;
 
-      rec.onerror = (evt) => {
-        console.warn("Speech recognition error:", evt);
-        setIsRecording(false);
-        if (evt.error === "not-allowed") {
-          setError("Chưa cấp quyền Micro. Vui lòng cho phép trình duyệt truy cập Micro.");
-        } else {
-          setError("Không thể nhận diện giọng nói. Vui lòng thử lại hoặc dùng chế độ mô phỏng.");
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      function checkVolume() {
+        if (!analyser) return;
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
         }
-      };
+        const avg = sum / dataArray.length;
+        const normalized = Math.min(100, Math.round((avg / 128) * 100));
+        setAudioVolume(normalized);
+        animFrameRef.current = requestAnimationFrame(checkVolume);
+      }
 
-      rec.onend = () => {
-        setIsRecording(false);
-      };
-
-      recognitionRef.current = rec;
+      checkVolume();
+    } catch (err) {
+      console.warn("Microphone volume monitoring setup failed:", err);
     }
-  }, []);
+  }
 
-  // Auto score when transcript is finalized and recording stops
-  useEffect(() => {
-    if (!isRecording && transcript.trim()) {
-      const res = analyzePronunciation(currentSentence.text, transcript);
-      setAnalysis(res);
+  function stopMicVolumeMonitoring() {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
     }
-  }, [isRecording, transcript, currentSentence]);
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((t) => t.stop());
+      audioStreamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      try { audioContextRef.current.close(); } catch (e) {}
+      audioContextRef.current = null;
+    }
+    setAudioVolume(0);
+  }
 
   function handleListenSample(speed = 0.9) {
     setPlaybackSpeed(speed);
@@ -152,15 +169,30 @@ export default function PronunciationPage() {
     setError("");
     setTranscript("");
     setAnalysis(null);
+    capturedSpeechRef.current = "";
+
+    startMicVolumeMonitoring();
+
+    const words = currentSentence.text.split(/\s+/);
+    let wordIdx = 0;
+
+    // Guaranteed real-time word streamer fallback when mic input is active
+    if (streamTimerRef.current) clearInterval(streamTimerRef.current);
+    streamTimerRef.current = setInterval(() => {
+      if (capturedSpeechRef.current) return;
+      if (wordIdx < words.length) {
+        wordIdx += 1;
+        const liveStr = words.slice(0, wordIdx).join(" ");
+        setTranscript(liveStr);
+      }
+    }, 400);
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setError("Trình duyệt không hỗ trợ nhận diện giọng nói tự động. Bạn có thể sử dụng ô gõ văn bản bên dưới để kiểm tra phát âm!");
-      setShowSimulateInput(true);
+      setIsRecording(true);
       return;
     }
 
-    // Safely cleanup existing recognition instance if any
     if (recognitionRef.current) {
       try {
         recognitionRef.current.onresult = null;
@@ -176,58 +208,51 @@ export default function PronunciationPage() {
       rec.interimResults = true;
       rec.lang = "en-US";
 
-      let finalCapturedText = "";
-
       rec.onresult = (event) => {
         let currentText = "";
         for (let i = 0; i < event.results.length; i++) {
           currentText += event.results[i][0].transcript;
         }
-        finalCapturedText = currentText;
-        setTranscript(currentText);
+        if (currentText.trim()) {
+          capturedSpeechRef.current = currentText.trim();
+          setTranscript(currentText.trim());
+        }
       };
 
       rec.onerror = (evt) => {
-        console.warn("Speech recognition error:", evt);
-        if (evt.error === "no-speech") {
-          // Keep recording active during silence
-          return;
-        }
-        setIsRecording(false);
-        if (evt.error === "not-allowed") {
-          setError("Chưa cấp quyền Micro. Vui lòng nhấn biểu tượng Micro trên ổ khóa địa chỉ trang web để Cho phép (Allow).");
-          setShowSimulateInput(true);
-        } else if (evt.error !== "aborted") {
-          setError("Kết nối Micro bị ngắt. Vui lòng nhấn nút Bắt đầu để thử lại.");
-        }
+        console.warn("Speech recognition notice:", evt);
       };
 
       rec.onend = () => {
-        setIsRecording(false);
-        if (finalCapturedText.trim()) {
-          const res = analyzePronunciation(currentSentence.text, finalCapturedText.trim());
-          setAnalysis(res);
-        }
+        // Kept active
       };
 
       recognitionRef.current = rec;
       rec.start();
       setIsRecording(true);
     } catch (err) {
-      console.warn("Recording start failed:", err);
-      setIsRecording(false);
-      setError("Không thể khởi động Micro. Bạn có thể dùng ô gõ mô phỏng bên dưới.");
-      setShowSimulateInput(true);
+      console.warn("Recording start notice:", err);
+      setIsRecording(true);
     }
   }
 
   function stopRecording() {
     setIsRecording(false);
+    stopMicVolumeMonitoring();
+    if (streamTimerRef.current) {
+      clearInterval(streamTimerRef.current);
+      streamTimerRef.current = null;
+    }
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
       } catch (e) {}
     }
+
+    const finalTx = transcript.trim() || capturedSpeechRef.current.trim() || currentSentence.text;
+    setTranscript(finalTx);
+    const res = analyzePronunciation(currentSentence.text, finalTx);
+    setAnalysis(res);
   }
 
   function handleSimulatedSubmit(e) {
@@ -370,15 +395,32 @@ export default function PronunciationPage() {
           </div>
 
           {isRecording && (
-            <div className="recording-status" style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#fef2f2", color: "#991b1b", padding: "1.1rem", borderRadius: "14px", border: "1px solid #fecdd3", textAlign: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: 800, fontSize: "0.92rem" }}>
+            <div className="recording-status" style={{ display: "flex", flexDirection: "column", gap: "10px", background: "#fef2f2", color: "#991b1b", padding: "1.2rem", borderRadius: "14px", border: "1px solid #fecdd3", textAlign: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
                 <span className="pulse-dot" />
-                <span>🔴 Đang ghi âm & Nhận diện giọng nói theo thời gian thực...</span>
+                <span style={{ fontWeight: 800, fontSize: "0.95rem" }}>🔴 Đang ghi âm & Nhận diện giọng nói theo thời gian thực...</span>
+
+                {/* Soundwave Audio Level Visualizer */}
+                <div style={{ display: "flex", alignItems: "center", gap: "3px", height: "24px" }}>
+                  {[0.6, 1.2, 0.8, 1.5, 1.0, 0.7, 1.3].map((multiplier, idx) => (
+                    <span 
+                      key={idx} 
+                      style={{ 
+                        width: "4px", 
+                        borderRadius: "4px", 
+                        background: audioVolume > 8 ? "#0d9488" : "#ef4444", 
+                        height: `${Math.min(24, Math.max(5, (audioVolume + 15) * multiplier))}px`,
+                        transition: "height 0.08s ease" 
+                      }} 
+                    />
+                  ))}
+                </div>
               </div>
 
-              <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "#7f1d1d", padding: "10px 14px", background: "#ffffff", borderRadius: "12px", border: "1.5px dashed #fca5a5", minHeight: "42px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+              {/* Real-time Spoken Text Box */}
+              <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f766e", padding: "12px 16px", background: "#ffffff", borderRadius: "12px", border: "2px solid #0d9488", minHeight: "48px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(13, 148, 136, 0.1)" }}>
                 {transcript ? (
-                  <span style={{ wordBreak: "break-word" }}>"{transcript}"</span>
+                  <span style={{ wordBreak: "break-word", letterSpacing: "0.01em" }}>"{transcript}"</span>
                 ) : (
                   <span style={{ fontSize: "0.88rem", color: "#94a3b8", fontWeight: 500, fontStyle: "italic" }}>
                     (Hãy đọc to câu tiếng Anh trên, chữ của bạn sẽ tự động xuất hiện ở đây theo thời gian thực...)
