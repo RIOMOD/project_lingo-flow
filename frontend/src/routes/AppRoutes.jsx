@@ -34,6 +34,7 @@ const PaymentStatusPage = lazy(() => import("../pages/student/PaymentStatusPage"
 const CourseLearningPage = lazy(() => import("../pages/student/CourseLearningPage"));
 const ExercisePage = lazy(() => import("../pages/student/ExercisePage"));
 const TestPage = lazy(() => import("../pages/student/TestPage"));
+const PersonalizedReviewPage = lazy(() => import("../pages/student/PersonalizedReviewPage"));
 const VocabularyPage = lazy(() => import("../pages/student/VocabularyPage"));
 const VocabularySessionPage = lazy(() => import("../pages/student/VocabularySessionPage"));
 const GrammarPage = lazy(() => import("../pages/student/GrammarPage"));
@@ -113,6 +114,7 @@ export default function AppRoutes() {
                 </Route>
                 <Route path="exercises" element={<ExercisePage />} />
                 <Route path="tests" element={<TestPage />} />
+                <Route path="personalized-review/:sessionId" element={<PersonalizedReviewPage />} />
                 <Route path="vocabulary" element={<VocabularyPage />} />
                 <Route path="vocabulary/session" element={<VocabularySessionPage />} />
                 <Route path="grammar" element={<GrammarPage />} />

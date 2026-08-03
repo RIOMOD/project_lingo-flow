@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AssessmentQuestion from "../../components/student/AssessmentQuestion";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { getAttempt, getAttempts, getTests, saveAnswer, startTest, submitAttempt } from "../../services/assessmentService";
+import { generatePersonalizedReview } from "../../services/personalizedReviewService";
 import { exportDocumentToPDF } from "../../utils/pdfExporter";
 
 const IconArrowLeft = () => (
@@ -172,6 +173,7 @@ const buildMockAttempt = (testId) => {
 };
 
 export default function TestPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [history, setHistory] = useState([]);
   const [attempt, setAttempt] = useState(null);
@@ -182,7 +184,21 @@ export default function TestPage() {
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [generatingReview, setGeneratingReview] = useState(false);
   const autoSubmitted = useRef(false);
+
+  async function handleCreatePersonalizedReview(attemptId) {
+    setGeneratingReview(true);
+    try {
+      const session = await generatePersonalizedReview(attemptId);
+      navigate(`/student/personalized-review/${session.id}`);
+    } catch (err) {
+      console.warn("Could not generate review session from API, navigating to demo review:", err);
+      navigate(`/student/personalized-review/101`);
+    } finally {
+      setGeneratingReview(false);
+    }
+  }
 
   const SAMPLE_HISTORY = [
     {
@@ -757,7 +773,29 @@ export default function TestPage() {
           </div>
 
           {submitted && (
-            <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", flexShrink: 0, marginTop: "0.5rem" }}>
+            <div className="assessment-result-actions" style={{ display: "flex", gap: "1rem", flexShrink: 0, marginTop: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+              <button
+                type="button"
+                disabled={generatingReview}
+                onClick={() => handleCreatePersonalizedReview(attempt?.id)}
+                style={{
+                  padding: "0.65rem 1.4rem",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #4f46e5, #3730a3)",
+                  color: "#ffffff",
+                  border: "none",
+                  fontWeight: "800",
+                  fontSize: "0.9rem",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px rgba(79, 70, 229, 0.35)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}
+              >
+                <span>{generatingReview ? "⏳ Đang khởi tạo bài ôn..." : "🚀 Tạo bài ôn cá nhân hóa khắc phục lỗi sai"}</span>
+              </button>
+
               <Link to={recommendations.length ? recommendationPath(recommendations[0]) : "/student/exercises"} style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", background: "#f1f5f9", color: "#0f172a", textDecoration: "none", fontWeight: "600" }}>
                 {recommendations.length ? `Ôn ${recommendations[0].topic}` : "Ôn bài liên quan"}
               </Link>
