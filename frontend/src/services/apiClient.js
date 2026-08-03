@@ -1,8 +1,10 @@
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./tokenStorage";
 
-// In development Vite proxies /api to the backend. This keeps guest requests
-// same-origin and avoids CORS failures when the UI is opened via 127.0.0.1.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+let rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
+if (rawBaseUrl.startsWith("http") && !rawBaseUrl.endsWith("/api") && !rawBaseUrl.endsWith("/api/")) {
+  rawBaseUrl = rawBaseUrl.replace(/\/+$/, "") + "/api";
+}
+const API_BASE_URL = rawBaseUrl;
 
 async function parseResponse(response) {
   const contentType = response.headers.get("content-type") ?? "";
