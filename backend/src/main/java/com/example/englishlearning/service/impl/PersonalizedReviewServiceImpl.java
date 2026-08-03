@@ -250,29 +250,32 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
             if (submission != null && submission.getSelectedOptionId() != null) {
                 Long selectedId = parseLongSafe(submission.getSelectedOptionId());
                 if (!options.isEmpty()) {
+                    // Questions with real DB options
                     AnswerOption selectedOpt = options.stream().filter(o -> o.getId().equals(selectedId)).findFirst().orElse(null);
                     if (selectedOpt != null) {
                         selectedOptionText = selectedOpt.getOptionText();
-                        if (correctOpt != null && correctOpt.getId().equals(selectedId)) {
-                            isCorrect = true;
-                        }
+                        isCorrect = Boolean.TRUE.equals(selectedOpt.getCorrect());
                     }
                 } else {
-                    long expectedCorrectId = q.getId() * 10 + 1;
-                    if (selectedId != null && selectedId.equals(expectedCorrectId)) {
+                    // Questions using fallback synthetic options: correctOptionId = -(q.getId())
+                    long syntheticCorrectId = -(q.getId());
+                    String correctText = resolveCorrectText(q);
+                    if (selectedId != null && selectedId == syntheticCorrectId) {
                         isCorrect = true;
-                        selectedOptionText = (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank()) ? q.getCorrectAnswer() : "Đáp án chính xác";
+                        selectedOptionText = correctText;
                     } else if (selectedId != null) {
-                        long pos = selectedId % 10;
-                        selectedOptionText = pos == 2 ? "Phương án B" : pos == 3 ? "Phương án C" : pos == 4 ? "Phương án D" : "Phương án đã chọn";
+                        // For distractor options, the text isn't available server-side; show generic
+                        selectedOptionText = "Phương án đã chọn (không chính xác)";
                     }
                 }
             }
 
             if (isCorrect) correctCount++;
 
-            String correctAnsText = correctOpt != null ? correctOpt.getOptionText()
-                    : (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank() ? q.getCorrectAnswer() : "Đáp án A (Chính xác)");
+            // Resolve correct answer text clearly
+            String correctAnsText = correctOpt != null
+                    ? correctOpt.getOptionText()
+                    : resolveCorrectText(q);
 
             // Build Multi-Tier Explanation
             String source = (q.getExplanation() != null && !q.getExplanation().isBlank()) ? "TEACHER" : "AI_FALLBACK";
@@ -397,18 +400,43 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
     }
 
     private QuestionResponse toQuestionResponse(Question q) {
-        List<OptionResponse> options = optionRepository.findByQuestionIdOrderByPositionAsc(q.getId()).stream()
+        List<AnswerOption> rawOptions = optionRepository.findByQuestionIdOrderByPositionAsc(q.getId());
+
+        // Find the correct option ID before shuffling
+        Long correctOptionId = rawOptions.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getCorrect()))
+                .map(AnswerOption::getId)
+                .findFirst()
+                .orElse(null);
+
+        // Build option DTOs WITHOUT exposing the correct flag (prevents cheating)
+        List<OptionResponse> options = new ArrayList<>(rawOptions.stream()
                 .map(o -> OptionResponse.builder()
                         .id(o.getId())
                         .optionText(o.getOptionText())
-                        .correct(o.getCorrect())
                         .position(o.getPosition())
                         .build())
-                .toList();
+                .toList());
 
+        // If no DB options, use smart fallback
         if (options.isEmpty()) {
-            options = buildFallbackOptions(q);
+            return buildFallbackQuestionResponse(q);
         }
+
+        // Shuffle options so correct answer isn't always in the same position
+        Collections.shuffle(options);
+        for (int i = 0; i < options.size(); i++) {
+            options.set(i, OptionResponse.builder()
+                    .id(options.get(i).getId())
+                    .optionText(options.get(i).getOptionText())
+                    .position(i + 1)
+                    .build());
+        }
+
+        // Resolve related lesson for "Go to lesson" link
+        Lesson lesson = resolveLesson(q);
+        String richExp = buildRichExplanation(q, rawOptions.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getCorrect())).findFirst().orElse(null));
 
         return QuestionResponse.builder()
                 .id(q.getId())
@@ -418,81 +446,281 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
                 .topic(q.getTopic())
                 .position(q.getPosition())
                 .explanation(q.getExplanation())
+                .richExplanation(richExp)
                 .correctAnswer(q.getCorrectAnswer())
+                .correctOptionId(correctOptionId)
+                .recommendedLessonId(lesson != null ? lesson.getId() : null)
+                .recommendedLessonTitle(lesson != null ? lesson.getTitle() : null)
+                .recommendedLessonCourseId(lesson != null && lesson.getChapter() != null && lesson.getChapter().getCourse() != null ? lesson.getChapter().getCourse().getId() : null)
+                .recommendedLessonCourseSlug(lesson != null && lesson.getChapter() != null && lesson.getChapter().getCourse() != null ? lesson.getChapter().getCourse().getSlug() : null)
                 .options(options)
                 .build();
     }
 
-    private List<OptionResponse> buildFallbackOptions(Question q) {
-        String correctText = (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank())
-                ? q.getCorrectAnswer() : null;
+    /**
+     * Build a fallback QuestionResponse when the question has no seeded answer_options.
+     * Uses correctAnswer + explanation fields to construct meaningful options.
+     */
+    private QuestionResponse buildFallbackQuestionResponse(Question q) {
+        String correctText = resolveCorrectText(q);
+        List<String> distractors = buildDistractors(q, correctText);
 
-        if (correctText == null && q.getExplanation() != null && q.getExplanation().contains("=")) {
-            int eqIdx = q.getExplanation().indexOf("=");
-            correctText = q.getExplanation().substring(eqIdx + 1).replace(".", "").trim();
+        long correctId = -(q.getId());
+
+        List<OptionResponse> options = new ArrayList<>();
+        options.add(OptionResponse.builder().id(correctId).optionText(correctText).position(1).build());
+        for (int i = 0; i < distractors.size(); i++) {
+            options.add(OptionResponse.builder()
+                    .id(q.getId() * 10L + (i + 2))
+                    .optionText(distractors.get(i))
+                    .position(i + 2)
+                    .build());
         }
 
-        if (correctText == null || correctText.isBlank()) {
-            correctText = "Phương án đúng theo ngữ cảnh bài học";
+        Collections.shuffle(options);
+        for (int i = 0; i < options.size(); i++) {
+            options.set(i, OptionResponse.builder()
+                    .id(options.get(i).getId())
+                    .optionText(options.get(i).getOptionText())
+                    .position(i + 1)
+                    .build());
         }
 
+        Lesson lesson = resolveLesson(q);
+        String richExp = buildRichExplanation(q, null);
+
+        return QuestionResponse.builder()
+                .id(q.getId())
+                .questionType(q.getQuestionType())
+                .questionText(q.getQuestionText())
+                .skillType(q.getSkillType())
+                .topic(q.getTopic())
+                .position(q.getPosition())
+                .explanation(q.getExplanation())
+                .richExplanation(richExp)
+                .correctAnswer(correctText)
+                .correctOptionId(correctId)
+                .recommendedLessonId(lesson != null ? lesson.getId() : null)
+                .recommendedLessonTitle(lesson != null ? lesson.getTitle() : null)
+                .recommendedLessonCourseId(lesson != null && lesson.getChapter() != null && lesson.getChapter().getCourse() != null ? lesson.getChapter().getCourse().getId() : null)
+                .recommendedLessonCourseSlug(lesson != null && lesson.getChapter() != null && lesson.getChapter().getCourse() != null ? lesson.getChapter().getCourse().getSlug() : null)
+                .options(options)
+                .build();
+    }
+
+    /**
+     * Resolve the most relevant lesson for a question.
+     * Priority: question.recommendedLesson → exercise.lesson
+     */
+    private Lesson resolveLesson(Question q) {
+        if (q.getRecommendedLesson() != null) return q.getRecommendedLesson();
+        if (q.getExercise() != null && q.getExercise().getLesson() != null) return q.getExercise().getLesson();
+        return null;
+    }
+
+    /**
+     * Generate a rich, multi-part explanation covering:
+     * - The grammar rule / vocabulary rule at play
+     * - When & where to use it
+     * - A similar example sentence
+     */
+    private String buildRichExplanation(Question q, AnswerOption correctOpt) {
+        String correctText = correctOpt != null ? correctOpt.getOptionText() : resolveCorrectText(q);
+        String topic = q.getTopic() != null ? q.getTopic() : "";
+        String skill = q.getSkillType() != null ? q.getSkillType().name() : "";
         String qText = q.getQuestionText() != null ? q.getQuestionText().toLowerCase() : "";
-        String optB = "Lựa chọn phương án 2";
-        String optC = "Lựa chọn phương án 3";
-        String optD = "Lựa chọn phương án 4";
 
-        if (qText.contains("book a double room") || qText.contains("đặt phòng")) {
-            correctText = "Đặt một phòng đôi cho 2 đêm";
-            optB = "Đặt một phòng đơn cho 1 đêm";
-            optC = "Trả phòng khách sạn sớm";
-            optD = "Đặt bàn ăn tối cho 2 người";
-        } else if (qText.contains("subway station") || qText.contains("địa điểm")) {
-            correctText = "Ga tàu điện ngầm";
-            optB = "Trạm xe buýt trung tâm";
-            optC = "Sân bay quốc tế";
-            optD = "Bến tàu thủy";
-        } else if (qText.contains("check") || qText.contains("hóa đơn")) {
-            correctText = "Here is your check/bill, sir.";
-            optB = "Yes, I would like some coffee.";
-            optC = "The room is ready now.";
-            optD = "I am looking for a taxi.";
-        } else if (qText.contains("sounds great") || qText.contains("đồng ý")) {
-            correctText = "That sounds great! Let us go.";
-            optB = "Sorry, I am too busy today.";
-            optC = "I do not think so.";
-            optD = "No, thank you very much.";
-        } else if (qText.contains("departure time") || qText.contains("khởi hành")) {
-            correctText = "Giờ khởi hành chuyến bay";
-            optB = "Giờ hạ cánh dự kiến";
-            optC = "Số ghế trên tàu";
-            optD = "Hạn cân hành lý ký gửi";
-        } else if (qText.contains("mind the gap") || qText.contains("khoảng trống")) {
-            correctText = "Chú ý khoảng trống giữa tàu và mép sân ga";
-            optB = "Vui lòng giữ trật tự trên toa tàu";
-            optC = "Không mang vật dễ cháy nổ";
-            optD = "Xin xuất trình vé cho soát vé";
-        } else if (qText.contains("thank you") || qText.contains("cảm ơn")) {
-            correctText = "You are very welcome!";
-            optB = "Yes, please.";
-            optC = "Never mind.";
-            optD = "See you next time.";
-        } else if (qText.contains("boarding pass") || qText.contains("lên máy bay")) {
-            correctText = "Thẻ lên máy bay";
-            optB = "Hộ chiếu cá nhân";
-            optC = "Tờ khai y tế";
-            optD = "Hóa đơn tiền phòng";
-        } else if (qText.contains("round-trip") || qText.contains("khứ hồi")) {
-            correctText = "Vé khứ hồi (2 chiều)";
-            optB = "Vé một chiều";
-            optC = "Vé xem phim cuối tuần";
-            optD = "Thẻ thành viên giảm giá";
+        // If the question already has a good explanation, enrich it instead of replacing
+        String base = (q.getExplanation() != null && !q.getExplanation().isBlank()) ? q.getExplanation() : null;
+
+        StringBuilder sb = new StringBuilder();
+
+        // ── Rule / Concept ──────────────────────────────────────
+        sb.append("📌 Đáp án đúng: ").append(correctText).append("\n\n");
+
+        if (base != null) {
+            sb.append("💡 Giải thích: ").append(base).append("\n\n");
         }
 
-        return List.of(
-                OptionResponse.builder().id(q.getId() * 10 + 1).optionText(correctText).correct(true).position(1).build(),
-                OptionResponse.builder().id(q.getId() * 10 + 2).optionText(optB).correct(false).position(2).build(),
-                OptionResponse.builder().id(q.getId() * 10 + 3).optionText(optC).correct(false).position(3).build(),
-                OptionResponse.builder().id(q.getId() * 10 + 4).optionText(optD).correct(false).position(4).build()
-        );
+        // ── Grammar/Vocab rule based on topic/skill ──────────────
+        String rule = buildRuleText(qText, topic, skill, correctText);
+        if (rule != null) {
+            sb.append("📚 Quy tắc / Kiến thức:\n").append(rule).append("\n\n");
+        }
+
+        // ── When to use ──────────────────────────────────────────
+        String usage = buildUsageText(qText, topic, skill);
+        if (usage != null) {
+            sb.append("🕐 Khi nào / Ở đâu dùng:\n").append(usage).append("\n\n");
+        }
+
+        // ── Example sentence ──────────────────────────────────────
+        String example = buildExampleText(qText, topic, correctText);
+        if (example != null) {
+            sb.append("✏️ Ví dụ tương tự:\n").append(example);
+        }
+
+        return sb.toString().trim();
+    }
+
+    private String buildRuleText(String qText, String topic, String skill, String correctText) {
+        String t = topic.toLowerCase();
+        if (t.contains("present simple") || t.contains("hiện tại đơn")) {
+            return "Hiện tại đơn (Present Simple) dùng để diễn đạt thói quen, sự thật hiển nhiên hoặc lịch trình.\n" +
+                   "📐 Công thức: S + V(s/es) + O\n" +
+                   "👉 Thêm -(s/es) khi chủ ngữ là he/she/it (VD: She walks to school).";
+        } else if (t.contains("past simple") || t.contains("quá khứ đơn")) {
+            return "Quá khứ đơn (Past Simple) diễn tả hành động đã xảy ra và kết thúc trong quá khứ.\n" +
+                   "📐 Công thức: S + V-ed + O (động từ có quy tắc) hoặc S + V2 + O (bất quy tắc)\n" +
+                   "👉 Dấu hiệu nhận biết: yesterday, last week, ago, in 2020.";
+        } else if (t.contains("present continuous") || t.contains("hiện tại tiếp diễn")) {
+            return "Hiện tại tiếp diễn (Present Continuous) diễn tả hành động đang xảy ra lúc nói.\n" +
+                   "📐 Công thức: S + am/is/are + V-ing\n" +
+                   "⚠️ Không dùng với stative verbs (know, want, need, believe).";
+        } else if (t.contains("prepositions of time") || t.contains("giới từ")) {
+            return "Giới từ thời gian AT / ON / IN:\n" +
+                   "• AT: giờ cụ thể (at 7 a.m., at noon, at night)\n" +
+                   "• ON: ngày cụ thể (on Monday, on Christmas Day)\n" +
+                   "• IN: tháng, năm, mùa, buổi (in July, in 2025, in the morning)";
+        } else if (t.contains("modal") || t.contains("khuyết thiếu") || t.contains("should") || t.contains("must")) {
+            return "Động từ khuyết thiếu (Modal Verbs):\n" +
+                   "• should: lời khuyên (You should review daily.)\n" +
+                   "• must: yêu cầu bắt buộc (You must wear a seatbelt.)\n" +
+                   "• must not: điều cấm tuyệt đối (You must not share your password.)\n" +
+                   "📐 Công thức: S + modal verb + V nguyên thể";
+        } else if (t.contains("would like") || t.contains("polite request") || t.contains("yêu cầu lịch sự")) {
+            return "Would like / Could you diễn đạt mong muốn hoặc yêu cầu lịch sự:\n" +
+                   "• I would like + noun/to-V (muốn lịch sự)\n" +
+                   "• Could you + V...? (nhờ vả lịch sự)\n" +
+                   "• Would you mind + V-ing...? (lịch sự hơn, dùng ở ngữ cảnh trang trọng)";
+        } else if (qText.contains("antonym") || qText.contains("synonym") || t.contains("vocabulary") || t.contains("từ vựng")) {
+            return "Từ đồng nghĩa (synonym) và trái nghĩa (antonym):\n" +
+                   "• Antonym của \"" + correctText + "\" là từ mang nghĩa đối lập hoàn toàn.\n" +
+                   "• Kỹ thuật ghi nhớ: học theo cặp từ (expand ↔ contract/shrink, increase ↔ decrease).";
+        } else if (t.contains("listening") || qText.contains("nghe")) {
+            return "Kỹ năng Nghe (Listening):\n" +
+                   "• Tập trung vào từ khóa (key words) và ngữ cảnh (context).\n" +
+                   "• Đọc câu hỏi trước để biết cần nghe thông tin gì.\n" +
+                   "• Loại suy (elimination): loại các đáp án không phù hợp ngữ cảnh.";
+        }
+        // Generic fallback
+        if (skill.equals("GRAMMAR")) {
+            return "Áp dụng đúng cấu trúc ngữ pháp phù hợp với ngữ cảnh câu hỏi.";
+        } else if (skill.equals("VOCABULARY")) {
+            return "Từ vựng tiếng Anh cần được học trong ngữ cảnh (context) để ghi nhớ lâu bền.";
+        }
+        return null;
+    }
+
+    private String buildUsageText(String qText, String topic, String skill) {
+        String t = topic.toLowerCase();
+        if (t.contains("present simple")) {
+            return "Dùng trong câu mô tả lịch sinh hoạt hàng ngày, sự thật khoa học, và thì giờ biểu chính thức (timetables).";
+        } else if (t.contains("past simple")) {
+            return "Dùng trong câu kể chuyện, tường thuật sự kiện, nhật ký (diary entries).";
+        } else if (t.contains("present continuous")) {
+            return "Dùng khi mô tả việc đang xảy ra ngay lúc nói, hoặc kế hoạch tương lai đã sắp xếp cố định.";
+        } else if (t.contains("modal") || t.contains("should") || t.contains("must")) {
+            return "Dùng trong hướng dẫn an toàn, nội quy, lời khuyên sức khỏe, và quy định nơi công cộng.";
+        } else if (t.contains("would like") || t.contains("polite")) {
+            return "Dùng trong tình huống giao tiếp trang trọng: nhà hàng, khách sạn, cuộc họp, email công việc.";
+        } else if (t.contains("prepositions")) {
+            return "Dùng trong lịch hẹn, thông báo sự kiện, hội thoại về thời gian biểu.";
+        } else if (qText.contains("nghe") || t.contains("listening")) {
+            return "Áp dụng ở sân bay, khách sạn, nhà hàng, phương tiện công cộng — các tình huống hội thoại thực tế.";
+        }
+        return null;
+    }
+
+    private String buildExampleText(String qText, String topic, String correctText) {
+        String t = topic.toLowerCase();
+        if (t.contains("present simple")) return "She takes the bus to work every day. (Cô ấy đi làm bằng xe buýt mỗi ngày.)";
+        if (t.contains("past simple"))   return "They visited the museum last Saturday. (Họ đã tham quan bảo tàng thứ Bảy tuần trước.)";
+        if (t.contains("present continuous")) return "He is preparing for the presentation right now. (Anh ấy đang chuẩn bị cho buổi thuyết trình ngay bây giờ.)";
+        if (t.contains("modal") || t.contains("should")) return "You should practice speaking English every day. (Bạn nên luyện nói tiếng Anh mỗi ngày.)";
+        if (t.contains("would like"))    return "I would like a window seat, please. (Cho tôi một ghế cạnh cửa sổ.)";
+        if (t.contains("prepositions"))  return "The flight departs at 9 a.m. on Friday in November. (Chuyến bay khởi hành lúc 9 sáng, thứ Sáu, tháng 11.)";
+        if (qText.contains("nghe") || qText.contains("subway") || qText.contains("book") || qText.contains("check")) {
+            return "(Ngữ cảnh giao tiếp thực tế) — Luyện nghe bằng cách nghe podcast, xem phim có phụ đề tiếng Anh.";
+        }
+        return null;
+    }
+
+    private String resolveCorrectText(Question q) {
+        if (q.getCorrectAnswer() != null && !q.getCorrectAnswer().isBlank()) {
+            return q.getCorrectAnswer().trim();
+        }
+        if (q.getExplanation() != null && q.getExplanation().contains("=")) {
+            int idx = q.getExplanation().indexOf("=");
+            String extracted = q.getExplanation().substring(idx + 1).replace(".", "").trim();
+            if (!extracted.isBlank()) return extracted;
+        }
+        // Last resort: derive from explanation before '='
+        if (q.getExplanation() != null && !q.getExplanation().isBlank()) {
+            // Explanation often starts with the answer word in quotes
+            String exp = q.getExplanation();
+            if (exp.startsWith("\"")) {
+                int endQuote = exp.indexOf("\"", 1);
+                if (endQuote > 1) return exp.substring(1, endQuote);
+            }
+        }
+        return "Đáp án chính xác";
+    }
+
+    private List<String> buildDistractors(Question q, String correctText) {
+        String qText = q.getQuestionText() != null ? q.getQuestionText().toLowerCase() : "";
+        String topic = q.getTopic() != null ? q.getTopic().toLowerCase() : "";
+
+        // Context-aware distractors based on topic or key phrase
+        if (qText.contains("đặt phòng") || qText.contains("double room")) {
+            return List.of("Đặt phòng đơn cho 1 đêm", "Yêu cầu trả phòng sớm", "Đặt bàn ăn tối");
+        } else if (qText.contains("subway") || qText.contains("ga tàu")) {
+            return List.of("Trạm xe buýt", "Sân bay", "Bến tàu thủy");
+        } else if (qText.contains("check") && qText.contains("bill")) {
+            return List.of("Yes, I would like coffee.", "The room is ready.", "I need a taxi.");
+        } else if (qText.contains("đồng ý") || qText.contains("sounds great")) {
+            return List.of("Sorry, I am busy.", "I do not think so.", "No, thank you.");
+        } else if (qText.contains("khởi hành") || qText.contains("departure")) {
+            return List.of("Giờ hạ cánh", "Số hiệu chuyến bay", "Hạn cân hành lý");
+        } else if (qText.contains("boarding pass")) {
+            return List.of("Hộ chiếu", "Tờ khai y tế", "Hóa đơn tiền phòng");
+        } else if (qText.contains("round-trip") || qText.contains("khứ hồi")) {
+            return List.of("Vé một chiều", "Vé hạng thương gia", "Thẻ thành viên");
+        } else if (topic.contains("vocabulary") || topic.contains("từ vựng")) {
+            // For vocabulary questions, use related words as distractors
+            return generateVocabDistractors(q, correctText);
+        } else if (topic.contains("grammar") || topic.contains("ngữ pháp")) {
+            return List.of("S + V-ing + Object", "V + S + Complement", "Object + was + V-ed");
+        }
+        // Generic distractors
+        return List.of("Lựa chọn không phù hợp A", "Lựa chọn không phù hợp B", "Lựa chọn không phù hợp C");
+    }
+
+    private List<String> generateVocabDistractors(Question q, String correctText) {
+        // Generate plausible but wrong vocabulary options by using common English words
+        // that might be confused with the correct answer
+        Map<String, List<String>> confusableWords = new LinkedHashMap<>();
+        confusableWords.put("routine", List.of("schedule", "habit", "plan"));
+        confusableWords.put("wake up", List.of("get up", "stand up", "show up"));
+        confusableWords.put("appointment", List.of("assignment", "arrangement", "announcement"));
+        confusableWords.put("available", List.of("capable", "affordable", "reachable"));
+        confusableWords.put("clarify", List.of("classify", "notify", "simplify"));
+        confusableWords.put("delay", List.of("cancel", "pause", "extend"));
+        confusableWords.put("attach", List.of("include", "upload", "insert"));
+        confusableWords.put("reply", List.of("respond", "report", "remind"));
+        confusableWords.put("update", List.of("upgrade", "upload", "record"));
+        confusableWords.put("microphone", List.of("speaker", "webcam", "headphone"));
+        confusableWords.put("connection", List.of("communication", "network", "signal"));
+        confusableWords.put("password", List.of("username", "keyword", "passcode"));
+
+        List<String> found = confusableWords.get(correctText.toLowerCase());
+        if (found != null) return found;
+        // Fallback: pick 3 random other words from the map
+        return confusableWords.values().stream()
+                .flatMap(List::stream)
+                .filter(w -> !w.equalsIgnoreCase(correctText))
+                .distinct()
+                .limit(3)
+                .toList();
     }
 }

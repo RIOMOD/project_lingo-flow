@@ -129,11 +129,46 @@ public class LearningContentServiceImpl implements LearningContentService {
                     created.setVocabulary(vocabulary);
                     return created;
                 });
+
+        // Update favorite flag if provided
         if (request.getFavorite() != null) {
             progress.setFavorite(request.getFavorite());
         }
+
+        // Apply Spaced Repetition correctness tracking
+        boolean isCorrect = request.getCorrect() == null || request.getCorrect(); // default: correct
+        progress.setReviewCount(safe(progress.getReviewCount()) + 1);
         progress.setReviewedAt(LocalDateTime.now());
+
+        if (isCorrect) {
+            progress.setCorrectCount(safe(progress.getCorrectCount()) + 1);
+            progress.setConsecutiveCorrect(safe(progress.getConsecutiveCorrect()) + 1);
+
+            // Increase mastery score: cap at 100, increase based on consecutive streak
+            int streak = safe(progress.getConsecutiveCorrect());
+            double newScore = Math.min(100.0,
+                progress.getMasteryScore().doubleValue() + (streak >= 3 ? 25.0 : 15.0));
+            progress.setMasteryScore(java.math.BigDecimal.valueOf(newScore));
+
+            // Promote status: NEW → LEARNING → MASTERED
+            if (newScore >= 80) {
+                progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.MASTERED);
+            } else {
+                progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.LEARNING);
+            }
+        } else {
+            progress.setIncorrectCount(safe(progress.getIncorrectCount()) + 1);
+            progress.setConsecutiveCorrect(0); // reset streak
+
+            // Penalize mastery score, floor at 0
+            double newScore = Math.max(0.0, progress.getMasteryScore().doubleValue() - 10.0);
+            progress.setMasteryScore(java.math.BigDecimal.valueOf(newScore));
+            progress.setStatus(com.example.englishlearning.entity.VocabularyStatus.WEAK);
+        }
+
+        // Schedule next review via Spaced Repetition
         progress.setNextReviewAt(nextReviewAt(progress));
+
         return toVocabularyResponse(vocabulary, progressRepository.save(progress));
     }
 
@@ -261,6 +296,10 @@ public class LearningContentServiceImpl implements LearningContentService {
         }
         long days = progress.getMasteryScore() != null ? Math.max(1, progress.getMasteryScore().longValue() + 1L) : 1L;
         return LocalDateTime.now().plusDays(days);
+    }
+
+    private int safe(Integer value) {
+        return value == null ? 0 : value;
     }
 
     private VocabularyResponse toVocabularyResponse(Vocabulary vocabulary, VocabularyProgress progress) {

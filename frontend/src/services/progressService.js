@@ -51,3 +51,7 @@ export async function recordVocabularyProgress(masteredCount = 5) {
 export async function getCertificateEligibility() {
   return unwrap(await apiRequest("/progress/certificate-eligibility"));
 }
+
+export async function getLeaderboard(period = "weekly") {
+  return unwrap(await apiRequest(`/progress/leaderboard?period=${period}`));
+}

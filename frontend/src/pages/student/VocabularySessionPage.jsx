@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { recordVocabularyProgress } from "../../services/progressService";
+import { getVocabularies, getReviewVocabularies, updateVocabularyProgress } from "../../services/learningService";
 import { speakText } from "../../utils/sound";
 import "../../styles/VocabularySession.css";
 
-// Rich activity sets for each topic with DISCOVERY, RECOGNITION, and PRODUCTION steps
+// ─────────────────────────────────────────────────────────────────────────────
+// STATIC FALLBACK DATA (Used if API is empty or fails)
+// ─────────────────────────────────────────────────────────────────────────────
 const topicActivities = {
   "Daily Conversation": [
     {
@@ -232,10 +235,124 @@ const topicActivities = {
   ]
 };
 
+// Fallback values for distractors
+const FALLBACK_MEANINGS = [
+  "Lòng hiếu khách", "Doanh thu", "Lịch trình", "Lịch sự", "Thuật toán", "Di sản văn hóa",
+  "Khả năng phục hồi", "Đàm phán thương lượng", "Doanh nhân khởi nghiệp", "Phát triển mạnh mẽ",
+  "Tỉ mỉ, cẩn thận", "Cơ hội sinh lời cao", "Khám phá thế giới", "Lời xin lỗi chân thành"
+];
+
+const FALLBACK_WORDS = [
+  "Hospitality", "Revenue", "Itinerary", "Polite", "Algorithm", "Heritage",
+  "Resilient", "Negotiation", "Entrepreneur", "Flourish", "Meticulous",
+  "Lucrative", "Explore", "Apologize"
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OPTIONS GENERATOR HELPER
+// ─────────────────────────────────────────────────────────────────────────────
+function generateOptions(correctAnswer, allItems, fallbackItems) {
+  const options = new Set();
+  options.add(correctAnswer);
+
+  const shuffledOther = allItems.filter(item => item !== correctAnswer).sort(() => Math.random() - 0.5);
+  shuffledOther.forEach(item => {
+    if (options.size < 4) options.add(item);
+  });
+
+  if (options.size < 4) {
+    const shuffledFallback = fallbackItems.filter(item => item !== correctAnswer).sort(() => Math.random() - 0.5);
+    shuffledFallback.forEach(item => {
+      if (options.size < 4) options.add(item);
+    });
+  }
+
+  return Array.from(options).sort(() => Math.random() - 0.5);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DYNAMIC ACTIVITY GENERATION FROM DATABASE VOCAB LIST
+// ─────────────────────────────────────────────────────────────────────────────
+function generateDynamicActivities(vocabList) {
+  if (!vocabList || vocabList.length === 0) return [];
+
+  const activities = [];
+  const allMeanings = vocabList.map(v => v.meaning);
+  const allWords = vocabList.map(v => v.word);
+
+  vocabList.forEach((vocab) => {
+    // 1. Guess Meaning Question (DISCOVERY / RECOGNITION)
+    const meaningOpts = generateOptions(vocab.meaning, allMeanings, FALLBACK_MEANINGS);
+    let questionText = `Từ "${vocab.word}" có nghĩa là gì?`;
+    if (vocab.exampleSentence) {
+      questionText = `Dựa vào ví dụ: "${vocab.exampleSentence}", từ "${vocab.word}" có nghĩa là gì?`;
+    }
+
+    activities.push({
+      vocabId: vocab.id,
+      activityType: vocab.exampleSentence ? "DISCOVERY" : "RECOGNITION",
+      word: vocab.word,
+      ipa: vocab.ipa || "",
+      meaning: vocab.meaning,
+      exampleSentence: vocab.exampleSentence || "",
+      question: questionText,
+      options: meaningOpts,
+      answer: vocab.meaning,
+      imageUrl: vocab.imageUrl || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80"
+    });
+
+    // 2. Cloze / Fill in the blank (PRODUCTION) - If example sentence exists
+    if (vocab.exampleSentence) {
+      const wordRegex = new RegExp(`\\b${vocab.word}\\b`, 'gi');
+      let hiddenSentence = vocab.exampleSentence.replace(wordRegex, "_______");
+      
+      // Fallback simple replacement if regex word boundary doesn't match
+      if (hiddenSentence === vocab.exampleSentence) {
+        hiddenSentence = vocab.exampleSentence.replace(new RegExp(vocab.word, 'gi'), "_______");
+      }
+
+      activities.push({
+        vocabId: vocab.id,
+        activityType: "PRODUCTION",
+        word: vocab.word,
+        ipa: vocab.ipa || "",
+        meaning: vocab.meaning,
+        exampleSentence: vocab.exampleSentence,
+        question: `Điền từ thích hợp vào chỗ trống: "${hiddenSentence}"`,
+        options: [], // Text input
+        answer: vocab.word.toLowerCase().trim(),
+        imageUrl: vocab.imageUrl || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80"
+      });
+    } else {
+      // 3. Alternate English Word Selection Question (RECOGNITION)
+      const wordOpts = generateOptions(vocab.word, allWords, FALLBACK_WORDS);
+      activities.push({
+        vocabId: vocab.id,
+        activityType: "RECOGNITION",
+        word: vocab.word,
+        ipa: vocab.ipa || "",
+        meaning: vocab.meaning,
+        exampleSentence: "",
+        question: `Từ nào trong các từ sau có nghĩa là: "${vocab.meaning}"?`,
+        options: wordOpts,
+        answer: vocab.word,
+        imageUrl: vocab.imageUrl || "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80"
+      });
+    }
+  });
+
+  // Shuffle all generated questions
+  return activities.sort(() => Math.random() - 0.5);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
 export default function VocabularySessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const topic = searchParams.get("topic") || "Daily Conversation";
+  const topic = searchParams.get("topic");
+  const type = searchParams.get("type"); // 'review' or null
   
   const [activities, setActivities] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -243,41 +360,109 @@ export default function VocabularySessionPage() {
   const [textInput, setTextInput] = useState("");
   const [feedback, setFeedback] = useState(null); // 'success' | 'error' | null
   const [sessionCompleted, setSessionCompleted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const currentActivity = activities[currentIndex];
   const progressPercent = ((currentIndex) / (activities.length || 1)) * 100;
 
-  // Load activities based on the selected topic (default to first topic if unknown)
+  // Load activities dynamically or statically based on type & topic
   useEffect(() => {
-    const norm = (s) => (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
-    const foundKey = Object.keys(topicActivities).find((k) => norm(k) === norm(topic));
-    const chosen = foundKey ? topicActivities[foundKey] : topicActivities["Daily Conversation"];
-    setActivities(chosen);
-    setCurrentIndex(0);
-    setFeedback(null);
-    setSelectedOption(null);
-    setTextInput("");
-  }, [topic]);
+    let isMounted = true;
 
-  const handleOptionClick = (option) => {
-    // Allow re‑clicking after an error, only block after a correct answer
-    if (feedback === 'success') return; // No further interaction once correct
+    async function loadSessionData() {
+      setLoading(true);
+      setErrorMsg("");
+      try {
+        if (type === "review") {
+          // 1. Fetch Review Vocabularies from Database (Spaced Repetition Review)
+          const data = await getReviewVocabularies({ size: 30 });
+          const vocabList = data?.content || [];
+          if (vocabList.length === 0) {
+            if (isMounted) {
+              setActivities([]);
+              setErrorMsg("💡 Bạn chưa có từ vựng nào đến hạn cần ôn tập! Hãy quay lại học thêm chủ đề mới.");
+            }
+          } else {
+            const reviewActivities = generateDynamicActivities(vocabList);
+            if (isMounted) {
+              setActivities(reviewActivities);
+            }
+          }
+        } else if (topic) {
+          // 2. Fetch Topic Vocabularies from Database
+          const data = await getVocabularies({ topic, size: 40 });
+          const vocabList = data?.content || [];
+          if (vocabList.length > 0) {
+            const topicActivitiesFromDb = generateDynamicActivities(vocabList);
+            if (isMounted) {
+              setActivities(topicActivitiesFromDb);
+            }
+          } else {
+            // Fallback to static data if database for topic is empty
+            const norm = (s) => (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
+            const foundKey = Object.keys(topicActivities).find((k) => norm(k) === norm(topic));
+            const chosen = foundKey ? topicActivities[foundKey] : topicActivities["Daily Conversation"];
+            if (isMounted) {
+              setActivities(chosen);
+            }
+          }
+        } else {
+          // 3. Fallback default
+          if (isMounted) {
+            setActivities(topicActivities["Daily Conversation"]);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load dynamic vocabulary data, using fallback:", err);
+        // Fallback in case of API error
+        if (isMounted) {
+          if (type === "review") {
+            setErrorMsg("Có lỗi xảy ra khi tải bài ôn tập từ vựng.");
+          } else {
+            const norm = (s) => (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
+            const foundKey = Object.keys(topicActivities).find((k) => norm(k) === norm(topic || ""));
+            setActivities(foundKey ? topicActivities[foundKey] : topicActivities["Daily Conversation"]);
+          }
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadSessionData();
+    return () => { isMounted = false; };
+  }, [topic, type]);
+
+  const handleOptionClick = async (option) => {
+    if (feedback === 'success') return;
     setSelectedOption(option);
     
     if (option === currentActivity.answer) {
       setFeedback('success');
+      // Proactively update vocabulary progress in background on correct answer (Spaced Repetition)
+      if (currentActivity.vocabId) {
+        updateVocabularyProgress(currentActivity.vocabId, {}).catch(err => 
+          console.warn("Failed to sync vocabulary progress:", err)
+        );
+      }
     } else {
       setFeedback('error');
     }
   };
 
-  const handleTextSubmit = (e) => {
+  const handleTextSubmit = async (e) => {
     e.preventDefault();
-    // Allow retry after wrong answer, block only after success
     if (feedback === 'success' || !textInput) return;
     
     if (textInput.toLowerCase().trim() === currentActivity.answer.toLowerCase()) {
       setFeedback('success');
+      // Proactively update vocabulary progress in background on correct answer (Spaced Repetition)
+      if (currentActivity.vocabId) {
+        updateVocabularyProgress(currentActivity.vocabId, {}).catch(err => 
+          console.warn("Failed to sync vocabulary progress:", err)
+        );
+      }
     } else {
       setFeedback('error');
     }
@@ -293,19 +478,27 @@ export default function VocabularySessionPage() {
     } else {
       setSessionCompleted(true);
       
-      // Store per-topic vocabulary progress using exact normalized key
-      try {
-        const norm = (s) => (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
-        const activeKey = Object.keys(topicActivities).find((k) => norm(k) === norm(topic)) || topic;
-        const stored = JSON.parse(localStorage.getItem("vocab_topic_progress") || "{}");
-        const currentCount = Number(stored[activeKey]) || 0;
-        stored[activeKey] = currentCount + 3; // Add 3 words per completed session
-        localStorage.setItem("vocab_topic_progress", JSON.stringify(stored));
-      } catch (e) {
-        console.warn("Failed to store per-topic vocab progress:", e);
+      // Calculate mastered words count in this session
+      const uniqueVocabsLearned = new Set(activities.map(act => act.vocabId).filter(Boolean)).size || 3;
+      
+      // Update local storage progress for topics
+      if (topic && type !== "review") {
+        try {
+          const norm = (s) => (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
+          const activeKey = Object.keys(topicActivities).find((k) => norm(k) === norm(topic)) || topic;
+          const stored = JSON.parse(localStorage.getItem("vocab_topic_progress") || "{}");
+          const currentCount = Number(stored[activeKey]) || 0;
+          stored[activeKey] = currentCount + uniqueVocabsLearned;
+          localStorage.setItem("vocab_topic_progress", JSON.stringify(stored));
+        } catch (e) {
+          console.warn("Failed to store topic vocab progress:", e);
+        }
       }
 
-      recordVocabularyProgress(3).catch(err => console.warn("Failed to record vocab progress:", err));
+      // Record overall progress statistics
+      recordVocabularyProgress(uniqueVocabsLearned).catch(err => 
+        console.warn("Failed to record global vocab progress:", err)
+      );
     }
   };
 
@@ -313,21 +506,52 @@ export default function VocabularySessionPage() {
     navigate('/student/vocabulary');
   };
 
+  // ── Loading state ──
+  if (loading) {
+    return (
+      <div className="vocab-session-page" style={{ display: 'grid', placeItems: 'center', height: '80vh' }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ display: "inline-block", width: "44px", height: "44px", borderRadius: "50%", border: "4px solid #e0e7ff", borderTopColor: "#0d9488", animation: "spin 0.75s linear infinite" }} />
+          <p style={{ marginTop: "1rem", color: "#64748b", fontWeight: 700 }}>Đang chuẩn bị câu hỏi từ vựng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Error or Empty review state ──
+  if (errorMsg || activities.length === 0) {
+    return (
+      <div className="vocab-session-page" style={{ display: 'grid', placeItems: 'center', height: '80vh' }}>
+        <div style={{ textAlign: "center", maxWidth: "450px", padding: "2rem", background: "#fff", borderRadius: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.05)", border: "1px solid #e2e8f0" }}>
+          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎯</div>
+          <h3 style={{ color: "#0f172a", marginBottom: "1rem", lineHeight: 1.5 }}>
+            {errorMsg || "Không tìm thấy dữ liệu từ vựng cho bài học này"}
+          </h3>
+          <button className="vocab-start-btn" onClick={handleClose}>
+            Quay lại Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Session completed screen ──
   if (sessionCompleted) {
+    const uniqueVocabCount = new Set(activities.map(act => act.vocabId).filter(Boolean)).size || Math.ceil(activities.length / 2);
     return (
       <div className="vocab-session-page">
         <div className="vocab-session-main">
           <div className="vocab-complete-screen">
             <h2>Session Complete! 🎉</h2>
-            <p>Tuyệt vời! Bạn đã hoàn thành {activities.length} câu hỏi.</p>
+            <p>Tuyệt vời! Bạn đã hoàn thành {activities.length} câu hỏi ôn luyện.</p>
             <div className="vocab-stats" style={{ justifyContent: 'center', marginBottom: '2rem' }}>
               <div className="vocab-stat-card">
-                <h3>+150</h3>
+                <h3>+{uniqueVocabCount * 25}</h3>
                 <p>XP Đạt được</p>
               </div>
               <div className="vocab-stat-card">
-                <h3>5</h3>
-                <p>Từ Mới Mastered</p>
+                <h3>{uniqueVocabCount}</h3>
+                <p>{type === "review" ? "Từ Được Ôn Tập" : "Từ Mới Mastered"}</p>
               </div>
             </div>
             <button className="vocab-start-btn" onClick={handleClose}>Quay lại Dashboard</button>
@@ -336,8 +560,6 @@ export default function VocabularySessionPage() {
       </div>
     );
   }
-
-  if (!currentActivity) return null;
 
   return (
     <div className="vocab-session-page">
@@ -361,7 +583,7 @@ export default function VocabularySessionPage() {
             <button
               className="vocab-audio-btn"
               type="button"
-              onClick={() => speakText(currentActivity.answer || currentActivity.question)}
+              onClick={() => speakText(currentActivity.word || currentActivity.question)}
               title="Phát âm từ vựng"
               style={{
                 background: '#f0fdfa',
@@ -380,6 +602,12 @@ export default function VocabularySessionPage() {
               🔊
             </button>
           </div>
+
+          {currentActivity.ipa && (
+            <div style={{ fontSize: "0.95rem", color: "#0d9488", fontFamily: "monospace", fontWeight: 700, marginTop: "0.3rem", background: "#f0fdfa", display: "inline-block", padding: "2px 10px", borderRadius: "6px" }}>
+              {currentActivity.ipa}
+            </div>
+          )}
           
           {currentActivity.imageUrl && (
             <img src={currentActivity.imageUrl} alt="Illustration" className="vocab-image" />
@@ -421,28 +649,30 @@ export default function VocabularySessionPage() {
           )}
 
           {feedback && (
-  <div className={`vocab-feedback ${feedback}`}>
-    {feedback === 'success' ? 'Chính xác! Làm tốt lắm.' : `Chưa đúng. Đáp án là: ${currentActivity.answer}`}
-  </div>
-)}
-{feedback === 'error' && (
-  <div className="vocab-footer">
-    <button className="vocab-next-btn" onClick={() => {
-      setFeedback(null);
-      setSelectedOption(null);
-      setTextInput('');
-    }} autoFocus>
-      Thử lại
-    </button>
-  </div>
-)}
-{feedback === 'success' && (
-  <div className="vocab-footer">
-    <button className="vocab-next-btn" onClick={handleNext} autoFocus>
-      {currentIndex === activities.length - 1 ? 'Hoàn thành' : 'Tiếp tục'}
-    </button>
-  </div>
-)}
+            <div className={`vocab-feedback ${feedback}`}>
+              {feedback === 'success' ? 'Chính xác! Làm tốt lắm.' : `Chưa đúng. Đáp án là: ${currentActivity.answer}`}
+            </div>
+          )}
+          
+          {feedback === 'error' && (
+            <div className="vocab-footer">
+              <button className="vocab-next-btn" onClick={() => {
+                setFeedback(null);
+                setSelectedOption(null);
+                setTextInput('');
+              }} autoFocus>
+                Thử lại
+              </button>
+            </div>
+          )}
+          
+          {feedback === 'success' && (
+            <div className="vocab-footer">
+              <button className="vocab-next-btn" onClick={handleNext} autoFocus>
+                {currentIndex === activities.length - 1 ? 'Hoàn thành' : 'Tiếp tục'}
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>

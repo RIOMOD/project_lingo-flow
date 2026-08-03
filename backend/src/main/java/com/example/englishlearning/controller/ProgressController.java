@@ -42,6 +42,14 @@ public class ProgressController {
         return ApiResponse.success(progressService.getStudentDashboard(authentication.getName()));
     }
 
+    @GetMapping("/progress/leaderboard")
+    public ApiResponse<List<com.example.englishlearning.dto.progress.LeaderboardRowResponse>> getLeaderboard(
+            Authentication authentication,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "weekly") String period
+    ) {
+        return ApiResponse.success(progressService.getLeaderboard(authentication.getName(), period));
+    }
+
     @GetMapping("/progress/recommendations")
     public ApiResponse<List<LearningRecommendationResponse>> getRecommendations(Authentication authentication) {
         return ApiResponse.success(progressService.getRecommendations(authentication.getName()));

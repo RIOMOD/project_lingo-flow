@@ -31,6 +31,7 @@ import com.example.englishlearning.repository.UserRepository;
 import com.example.englishlearning.repository.UserProfileRepository;
 import com.example.englishlearning.repository.VocabularyProgressRepository;
 import com.example.englishlearning.repository.VocabularyRepository;
+import com.example.englishlearning.repository.GrammarAttemptRepository;
 import com.example.englishlearning.service.ProgressService;
 import com.example.englishlearning.service.LearningRecommendationService;
 import org.springframework.data.domain.PageRequest;
@@ -63,6 +64,7 @@ public class ProgressServiceImpl implements ProgressService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final LearningRecommendationService recommendationService;
+    private final GrammarAttemptRepository grammarAttemptRepository;
 
     public ProgressServiceImpl(
             LearningProgressRepository progressRepository,
@@ -75,7 +77,8 @@ public class ProgressServiceImpl implements ProgressService {
             VocabularyRepository vocabularyRepository,
             UserRepository userRepository,
             UserProfileRepository userProfileRepository,
-            LearningRecommendationService recommendationService
+            LearningRecommendationService recommendationService,
+            GrammarAttemptRepository grammarAttemptRepository
     ) {
         this.progressRepository = progressRepository;
         this.enrollmentRepository = enrollmentRepository;
@@ -88,6 +91,7 @@ public class ProgressServiceImpl implements ProgressService {
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
         this.recommendationService = recommendationService;
+        this.grammarAttemptRepository = grammarAttemptRepository;
     }
 
     @Override
@@ -526,26 +530,14 @@ public class ProgressServiceImpl implements ProgressService {
     @Override
     @Transactional
     public void recordVocabularyProgress(String email, int masteredCount) {
-        User user = getUser(email);
-        int targetCount = masteredCount > 0 ? masteredCount : 5;
-        List<Vocabulary> vocabs = vocabularyRepository.findAll(PageRequest.of(0, targetCount)).getContent();
-        
-        for (Vocabulary vocab : vocabs) {
-            VocabularyProgress vp = vocabularyProgressRepository
-                    .findByUserIdAndVocabularyId(user.getId(), vocab.getId())
-                    .orElseGet(() -> {
-                        VocabularyProgress newVp = new VocabularyProgress();
-                        newVp.setUser(user);
-                        newVp.setVocabulary(vocab);
-                        return newVp;
-                    });
-            vp.setStatus(com.example.englishlearning.entity.VocabularyStatus.MASTERED);
-            vp.setCorrectCount(safe(vp.getCorrectCount()) + 1);
-            vp.setMasteryScore(java.math.BigDecimal.valueOf(100.00));
-            vp.setReviewedAt(LocalDateTime.now());
-            vp.setNextReviewAt(LocalDateTime.now().plusDays(3));
-            vocabularyProgressRepository.save(vp);
-        }
+        // Per-word progress is already tracked individually via LearningContentService.updateVocabularyProgress()
+        // when the user answers correctly. This method intentionally does NOT auto-create phantom VocabularyProgress
+        // records for words the user never explicitly studied, which would cause incorrect "due for review" counts.
+        // This method is kept as a no-op to maintain backward compatibility with callers.
+        org.slf4j.LoggerFactory.getLogger(getClass()).debug(
+            "recordVocabularyProgress called for user={} masteredCount={} (no-op: per-word tracking handles this)",
+            email, masteredCount
+        );
     }
 
     private int safe(Integer value) {
@@ -641,5 +633,121 @@ public class ProgressServiceImpl implements ProgressService {
                 .message(msg)
                 .skillCourses(skills)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.example.englishlearning.dto.progress.LeaderboardRowResponse> getLeaderboard(String email, String period) {
+        // Fetch all active students
+        List<User> students = userRepository.searchUsers(null, "STUDENT", User.UserStatus.ACTIVE, PageRequest.of(0, 1000)).getContent();
+        
+        // Define timeframe
+        LocalDateTime start;
+        if ("weekly".equalsIgnoreCase(period)) {
+            start = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).atStartOfDay();
+        } else if ("monthly".equalsIgnoreCase(period)) {
+            start = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        } else {
+            start = LocalDateTime.of(2000, 1, 1, 0, 0); // All time
+        }
+
+        List<com.example.englishlearning.dto.progress.LeaderboardRowResponse> rows = new java.util.ArrayList<>();
+
+        for (User student : students) {
+            // 1. Streak (always dynamic)
+            int streak = calculateStreak(student.getId());
+
+            // 2. Mastered words count
+            int masteredWords = (int) vocabularyProgressRepository.countByUserIdAndStatus(
+                student.getId(), 
+                com.example.englishlearning.entity.VocabularyStatus.MASTERED
+            );
+
+            // 3. XP calculation for period
+            int totalXp = 0;
+
+            // Lesson XP (100 XP per completed lesson)
+            List<LearningProgress> lessons = progressRepository.findByUserIdOrderByLastAccessedAtDesc(student.getId());
+            for (LearningProgress lp : lessons) {
+                if (lp.getStatus() == LearningProgress.ProgressStatus.COMPLETED && lp.getCompletedAt() != null) {
+                    if (!lp.getCompletedAt().isBefore(start)) {
+                        totalXp += 100;
+                    }
+                }
+            }
+
+            // Grammar XP (10 XP per correct grammar answer)
+            List<com.example.englishlearning.entity.GrammarAttempt> grammarAttempts = 
+                grammarAttemptRepository.findByUserIdOrderByCreatedAtDesc(student.getId());
+            for (com.example.englishlearning.entity.GrammarAttempt ga : grammarAttempts) {
+                if (ga.getCreatedAt() != null && !ga.getCreatedAt().isBefore(start)) {
+                    totalXp += safe(ga.getCorrectAnswers()) * 10;
+                }
+            }
+
+            // Test XP (score * 10 XP)
+            List<TestAttempt> testAttempts = attemptRepository.findByUserIdAndSubmittedAtIsNotNull(student.getId());
+            for (TestAttempt ta : testAttempts) {
+                if (ta.getSubmittedAt() != null && !ta.getSubmittedAt().isBefore(start)) {
+                    BigDecimal scoreVal = ta.getScore() != null ? ta.getScore() : BigDecimal.ZERO;
+                    totalXp += scoreVal.doubleValue() * 10;
+                }
+            }
+
+            // Vocabulary Progress XP (15 XP per correct vocabulary answer)
+            List<VocabularyProgress> vocabProgress = vocabularyProgressRepository.findByUserId(student.getId());
+            for (VocabularyProgress vp : vocabProgress) {
+                if (vp.getReviewedAt() != null && !vp.getReviewedAt().isBefore(start)) {
+                    totalXp += safe(vp.getCorrectCount()) * 15;
+                }
+            }
+
+            rows.add(com.example.englishlearning.dto.progress.LeaderboardRowResponse.builder()
+                .name(student.getFullName())
+                .email(student.getEmail())
+                .xp(totalXp)
+                .streak(streak)
+                .words(masteredWords)
+                .build());
+        }
+
+        // Sort by XP descending, then by words mastered, then by name
+        rows.sort((r1, r2) -> {
+            int cmp = Integer.compare(r2.getXp(), r1.getXp());
+            if (cmp != 0) return cmp;
+            cmp = Integer.compare(r2.getWords(), r1.getWords());
+            if (cmp != 0) return cmp;
+            return r1.getName().compareToIgnoreCase(r2.getName());
+        });
+
+        // Assign ranks and badges
+        for (int i = 0; i < rows.size(); i++) {
+            com.example.englishlearning.dto.progress.LeaderboardRowResponse row = rows.get(i);
+            int rank = i + 1;
+            row.setRank(rank);
+
+            // Assign badge
+            String badge;
+            if (rank == 1) {
+                if ("weekly".equalsIgnoreCase(period)) badge = "🥇 Top 1 Tuần";
+                else if ("monthly".equalsIgnoreCase(period)) badge = "🥇 Vô Địch Tháng";
+                else badge = "👑 Huyền Thoại";
+            } else if (rank == 2) {
+                if ("weekly".equalsIgnoreCase(period)) badge = "🥈 Top 2 Tuần";
+                else if ("monthly".equalsIgnoreCase(period)) badge = "🥈 Top 2 Tháng";
+                else badge = "💎 Đại Cao Thủ";
+            } else if (rank == 3) {
+                if ("weekly".equalsIgnoreCase(period)) badge = "🥉 Top 3 Tuần";
+                else if ("monthly".equalsIgnoreCase(period)) badge = "🥉 Top 3 Tháng";
+                else badge = "🔥 Bậc Thầy";
+            } else if (rank <= 5) {
+                badge = "⭐ Top 5";
+            } else {
+                badge = "🔥 Chăm chỉ";
+            }
+            row.setBadge(badge);
+        }
+
+        return rows;
     }
 }

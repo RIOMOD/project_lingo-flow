@@ -19,13 +19,16 @@ public class QuestionResponse {
     private Question.QuestionType questionType;
     private String questionText;
     private String explanation;
+    private String richExplanation;       // Full multi-part explanation with grammar rules / usage context
     private Question.SkillType skillType;
     private String topic;
     private Long recommendedLessonId;
     private Long recommendedLessonCourseId;
     private String recommendedLessonTitle;
+    private String recommendedLessonCourseSlug; // used to build /courses/{slug}/lessons/{id} URL
     private BigDecimal points;
     private String correctAnswer;
+    private Long correctOptionId;
     private Integer position;
     private List<OptionResponse> options;
 }

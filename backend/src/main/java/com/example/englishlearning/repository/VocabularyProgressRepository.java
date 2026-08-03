@@ -14,6 +14,8 @@ public interface VocabularyProgressRepository extends JpaRepository<VocabularyPr
 
     Optional<VocabularyProgress> findByUserIdAndVocabularyId(Long userId, Long vocabularyId);
 
+    java.util.List<VocabularyProgress> findByUserId(Long userId);
+
     long countByUserId(Long userId);
 
     long countByUserIdAndStatus(Long userId, com.example.englishlearning.entity.VocabularyStatus status);

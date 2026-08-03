@@ -20,4 +20,5 @@ public interface ProgressService {
     ProgressDashboardResponse getTeacherDashboard(String email);
     List<LearningRecommendationResponse> getRecommendations(String email);
     CertificateEligibilityResponse getCertificateEligibility(String email);
+    List<com.example.englishlearning.dto.progress.LeaderboardRowResponse> getLeaderboard(String email, String period);
 }

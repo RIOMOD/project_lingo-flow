@@ -10,4 +10,8 @@ import lombok.Setter;
 public class VocabularyProgressRequest {
 
     private Boolean favorite;
+
+    /** Whether the user answered this vocabulary item correctly.
+     *  Null means caller didn't specify (treated as correct for backward compat). */
+    private Boolean correct;
 }

@@ -14,15 +14,20 @@ export function speakText(text, lang = "en-US", rate = 0.9) {
   utterance.rate = rate; // Custom speed rate (e.g. 1.0 for normal, 0.75 for slow)
   utterance.pitch = 1.0;
 
-  // Try to find a high quality English voice
+  // Get all available voices
   const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(
-    (v) => v.lang.startsWith("en") && (v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Samantha"))
-  ) || voices.find((v) => v.lang.startsWith("en"));
+  const isVi = lang.startsWith("vi");
+  
+  // Try to find a matching voice (Vietnamese or English)
+  const targetVoice = voices.find(
+    (v) => v.lang.startsWith(isVi ? "vi" : "en") && 
+           (v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Microsoft") || v.name.includes("Samantha"))
+  ) || voices.find((v) => v.lang.startsWith(isVi ? "vi" : "en"));
 
-  if (englishVoice) {
-    utterance.voice = englishVoice;
+  if (targetVoice) {
+    utterance.voice = targetVoice;
   }
 
   window.speechSynthesis.speak(utterance);
 }
+
