@@ -155,7 +155,7 @@ export default function PronunciationPage() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setError("Trình duyệt không hỗ trợ nhận diện giọng nói tự động. Bạn có thể sử dụng nút 'Mô phỏng phát âm' bên dưới để kiểm tra!");
+      setError("Trình duyệt không hỗ trợ nhận diện giọng nói tự động. Bạn có thể sử dụng ô gõ văn bản bên dưới để kiểm tra phát âm!");
       setShowSimulateInput(true);
       return;
     }
@@ -172,29 +172,33 @@ export default function PronunciationPage() {
 
     try {
       const rec = new SpeechRecognition();
-      rec.continuous = false;
+      rec.continuous = true;
       rec.interimResults = true;
       rec.lang = "en-US";
 
       let finalCapturedText = "";
 
       rec.onresult = (event) => {
-        const text = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join("");
-        finalCapturedText = text;
-        setTranscript(text);
+        let currentText = "";
+        for (let i = 0; i < event.results.length; i++) {
+          currentText += event.results[i][0].transcript;
+        }
+        finalCapturedText = currentText;
+        setTranscript(currentText);
       };
 
       rec.onerror = (evt) => {
         console.warn("Speech recognition error:", evt);
-        setIsRecording(false);
         if (evt.error === "no-speech") {
-          setError("Chưa nghe thấy giọng nói. Vui lòng nhấn lại và nói to hơn!");
-        } else if (evt.error === "not-allowed") {
-          setError("Chưa cấp quyền Micro. Vui lòng cho phép trình duyệt truy cập Micro.");
+          // Keep recording active during silence
+          return;
+        }
+        setIsRecording(false);
+        if (evt.error === "not-allowed") {
+          setError("Chưa cấp quyền Micro. Vui lòng nhấn biểu tượng Micro trên ổ khóa địa chỉ trang web để Cho phép (Allow).");
+          setShowSimulateInput(true);
         } else if (evt.error !== "aborted") {
-          setError("Không thể nhận diện giọng nói. Vui lòng nhấn nút Bắt đầu để thử lại.");
+          setError("Kết nối Micro bị ngắt. Vui lòng nhấn nút Bắt đầu để thử lại.");
         }
       };
 
@@ -212,7 +216,8 @@ export default function PronunciationPage() {
     } catch (err) {
       console.warn("Recording start failed:", err);
       setIsRecording(false);
-      setError("Không thể khởi động Micro. Vui lòng nhấn lại 'Bắt đầu phát âm'.");
+      setError("Không thể khởi động Micro. Bạn có thể dùng ô gõ mô phỏng bên dưới.");
+      setShowSimulateInput(true);
     }
   }
 
@@ -257,6 +262,15 @@ export default function PronunciationPage() {
     setAnalysis(null);
     setError("");
     setSimulatedText("");
+  }
+
+  function handleQuickDemo() {
+    setError("");
+    setShowSimulateInput(false);
+    const demoText = currentSentence.text;
+    setTranscript(demoText);
+    const res = analyzePronunciation(currentSentence.text, demoText);
+    setAnalysis(res);
   }
 
   return (
@@ -349,6 +363,10 @@ export default function PronunciationPage() {
                 ⏹️ Dừng & Chấm điểm
               </button>
             )}
+
+            <button className="pron-btn demo-btn" type="button" onClick={handleQuickDemo} style={{ background: "#e0e7ff", color: "#3730a3", border: "1px solid #c7d2fe" }} title="Thử chấm điểm với câu mẫu">
+              🧪 Thử phát âm mẫu
+            </button>
           </div>
 
           {isRecording && (
