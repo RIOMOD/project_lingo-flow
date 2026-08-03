@@ -393,6 +393,10 @@ public class FallbackAiProvider implements AiProvider {
         return value == null || value.isBlank() ? defaultValue : value;
     }
 
+    private int estimateTokens(String text) {
+        return text == null ? 0 : Math.max(1, text.length() / 4);
+    }
+
     private boolean containsTypos(String text) {
         if (text == null || text.isBlank()) return false;
         String lower = text.toLowerCase();
