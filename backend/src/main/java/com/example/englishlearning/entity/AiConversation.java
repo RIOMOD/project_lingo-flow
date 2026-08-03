@@ -35,7 +35,7 @@ public class AiConversation {
     @Column(length = 200)
     private String title;
 
-    @Enumerated(EnumType.STRING)
+    @jakarta.persistence.Convert(converter = ConversationTypeConverter.class)
     @Column(name = "conversation_type", nullable = false)
     private ConversationType conversationType = ConversationType.CHATBOT;
 
@@ -63,5 +63,30 @@ public class AiConversation {
     public enum ConversationType {
         CHATBOT,
         WRITING_ASSISTANT
+    }
+
+    @jakarta.persistence.Converter
+    public static class ConversationTypeConverter implements jakarta.persistence.AttributeConverter<ConversationType, String> {
+        @Override
+        public String convertToDatabaseColumn(ConversationType attribute) {
+            return attribute == null ? ConversationType.CHATBOT.name() : attribute.name();
+        }
+
+        @Override
+        public ConversationType convertToEntityAttribute(String dbData) {
+            if (dbData == null || dbData.isBlank()) return ConversationType.CHATBOT;
+            String trimmed = dbData.trim();
+            if ("0".equals(trimmed) || "1".equals(trimmed) || "CHATBOT".equalsIgnoreCase(trimmed)) {
+                return ConversationType.CHATBOT;
+            }
+            if ("2".equals(trimmed) || "WRITING_ASSISTANT".equalsIgnoreCase(trimmed)) {
+                return ConversationType.WRITING_ASSISTANT;
+            }
+            try {
+                return ConversationType.valueOf(trimmed.toUpperCase());
+            } catch (Exception e) {
+                return ConversationType.CHATBOT;
+            }
+        }
     }
 }

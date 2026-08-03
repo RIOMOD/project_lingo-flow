@@ -263,22 +263,68 @@ public class FallbackAiProvider implements AiProvider {
 
     @Override
     public WritingProviderResult writingFeedback(AiPromptRequest request) {
-        String text = request.getUserText();
-        String corrected = text == null ? "" : text.trim();
-        String feedback = """
-                Bài viết của bạn thể hiện khả năng diễn đạt khá tốt! Cấu trúc câu rõ ràng, mạch lạc.
-                """;
-        String suggestion = "Thử dùng thêm các từ nối như 'However', 'Furthermore', 'Therefore' để bài viết học thuật hơn.";
+        String text = request.getUserText() == null ? "" : request.getUserText().trim();
+        String[] words = text.isEmpty() ? new String[0] : text.split("\\s+");
+        int wordCount = words.length;
+
+        BigDecimal taskScore;
+        BigDecimal coherenceScore;
+        BigDecimal vocabScore;
+        BigDecimal grammarScore;
+        String feedback;
+        String suggestion;
+        String corrected = text;
+
+        if (wordCount < 10) {
+            taskScore = new BigDecimal("2.50");
+            coherenceScore = new BigDecimal("3.00");
+            vocabScore = new BigDecimal("4.00");
+            grammarScore = new BigDecimal("6.00");
+            feedback = "Bài viết quá ngắn (chỉ có " + wordCount + " từ). Để đạt yêu cầu đề bài, bạn cần phát triển ý và viết ít nhất 100 - 150 từ với cấu trúc bài rõ ràng.";
+            suggestion = "Ví dụ mở rộng: 'I am really passionate about learning English because it allows me to access global knowledge and connect with people worldwide.'";
+            if (text.toLowerCase().contains("i really like learning english")) {
+                corrected = "I am really passionate about learning English because it helps me expand my horizons.";
+            }
+        } else if (wordCount < 30) {
+            taskScore = new BigDecimal("4.50");
+            coherenceScore = new BigDecimal("5.00");
+            vocabScore = new BigDecimal("5.50");
+            grammarScore = new BigDecimal("6.50");
+            feedback = "Đoạn văn tương đối ngắn (" + wordCount + " từ), chưa giải thích chi tiết các lý do theo yêu cầu đề bài. Nên bổ sung thêm các ví dụ minh họa cụ thể.";
+            suggestion = "Nên bổ sung từ nối như 'Furthermore', 'For example' để liên kết các ý chặt chẽ hơn.";
+        } else if (wordCount < 70) {
+            taskScore = new BigDecimal("6.50");
+            coherenceScore = new BigDecimal("6.50");
+            vocabScore = new BigDecimal("6.50");
+            grammarScore = new BigDecimal("7.00");
+            feedback = "Bài viết có độ dài khá ổn (" + wordCount + " từ). Diễn đạt tương đối rõ ràng. Hãy chú ý nâng cấp từ vựng chuyên sâu và đa dạng cấu trúc câu hơn.";
+            suggestion = "Thử dùng thêm các cấu trúc như 'Not only... but also...', mệnh đề quan hệ để bài viết học thuật hơn.";
+        } else {
+            taskScore = new BigDecimal("7.50");
+            coherenceScore = new BigDecimal("7.50");
+            vocabScore = new BigDecimal("7.50");
+            grammarScore = new BigDecimal("8.00");
+            feedback = "Bài viết đầy đủ ý (" + wordCount + " từ), cấu trúc ngữ pháp mạch lạc và liên kết tốt. Khả năng phát triển ý xuất sắc.";
+            suggestion = "Dùng thêm các collocations và từ vựng band 7.0+ để đạt điểm tối đa.";
+        }
+
+        BigDecimal overallScore = taskScore.add(coherenceScore).add(vocabScore).add(grammarScore)
+                .divide(new BigDecimal("4"), 2, java.math.RoundingMode.HALF_UP);
+
         return WritingProviderResult.builder()
                 .correctedText(corrected)
                 .feedback(feedback)
                 .naturalSuggestion(suggestion)
-                .overallScore(new BigDecimal("7.50"))
-                .grammarScore(new BigDecimal("7.50"))
-                .vocabularyScore(new BigDecimal("7.50"))
-                .coherenceScore(new BigDecimal("7.50"))
-                .taskResponseScore(new BigDecimal("7.50"))
-                .suggestedLessons(List.of("Luyện tập thì Quá khứ Đơn", "Sử dụng từ nối trong Writing Task 2", "Từ vựng IELTS Band 7.0"))
+                .overallScore(overallScore)
+                .grammarScore(grammarScore)
+                .vocabularyScore(vocabScore)
+                .coherenceScore(coherenceScore)
+                .taskResponseScore(taskScore)
+                .suggestedLessons(List.of(
+                        "Cách viết mở bài & phát triển ý Writing Task 2",
+                        "Từ vựng và Collocations theo chủ đề",
+                        "Sử dụng từ nối và Mệnh đề quan hệ"
+                ))
                 .promptTokens(estimateTokens(text))
                 .completionTokens(estimateTokens(feedback + suggestion))
                 .totalTokens(estimateTokens(text) + estimateTokens(feedback + suggestion))
