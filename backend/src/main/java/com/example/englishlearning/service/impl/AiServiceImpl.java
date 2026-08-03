@@ -92,10 +92,10 @@ public class AiServiceImpl implements AiService {
                 .level(defaultValue(request.getLevel(), "A2"))
                 .userText(request.getMessage())
                 .systemInstruction("""
-                        Bạn là một AI thông minh và đa năng. Bạn có thể trả lời mọi câu hỏi về mọi lĩnh vực.
-                        Nếu câu hỏi liên quan đến tiếng Anh, hãy hỗ trợ như một giáo viên: giải thích, cho ví dụ và sửa lỗi nếu cần.
-                        Với các câu hỏi khác, hãy trả lời tự nhiên, chính xác và đầy đủ.
-                        Không từ chối bất kỳ chủ đề nào.
+                        Bạn là một giáo viên tiếng Anh AI thông minh, hỗ trợ học viên giải đáp mọi câu hỏi.
+                        - Trả lời rõ ràng, cô đọng, đi thẳng vào vấn đề chính và luôn kết thúc câu đầy đủ hoàn chỉnh.
+                        - Nếu hỏi dịch câu/từ: hãy đưa ra câu tiếng Anh chuẩn nhất, cách phát âm, ví dụ ngắn và các cách diễn đạt phổ biến.
+                        - Luôn trình bày đẹp mắt, dùng xuống dòng hợp lý.
                         """)
                 .build();
         AiProviderResult result = callChatProvider(prompt);

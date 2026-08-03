@@ -40,6 +40,23 @@ public class FallbackAiProvider implements AiProvider {
     private String generateSmartReply(String userText, String topic, String level) {
         String lower = userText.toLowerCase();
 
+        // 0. Eating / Breakfast query (e.g. "Bạn ăn sáng chưa tiếng anh là gì")
+        if (containsAny(lower, "ăn sáng", "an sang", "breakfast")) {
+            return """
+                    💬 **"Bạn ăn sáng chưa?" trong tiếng Anh là:**
+
+                    👉 **"Have you had breakfast yet?"** (Câu giao tiếp thông dụng nhất)
+
+                    **Các cách diễn đạt phổ biến khác:**
+                    - *"Did you eat breakfast?"* (Bạn đã ăn sáng chưa?)
+                    - *"Have you eaten breakfast yet?"*
+
+                    **Cách trả lời tự nhiên:**
+                    - *"Yes, I have."* (Tôi ăn rồi.)
+                    - *"Not yet, I'm about to eat."* (Chưa, bây giờ tôi chuẩn bị ăn.)
+                    """;
+        }
+
         // 1. Pronunciation / Audio / Reading query
         if (containsAny(lower, "nghe đọc", "phát âm", "đọc chữ", "pronounce", "phát âm từ", "đọc từ", "đọc câu", "nghe từ", "nghe chữ", "muốn nghe", "muốn đọc")) {
             String target = extractTargetText(userText);
@@ -208,7 +225,7 @@ public class FallbackAiProvider implements AiProvider {
 
     private String extractVietnameseWordToTranslate(String input) {
         if (input == null || input.isBlank()) return "hello";
-        String cleaned = input.replaceAll("(?i)(có nghĩa là gì|nghĩa là gì|tiếng anh là gì|tiếng anh gọi là gì|dịch sang tiếng anh|đọc là gì|có nghĩa|là gì|tiếng anh|dịch|từ|cho tôi biết)", "").trim();
+        String cleaned = input.replaceAll("(?i)(có nghĩa là gì|nghĩa là gì|tiếng anh là gì|tiensg anh là gì|tieg anh la gi|tiếng anh gọi là gì|dịch sang tiếng anh|đọc là gì|có nghĩa|là gì|tiếng anh|tiensg anh|tieg anh|dịch|từ|cho tôi biết)", "").trim();
         return cleaned.isEmpty() ? input : cleaned;
     }
 

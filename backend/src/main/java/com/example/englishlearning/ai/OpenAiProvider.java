@@ -152,7 +152,7 @@ public class OpenAiProvider implements AiProvider {
                 Map<String, Object> body = new LinkedHashMap<>();
                 body.put("model", model);
                 body.put("messages", messages);
-                body.put("max_tokens", 900);
+                body.put("max_tokens", 4000);
                 String path = baseUrl.endsWith("/") ? "chat/completions" : "/chat/completions";
                 String response = restClient.post()
                         .uri(path)
