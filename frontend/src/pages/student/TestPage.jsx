@@ -292,9 +292,12 @@ export default function TestPage() {
       const localAttempts = getSavedLocalAttempts();
       const mergedMap = new Map();
 
-      [...fetchedAttempts, ...localAttempts, ...SAMPLE_HISTORY].forEach((item) => {
-        if (item && item.id && !mergedMap.has(String(item.id))) {
-          mergedMap.set(String(item.id), item);
+      [...localAttempts, ...fetchedAttempts, ...SAMPLE_HISTORY].forEach((item) => {
+        if (!item || !item.id) return;
+        const key = String(item.id);
+        const existing = mergedMap.get(key);
+        if (!existing || (existing.status === "IN_PROGRESS" && item.status === "SUBMITTED")) {
+          mergedMap.set(key, item);
         }
       });
 
@@ -362,22 +365,37 @@ export default function TestPage() {
   async function openResult(id) { 
     try { 
       setCurrent(0); 
-      setAttempt(await getAttempt(id)); 
-    } catch (err) { 
-      const matched = history.find((h) => String(h.id) === String(id)) || SAMPLE_HISTORY.find((s) => String(s.id) === String(id));
-      const mock = buildMockAttempt(matched?.targetId || id);
-      setAttempt({
-        ...mock,
-        id: id,
-        title: matched?.title || mock.title,
-        status: matched?.status || "SUBMITTED",
-        score: matched?.score ?? 30,
-        scorePercent: matched?.scorePercent ?? matched?.score ?? 30,
-        passed: Boolean(matched?.passed || (matched?.score ?? 30) >= 60),
-        elapsedSeconds: (matched?.durationMinutes || 45) * 60,
-        submittedAt: matched?.submittedAt || new Date().toISOString(),
-      });
-    } 
+      const res = await getAttempt(id);
+      if (res) {
+        setAttempt(res);
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not load attempt from API, using matched history item:", err);
+    }
+
+    const matched = history.find((h) => String(h.id) === String(id)) || SAMPLE_HISTORY.find((s) => String(s.id) === String(id));
+    const mock = buildMockAttempt(matched?.targetId || id);
+    const safeTotal = matched?.totalQuestions || mock.questions.length || 10;
+    const safeCorrect = matched?.correctAnswers != null ? matched.correctAnswers : Math.round(((matched?.scorePercent ?? matched?.score ?? 70) / 100) * safeTotal);
+    const safeScore = matched?.scorePercent ?? matched?.score ?? Math.round((safeCorrect / safeTotal) * 100);
+    const safePassed = matched?.passed != null ? Boolean(matched.passed) : safeScore >= 60;
+
+    setAttempt({
+      ...mock,
+      id: id,
+      title: matched?.title || mock.title,
+      status: matched?.status || "SUBMITTED",
+      score: safeScore,
+      scorePercent: safeScore,
+      totalPoints: 100,
+      passed: safePassed,
+      correctAnswers: safeCorrect,
+      incorrectAnswers: Math.max(0, safeTotal - safeCorrect),
+      totalQuestions: safeTotal,
+      elapsedSeconds: matched?.elapsedSeconds || (matched?.durationMinutes ? matched.durationMinutes * 60 : 180),
+      submittedAt: matched?.submittedAt || new Date().toISOString(),
+    });
   }
 
   async function answer(payload) { 
@@ -487,8 +505,20 @@ export default function TestPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {history.map((item) => {
-              const isPassed = item.passed || (item.scorePercent ?? item.score ?? 0) >= 60;
-              const scoreVal = item.scorePercent ?? item.score ?? 0;
+              const isSubmitted = item.status === "SUBMITTED";
+              const totalQ = item.totalQuestions || (item.questions ? item.questions.length : 10);
+              const scoreVal = item.scorePercent != null ? Math.round(Number(item.scorePercent))
+                : (item.score != null ? Math.round(Number(item.score)) : 0);
+              const isPassed = item.passed != null ? Boolean(item.passed) : scoreVal >= 60;
+              
+              const correctAnsCount = item.correctAnswers != null 
+                ? Number(item.correctAnswers) 
+                : (isSubmitted ? Math.round((scoreVal / 100) * totalQ) : (item.answers?.length || 0));
+
+              const timeSpentDisplay = item.elapsedSeconds != null && item.elapsedSeconds > 0
+                ? (item.elapsedSeconds >= 60 ? `${Math.ceil(item.elapsedSeconds / 60)} phút` : `${item.elapsedSeconds} giây`)
+                : (item.durationMinutes ? `${item.durationMinutes} phút` : "15 phút");
+
               const submittedDate = item.submittedAt
                 ? new Date(item.submittedAt).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })
                 : "Gần đây";
@@ -531,12 +561,12 @@ export default function TestPage() {
                           fontWeight: 800,
                           padding: "3px 10px",
                           borderRadius: "20px",
-                          background: item.status === "IN_PROGRESS" ? "#fffbeb" : isPassed ? "#ecfdf5" : "#fff1f2",
-                          color: item.status === "IN_PROGRESS" ? "#b45309" : isPassed ? "#047857" : "#be123c",
-                          border: `1px solid ${item.status === "IN_PROGRESS" ? "#fef3c7" : isPassed ? "#a7f3d0" : "#fecdd3"}`
+                          background: !isSubmitted ? "#fffbeb" : isPassed ? "#ecfdf5" : "#fff1f2",
+                          color: !isSubmitted ? "#b45309" : isPassed ? "#047857" : "#be123c",
+                          border: `1px solid ${!isSubmitted ? "#fef3c7" : isPassed ? "#a7f3d0" : "#fecdd3"}`
                         }}
                       >
-                        {item.status === "IN_PROGRESS" ? "⏳ Đang làm" : isPassed ? "✅ Đạt yêu cầu" : "⚠️ Chưa đạt"}
+                        {!isSubmitted ? "⏳ Đang làm" : isPassed ? "✅ Đạt yêu cầu" : "⚠️ Chưa đạt"}
                       </span>
                     </div>
 
@@ -564,22 +594,22 @@ export default function TestPage() {
                   >
                     <div>
                       <span style={{ display: "block", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>Điểm kết quả</span>
-                      <strong style={{ fontSize: "1.1rem", fontWeight: 900, color: isPassed ? "#059669" : "#e11d48" }}>
-                        {scoreVal} <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#64748b" }}>/ 100</span>
+                      <strong style={{ fontSize: "1.1rem", fontWeight: 900, color: !isSubmitted ? "#b45309" : isPassed ? "#059669" : "#e11d48" }}>
+                        {isSubmitted ? `${scoreVal} / 100` : "-- / 100"}
                       </strong>
                     </div>
 
                     <div>
                       <span style={{ display: "block", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>Số câu trả lời</span>
                       <strong style={{ fontSize: "0.95rem", fontWeight: 800, color: "#334155" }}>
-                        {item.correctAnswers != null ? `${item.correctAnswers} / ${item.totalQuestions || (item.questions ? item.questions.length : 10)} câu đúng` : `${item.answers?.length || 0} / ${item.totalQuestions || (item.questions ? item.questions.length : 10)} câu đã làm`}
+                        {isSubmitted ? `${correctAnsCount} / ${totalQ} câu đúng` : `${item.answers?.length || 0} / ${totalQ} câu đã làm`}
                       </strong>
                     </div>
 
                     <div>
                       <span style={{ display: "block", fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>Thời gian làm</span>
                       <strong style={{ fontSize: "0.95rem", fontWeight: 800, color: "#334155" }}>
-                        {item.durationMinutes || 45} phút
+                        {timeSpentDisplay}
                       </strong>
                     </div>
                   </div>
