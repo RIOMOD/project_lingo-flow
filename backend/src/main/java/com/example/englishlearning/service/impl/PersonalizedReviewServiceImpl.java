@@ -90,7 +90,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
 
         // Fetch questions for review quiz (Target: 8 questions total)
         int targetTotal = 8;
-        Set<Long> alreadyAnsweredQuestionIds = answerRepository.findByUserId(user.getId()).stream()
+        Set<Long> alreadyAnsweredQuestionIds = answerRepository.findByAttemptUserId(user.getId()).stream()
                 .map(a -> a.getQuestion().getId())
                 .collect(Collectors.toSet());
 
@@ -312,7 +312,7 @@ public class PersonalizedReviewServiceImpl implements PersonalizedReviewService 
     }
 
     private User getUser(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
     }
 
