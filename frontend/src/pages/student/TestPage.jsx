@@ -52,13 +52,17 @@ const buildMockAttempt = (testId) => {
     {
       id: 101,
       type: "SINGLE_CHOICE",
-      prompt: "Select the word that best completes the sentence: 'The team will _____ the new project next week.'",
+      prompt: "Từ hoặc cụm từ nào có nghĩa là “từ khóa”?",
       options: [
-        { id: "a", content: "launch", correct: true },
-        { id: "b", content: "launching" },
-        { id: "c", content: "launched" },
-        { id: "d", content: "launcher" }
-      ]
+        { id: "a", content: "keyword", correct: true },
+        { id: "b", content: "deadline" },
+        { id: "c", content: "recall" },
+        { id: "d", content: "outline" }
+      ],
+      explanation: "“keyword” có nghĩa là “từ khóa”. Ví dụ: Write down the main keywords.",
+      recommendedLessonId: 1,
+      recommendedLessonCourseId: 1,
+      recommendedLessonTitle: "Từ vựng cơ bản"
     },
     {
       id: 102,
@@ -157,7 +161,10 @@ const buildMockAttempt = (testId) => {
         { id: "b", content: "Acommodate" },
         { id: "c", content: "Accomodate" },
         { id: "d", content: "Acomodate" }
-      ]
+      ],
+      recommendedLessonId: 2,
+      recommendedLessonCourseId: 1,
+      recommendedLessonTitle: "Phát âm & Chính tả tiếng Anh"
     }
   ],
   answers: []

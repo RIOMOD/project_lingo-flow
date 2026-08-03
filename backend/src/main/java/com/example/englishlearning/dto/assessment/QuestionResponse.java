@@ -22,6 +22,7 @@ public class QuestionResponse {
     private Question.SkillType skillType;
     private String topic;
     private Long recommendedLessonId;
+    private Long recommendedLessonCourseId;
     private String recommendedLessonTitle;
     private BigDecimal points;
     private String correctAnswer;

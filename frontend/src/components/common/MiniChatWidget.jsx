@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { sendAiChat } from "../../services/aiService";
 import "../../styles/MiniChatWidget.css";
+import FormattedMessage from "./FormattedMessage";
 
 export default function MiniChatWidget({ onClose }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,7 +108,7 @@ export default function MiniChatWidget({ onClose }) {
             ) : (
               messages.map((msg, idx) => (
                 <div key={idx} className={`mini-chat-bubble ${msg.sender === "USER" ? "user" : "ai"} ${msg.isError ? "error" : ""}`}>
-                  {msg.text}
+                  {msg.sender === "USER" ? msg.text : <FormattedMessage text={msg.text} />}
                 </div>
               ))
             )}

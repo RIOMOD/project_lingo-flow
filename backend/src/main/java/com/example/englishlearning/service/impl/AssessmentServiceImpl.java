@@ -562,7 +562,22 @@ public class AssessmentServiceImpl implements AssessmentService {
         return AssessmentResponse.builder().id(test.getId()).type("TEST").courseId(test.getCourse().getId()).title(test.getTitle()).description(test.getDescription()).durationMinutes(test.getDurationMinutes()).maxAttempts(test.getMaxAttempts()).passScore(test.getPassScore()).status(test.getStatus()).questions(testQuestionRepository.findByTestIdOrderByPositionAsc(test.getId()).stream().map(tq -> toQuestion(tq.getQuestion(), includeAnswers)).toList()).build();
     }
     private QuestionResponse toQuestion(Question question, boolean includeAnswers) {
-        return QuestionResponse.builder().id(question.getId()).exerciseId(question.getExercise() == null ? null : question.getExercise().getId()).questionType(question.getQuestionType()).questionText(question.getQuestionText()).explanation(includeAnswers ? question.getExplanation() : null).skillType(question.getSkillType()).topic(question.getTopic()).recommendedLessonId(question.getRecommendedLesson() == null ? null : question.getRecommendedLesson().getId()).recommendedLessonTitle(question.getRecommendedLesson() == null ? null : question.getRecommendedLesson().getTitle()).points(question.getPoints()).correctAnswer(includeAnswers ? question.getCorrectAnswer() : null).position(question.getPosition()).options(optionRepository.findByQuestionIdOrderByPositionAsc(question.getId()).stream().map(o -> OptionResponse.builder().id(o.getId()).optionText(o.getOptionText()).correct(includeAnswers ? o.getCorrect() : null).position(o.getPosition()).build()).toList()).build();
+        return QuestionResponse.builder()
+                .id(question.getId())
+                .exerciseId(question.getExercise() == null ? null : question.getExercise().getId())
+                .questionType(question.getQuestionType())
+                .questionText(question.getQuestionText())
+                .explanation(includeAnswers ? question.getExplanation() : null)
+                .skillType(question.getSkillType())
+                .topic(question.getTopic())
+                .recommendedLessonId(question.getRecommendedLesson() == null ? null : question.getRecommendedLesson().getId())
+                .recommendedLessonCourseId(question.getRecommendedLesson() == null || question.getRecommendedLesson().getChapter() == null || question.getRecommendedLesson().getChapter().getCourse() == null ? null : question.getRecommendedLesson().getChapter().getCourse().getId())
+                .recommendedLessonTitle(question.getRecommendedLesson() == null ? null : question.getRecommendedLesson().getTitle())
+                .points(question.getPoints())
+                .correctAnswer(includeAnswers ? question.getCorrectAnswer() : null)
+                .position(question.getPosition())
+                .options(optionRepository.findByQuestionIdOrderByPositionAsc(question.getId()).stream().map(o -> OptionResponse.builder().id(o.getId()).optionText(o.getOptionText()).correct(includeAnswers ? o.getCorrect() : null).position(o.getPosition()).build()).toList())
+                .build();
     }
     private AttemptResponse toAttemptResponse(TestAttempt attempt) {
         List<QuestionResponse> questions = null;

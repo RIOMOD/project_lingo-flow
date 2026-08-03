@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function selectedIds(answer) {
   if (!answer) return [];
@@ -179,6 +180,16 @@ export default function AssessmentQuestion({ question, answer, disabled, onAnswe
             >
               <strong>{answer?.correct ? "✓ Chính xác" : "✗ Chưa đúng"}</strong>
               {question.explanation && <p style={{ margin: "0.2rem 0 0 0" }}>{question.explanation}</p>}
+              
+              {!answer?.correct && question.recommendedLessonId && question.recommendedLessonCourseId && (
+                <div style={{ marginTop: "0.75rem", paddingTop: "0.5rem", borderTop: "1px dashed rgba(185, 28, 28, 0.2)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                   <span style={{ fontSize: "1.1rem" }}>💡</span>
+                   <span style={{ fontWeight: 600 }}>Gợi ý ôn tập:</span>
+                   <Link to={`/student/learn/${question.recommendedLessonCourseId}/${question.recommendedLessonId}`} style={{ color: "#b91c1c", textDecoration: "underline", fontWeight: 700 }}>
+                     {question.recommendedLessonTitle || "Xem bài học liên quan"}
+                   </Link>
+                </div>
+              )}
             </div>
           )}
         </div>
