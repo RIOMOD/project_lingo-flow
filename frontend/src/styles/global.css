@@ -6200,6 +6200,149 @@ html[data-theme="dark"] .app-shell {
   }
 }
 
+/* ─── Animated Enroll Free Button (Graduation Cap Animation) ──────────────── */
+.animated-enroll-btn.is-enrolled span:before,
+.animated-enroll-btn.is-enrolled span:after {
+  display: none !important;
+}
+
+.animated-enroll-btn {
+  --background: #0d9488;
+  --text: #ffffff;
+  --icon-color: #ffffff;
+  --tick: #0d9488;
+  position: relative;
+  border: none;
+  background: var(--background);
+  padding: 8px 20px;
+  border-radius: 10px;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: center;
+  min-width: 160px;
+  color: var(--text);
+  transform: scale(var(--escale, 1));
+  transition: transform 0.4s cubic-bezier(0.36, 1.01, 0.32, 1.27), background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+}
+
+.animated-enroll-btn:hover {
+  filter: brightness(1.1);
+}
+
+.animated-enroll-btn:active {
+  --escale: .95;
+}
+
+.animated-enroll-btn span {
+  font-size: 14px;
+  font-weight: 700;
+  display: block;
+  position: relative;
+  padding-left: 24px;
+  margin-left: -4px;
+  line-height: 26px;
+  transform: translateY(var(--espan-y, 0));
+  transition: transform 0.7s ease;
+  white-space: nowrap;
+}
+
+.animated-enroll-btn span:before,
+.animated-enroll-btn span:after {
+  content: "";
+  width: var(--ew, 2px);
+  height: var(--eh, 14px);
+  border-radius: 1px;
+  position: absolute;
+  left: var(--el, 8px);
+  top: var(--et, 6px);
+  background: currentColor;
+  transform: scale(0.75) rotate(var(--eicon-r, 0deg)) translateY(var(--eicon-y, 0));
+  transition: transform 0.65s ease 0.05s;
+}
+
+.animated-enroll-btn span:after {
+  --ew: 14px;
+  --eh: 2px;
+  --el: 2px;
+  --et: 12px;
+}
+
+.animated-enroll-btn .enroll-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -13px 0 0 -18px;
+  transform-origin: 12px 23px;
+  transform: translateX(-120px) rotate(-18deg);
+}
+
+.animated-enroll-btn .enroll-icon svg {
+  z-index: 1;
+  width: 36px;
+  height: 26px;
+  display: block;
+  position: relative;
+  fill: none;
+  stroke: var(--icon-color);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.animated-enroll-btn .enroll-icon svg polyline:last-child,
+.animated-enroll-btn .enroll-icon svg polyline {
+  stroke: var(--icon-color);
+  stroke-dasharray: 12px;
+  stroke-dashoffset: var(--eoffset, 12px);
+  transition: stroke-dashoffset 0.4s ease var(--eoffset-d);
+}
+
+.animated-enroll-btn.loading {
+  --escale: .95;
+  --espan-y: -32px;
+  --eicon-r: 180deg;
+  --efill: 1;
+  --efill-d: .8s;
+  --eoffset: 0;
+  --eoffset-d: 1.73s;
+}
+
+.animated-enroll-btn.loading .enroll-icon {
+  animation: enrollIcon 3.4s linear forwards 0.2s;
+}
+
+@keyframes enrollIcon {
+  12.5% {
+    transform: translateX(-60px) rotate(-18deg);
+  }
+  25%, 45%, 55%, 75% {
+    transform: none;
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  44%, 56% {
+    transform-origin: 12px 23px;
+  }
+  45%, 55% {
+    transform-origin: 50% 50%;
+  }
+  87.5% {
+    transform: translateX(70px) rotate(-18deg);
+  }
+  100% {
+    transform: translateX(140px) rotate(-18deg);
+  }
+}
+
 /* ==========================================================================
    SYSTEM-WIDE COMPREHENSIVE DARK MODE ENGINE & CONTRAST FIXES
    ========================================================================== */

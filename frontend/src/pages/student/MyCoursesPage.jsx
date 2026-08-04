@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AddToCartButton from "../../components/common/AddToCartButton";
+import EnrollFreeButton from "../../components/common/EnrollFreeButton";
 import CertificateModal from "../../components/student/CertificateModal";
 import { useToast } from "../../context/ToastContext";
 import { addCartItem, getCart } from "../../services/commerceService";
@@ -78,6 +79,9 @@ export default function MyCoursesPage() {
   const [ineligibleData, setIneligibleData] = useState(null);
   const [checkingCert, setCheckingCert] = useState(false);
   const [actionCourseId, setActionCourseId] = useState(null);
+  // track IDs enrolled this session – after animation, card moves to My Courses
+  const [recentlyEnrolledIds, setRecentlyEnrolledIds] = useState(new Set());
+  const scrollPosRef = useRef(0);
 
   const loadData = async () => {
     setLoading(true);
@@ -141,17 +145,17 @@ export default function MyCoursesPage() {
     }
   }
 
-  async function handleEnrollFreeCourse(courseId) {
-    setActionCourseId(courseId);
-    try {
-      await enrollFree(courseId);
-      toast.success("Đã đăng ký khóa học miễn phí thành công!");
-      await loadData();
-    } catch (err) {
-      toast.error(err?.message || "Không thể đăng ký khóa học.");
-    } finally {
-      setActionCourseId(null);
-    }
+  // Called by EnrollFreeButton after its 3.4s animation completes
+  function handleEnrollSuccess(courseId) {
+    // Mark as enrolled so the card disappears from catalog
+    setRecentlyEnrolledIds((prev) => new Set([...prev, courseId]));
+    // Reload data so the course appears in My Courses tab, then switch tab
+    loadData().then(() => {
+      setActiveTab("my");
+      setSearchParams({});
+      // Restore scroll position at top to see the newly added course
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
 
   async function handleBuyCourseNow(courseId) {
@@ -415,14 +419,14 @@ export default function MyCoursesPage() {
                         </div>
 
                         {isFree ? (
-                          <button
-                            type="button"
-                            disabled={isActing}
-                            onClick={() => handleEnrollFreeCourse(course.id)}
-                            style={{ width: "100%", padding: "8px 12px", borderRadius: "10px", background: "linear-gradient(135deg, #16a34a, #15803d)", color: "#fff", border: "none", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", whiteSpace: "nowrap" }}
-                          >
-                            {isActing ? "Đang xử lý..." : "✨ Đăng ký miễn phí"}
-                          </button>
+                          <EnrollFreeButton
+                            courseId={course.id}
+                            isEnrolled={recentlyEnrolledIds.has(course.id)}
+                            onSuccess={handleEnrollSuccess}
+                            text="🎓 Đăng ký miễn phí"
+                            style={{ width: "100%" }}
+                            disabled={isActing && actionCourseId !== course.id}
+                          />
                         ) : (
                           <div style={{ display: "flex", gap: "8px", width: "100%" }}>
                             <AddToCartButton
