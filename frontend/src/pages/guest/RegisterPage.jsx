@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../context/ToastContext";
 
 export default function RegisterPage() {
   const { getRoleHome, register } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -26,7 +28,10 @@ export default function RegisterPage() {
 
     try {
       const user = await register(form);
-      navigate(getRoleHome(user.role), { replace: true });
+      if (toast?.success) {
+        toast.success("🎉 Đăng ký tài khoản thành công! Chào mừng bạn đến với LingoFlow!");
+      }
+      navigate(getRoleHome(user?.role), { replace: true, state: { showFireworks: true } });
     } catch (caughtError) {
       setError(caughtError.message || "Đăng ký thất bại");
     } finally {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { LoadingState } from "../../components/common/UiState";
+import WelcomeFireworks from "../../components/common/WelcomeFireworks";
 import { getCourseChapters } from "../../services/courseService";
 import { getProgressDashboard } from "../../services/progressService";
 import "../../styles/StudentDashboard.css";
@@ -54,6 +55,8 @@ function MiniBarChart({ items = [] }) {
 }
 
 export default function StudentDashboardPage() {
+  const location = useLocation();
+  const showFireworks = location.state?.showFireworks;
   const [dashboard, setDashboard] = useState(null);
   const [path, setPath] = useState([]);
   const [error, setError] = useState("");
@@ -90,6 +93,7 @@ export default function StudentDashboardPage() {
   ], [dashboard]);
 
   return <div className="stu-dashboard-container">
+    {showFireworks && <WelcomeFireworks duration={3000} />}
     <section className="stu-hero-section">
       <div className="stu-hero-content">
         <span className="stu-badge">Kế hoạch hôm nay</span>
