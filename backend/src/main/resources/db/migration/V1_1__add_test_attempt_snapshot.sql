@@ -1,8 +1,8 @@
 ALTER TABLE test_attempts
-  ADD COLUMN test_snapshot JSON NULL AFTER score;
+  ADD COLUMN test_snapshot JSON NULL;
 
 ALTER TABLE questions
-  ADD COLUMN owner_user_id BIGINT  NULL AFTER id;
+  ADD COLUMN owner_user_id BIGINT NULL;
 
 ALTER TABLE questions
   ADD CONSTRAINT fk_questions_owner FOREIGN KEY (owner_user_id) REFERENCES users(id);

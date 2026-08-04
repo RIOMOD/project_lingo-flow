@@ -4,7 +4,7 @@
 -- Speaking with Confidence, Academic Study Skills in English, Critical English for Digital Life)
 -- Includes 20 Chapters, 40 Lessons, 120 Vocabularies, 40 Grammar Topics, 10 Exercises, 100 Questions, 400 Answer Options
 
--- SET FOREIGN_KEY_CHECKS = 0;
+-- -- SET FOREIGN_KEY_CHECKS = 0;
 
 -- ─────────────────────────────────────────────────────────────
 -- COURSE 1: Everyday English Essentials

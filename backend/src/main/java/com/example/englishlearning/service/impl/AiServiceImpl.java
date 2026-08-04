@@ -106,9 +106,11 @@ public class AiServiceImpl implements AiService {
         conversation.setUpdatedAt(LocalDateTime.now());
         conversationRepository.save(conversation);
         saveUsage(user, "CHATBOT", result, result.isFallback() ? fallbackAiProvider.name() : openAiProvider.name());
+
+        Long messageId = aiMsg != null ? aiMsg.getId() : null;
         return AiChatResponse.builder()
                 .conversationId(conversation.getId())
-                .messageId(aiMsg.getId())
+                .messageId(messageId)
                 .reply(result.getText())
                 .provider(result.isFallback() ? fallbackAiProvider.name() : openAiProvider.name())
                 .totalTokens(result.getTotalTokens())

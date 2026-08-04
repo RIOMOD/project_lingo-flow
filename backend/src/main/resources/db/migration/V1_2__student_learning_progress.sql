@@ -1,16 +1,16 @@
 -- Student learning telemetry and lesson checkpoint metadata.
 
-ALTER TABLE lessons ADD COLUMN checkpoint_question VARCHAR(500) NULL AFTER video_url;
-ALTER TABLE lessons ADD COLUMN checkpoint_answer VARCHAR(255) NULL AFTER checkpoint_question;
-ALTER TABLE lessons ADD COLUMN checkpoint_explanation VARCHAR(1000) NULL AFTER checkpoint_answer;
+ALTER TABLE lessons ADD COLUMN checkpoint_question VARCHAR(500) NULL;
+ALTER TABLE lessons ADD COLUMN checkpoint_answer VARCHAR(255) NULL;
+ALTER TABLE lessons ADD COLUMN checkpoint_explanation VARCHAR(1000) NULL;
 
-ALTER TABLE learning_progress ADD COLUMN study_time_seconds INT NOT NULL DEFAULT 0 AFTER study_time_minutes;
-ALTER TABLE learning_progress ADD COLUMN media_position_seconds DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER study_time_seconds;
-ALTER TABLE learning_progress ADD COLUMN media_duration_seconds DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER media_position_seconds;
-ALTER TABLE learning_progress ADD COLUMN content_progress_percent DECIMAL(5,2) NOT NULL DEFAULT 0 AFTER media_duration_seconds;
-ALTER TABLE learning_progress ADD COLUMN checkpoint_score DECIMAL(5,2) NULL AFTER content_progress_percent;
-ALTER TABLE learning_progress ADD COLUMN checkpoint_passed BOOLEAN NOT NULL DEFAULT FALSE AFTER checkpoint_score;
-ALTER TABLE learning_progress ADD COLUMN checkpoint_attempts INT NOT NULL DEFAULT 0 AFTER checkpoint_passed;
+ALTER TABLE learning_progress ADD COLUMN study_time_seconds INT NOT NULL DEFAULT 0;
+ALTER TABLE learning_progress ADD COLUMN media_position_seconds DECIMAL(10,2) NOT NULL DEFAULT 0;
+ALTER TABLE learning_progress ADD COLUMN media_duration_seconds DECIMAL(10,2) NOT NULL DEFAULT 0;
+ALTER TABLE learning_progress ADD COLUMN content_progress_percent DECIMAL(5,2) NOT NULL DEFAULT 0;
+ALTER TABLE learning_progress ADD COLUMN checkpoint_score DECIMAL(5,2) NULL;
+ALTER TABLE learning_progress ADD COLUMN checkpoint_passed BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE learning_progress ADD COLUMN checkpoint_attempts INT NOT NULL DEFAULT 0;
 
 ALTER TABLE learning_progress ADD CONSTRAINT ck_learning_content_progress CHECK (content_progress_percent BETWEEN 0 AND 100);
 ALTER TABLE learning_progress ADD CONSTRAINT ck_learning_media_position CHECK (media_position_seconds >= 0);

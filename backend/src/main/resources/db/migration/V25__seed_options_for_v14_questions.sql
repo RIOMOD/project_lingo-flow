@@ -58,5 +58,4 @@ INSERT INTO answer_options (question_id, option_text, is_correct, position) VALU
   (2010, 'Vé khứ hồi (2 chiều)', TRUE, 1),
   (2010, 'Vé một chiều', FALSE, 2),
   (2010, 'Vé xem phim cuối tuần', FALSE, 3),
-  (2010, 'Thẻ thành viên giảm giá', FALSE, 4)
-ON DUPLICATE KEY UPDATE option_text = VALUES(option_text);
+  (2010, 'Thẻ thành viên giảm giá', FALSE, 4);

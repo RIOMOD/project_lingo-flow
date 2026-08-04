@@ -4,8 +4,7 @@ INSERT INTO exercises (id, course_id, title, description, exercise_type, duratio
   (101, 6, '🎧 Luyện Nghe: Hội Thoại Giao Tiếp Hàng Ngày', 'Luyện nghe 10 tình huống hội thoại thực tế hỏi đường, đặt phòng và giao tiếp.', 'LISTENING', 15, 5, 'PUBLISHED'),
   (102, 10, '📐 Luyện Ngữ Pháp: Các Thì Tiếng Anh Thông Dụng', '10 câu hỏi chia động từ các thì Hiện tại, Quá khứ và Hiện tại hoàn thành.', 'GRAMMAR', 15, 10, 'PUBLISHED'),
   (103, 9, '💼 Luyện Từ Vựng: Tiếng Anh Công Sở & Business', '10 câu hỏi từ vựng thương mại, hợp đồng, đàm phán và cuộc họp.', 'VOCABULARY', 15, 5, 'PUBLISHED'),
-  (104, 8, '📖 Luyện Đọc Hiểu: Xu Hướng Công Nghệ AI', '10 câu hỏi đọc hiểu phân tích đoạn văn công nghệ và từ vựng chuyên ngành.', 'READING', 20, 5, 'PUBLISHED')
-ON DUPLICATE KEY UPDATE status = 'PUBLISHED';
+  (104, 8, '📖 Luyện Đọc Hiểu: Xu Hướng Công Nghệ AI', '10 câu hỏi đọc hiểu phân tích đoạn văn công nghệ và từ vựng chuyên ngành.', 'READING', 20, 5, 'PUBLISHED');
 
 -- Seed 10 questions for Exercise 101 (Listening)
 INSERT INTO questions (id, exercise_id, question_type, question_text, explanation, points, position) VALUES
@@ -18,5 +17,4 @@ INSERT INTO questions (id, exercise_id, question_type, question_text, explanatio
   (2007, 101, 'SINGLE_CHOICE', 'Đáp lại lời cảm ơn "Thank you for your help" một cách trang trọng:', 'You are very welcome! = Không có gì!', 10.00, 7),
   (2008, 101, 'SINGLE_CHOICE', 'Từ "Boarding Pass" chỉ loại giấy tờ nào?', 'Boarding pass = Thẻ lên máy bay.', 10.00, 8),
   (2009, 101, 'SINGLE_CHOICE', 'Khi nhân viên hỏi "How would you like to pay?", bạn chọn cách trả lời nào?', 'By credit card, please = Thanh toán bằng thẻ tín dụng.', 10.00, 9),
-  (2010, 101, 'SINGLE_CHOICE', 'Cụm "Round-trip ticket" có nghĩa là gì?', 'Round-trip ticket = Vé khứ hồi.', 10.00, 10)
-ON DUPLICATE KEY UPDATE question_text = VALUES(question_text);
+  (2010, 101, 'SINGLE_CHOICE', 'Cụm "Round-trip ticket" có nghĩa là gì?', 'Round-trip ticket = Vé khứ hồi.', 10.00, 10);
