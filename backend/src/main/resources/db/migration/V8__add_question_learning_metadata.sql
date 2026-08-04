@@ -1,6 +1,6 @@
 ALTER TABLE questions ADD COLUMN skill_type VARCHAR(30) NULL;
 ALTER TABLE questions ADD COLUMN topic VARCHAR(120) NULL;
-ALTER TABLE questions ADD COLUMN recommended_lesson_id BIGINT UNSIGNED NULL;
+ALTER TABLE questions ADD COLUMN recommended_lesson_id BIGINT  NULL;
 
 ALTER TABLE questions
   ADD CONSTRAINT fk_questions_recommended_lesson
