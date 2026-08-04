@@ -1,6 +1,6 @@
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./tokenStorage";
 
-let rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
+let rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://lingoflow.up.railway.app/api";
 if (rawBaseUrl.startsWith("http") && !rawBaseUrl.endsWith("/api") && !rawBaseUrl.endsWith("/api/")) {
   rawBaseUrl = rawBaseUrl.replace(/\/+$/, "") + "/api";
 }
