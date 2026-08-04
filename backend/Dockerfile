@@ -27,4 +27,4 @@ EXPOSE 8080
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
 
 # Use PORT env var provided by Render (defaults to 8080 for local)
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=8080 -Dspring.profiles.active=prod -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.profiles.active=prod -jar app.jar"]
