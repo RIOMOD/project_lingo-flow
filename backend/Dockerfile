@@ -21,8 +21,10 @@ USER appuser
 # Copy executable jar from builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
+# PORT is injected by Render at runtime — do NOT hardcode it
 EXPOSE 8080
 
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# Use PORT env var provided by Render (defaults to 8080 for local)
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.profiles.active=prod -jar app.jar"]

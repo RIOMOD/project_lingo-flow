@@ -1,0 +1,40 @@
+# Production profile - Render.com + Neon PostgreSQL
+# Activated automatically when SPRING_PROFILES_ACTIVE=prod
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    repair-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
+    out-of-order: true
+
+logging:
+  level:
+    com.example: INFO
+    org.flywaydb: DEBUG
+    org.springframework.security: WARN
