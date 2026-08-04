@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS ai_message_feedbacks (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   message_id BIGINT  NULL,
   user_id BIGINT  NOT NULL,
   rating VARCHAR(20) NOT NULL,

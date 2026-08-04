@@ -2,7 +2,7 @@
 -- This creates the schema for GrammarExercises, Questions, Options, Attempts and Answers, which are referenced by the Grammar module and the Leaderboard XP calculator.
 
 CREATE TABLE grammar_exercises (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     topic_id BIGINT  NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
@@ -11,7 +11,7 @@ CREATE TABLE grammar_exercises (
 );
 
 CREATE TABLE grammar_questions (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     exercise_id BIGINT  NOT NULL,
     question_text TEXT NOT NULL,
     explanation TEXT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE grammar_questions (
 );
 
 CREATE TABLE grammar_question_options (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     question_id BIGINT  NOT NULL,
     option_text TEXT NOT NULL,
     is_correct BOOLEAN NOT NULL DEFAULT FALSE,
@@ -31,7 +31,7 @@ CREATE TABLE grammar_question_options (
 );
 
 CREATE TABLE grammar_attempts (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT  NOT NULL,
     exercise_id BIGINT  NOT NULL,
     score DECIMAL(5,2) NOT NULL DEFAULT 0.00,
@@ -43,7 +43,7 @@ CREATE TABLE grammar_attempts (
 );
 
 CREATE TABLE grammar_attempt_answers (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     attempt_id BIGINT  NOT NULL,
     question_id BIGINT  NOT NULL,
     selected_option_id BIGINT  NULL,

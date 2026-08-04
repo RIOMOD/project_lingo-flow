@@ -1,7 +1,7 @@
 -- -- SET FOREIGN_KEY_CHECKS = 0;
 
 CREATE TABLE roles (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(50) NOT NULL,
   name VARCHAR(100) NOT NULL,
   description VARCHAR(255) NULL,
@@ -11,7 +11,7 @@ CREATE TABLE roles (
 );
 
 CREATE TABLE users (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   role_id BIGINT  NOT NULL,
   email VARCHAR(255) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE user_profiles (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   date_of_birth DATE NULL,
   gender VARCHAR(50) NULL,
@@ -43,7 +43,7 @@ CREATE TABLE user_profiles (
 );
 
 CREATE TABLE refresh_tokens (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   token_hash VARCHAR(255) NOT NULL,
   expires_at TIMESTAMP NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE refresh_tokens (
 );
 
 CREATE TABLE password_reset_tokens (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   token_hash VARCHAR(255) NOT NULL,
   expires_at TIMESTAMP NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE password_reset_tokens (
 );
 
 CREATE TABLE course_categories (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
   slug VARCHAR(150) NOT NULL,
   description VARCHAR(255) NULL,
@@ -77,7 +77,7 @@ CREATE TABLE course_categories (
 );
 
 CREATE TABLE courses (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   category_id BIGINT  NULL,
   teacher_id BIGINT  NOT NULL,
   title VARCHAR(200) NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE courses (
 );
 
 CREATE TABLE chapters (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   course_id BIGINT  NOT NULL,
   title VARCHAR(200) NOT NULL,
   description VARCHAR(500) NULL,
@@ -117,7 +117,7 @@ CREATE TABLE chapters (
 );
 
 CREATE TABLE lessons (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   chapter_id BIGINT  NOT NULL,
   title VARCHAR(200) NOT NULL,
   lesson_type VARCHAR(50) NOT NULL DEFAULT 'TEXT',
@@ -137,7 +137,7 @@ CREATE TABLE lessons (
 );
 
 CREATE TABLE lesson_contents (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   lesson_id BIGINT  NOT NULL,
   content_type VARCHAR(50) NOT NULL,
   title VARCHAR(200) NULL,
@@ -151,7 +151,7 @@ CREATE TABLE lesson_contents (
 );
 
 CREATE TABLE course_enrollments (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   course_id BIGINT  NOT NULL,
   enrolled_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -165,7 +165,7 @@ CREATE TABLE course_enrollments (
 );
 
 CREATE TABLE course_reviews (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   course_id BIGINT  NOT NULL,
   rating SMALLINT NOT NULL,
@@ -181,7 +181,7 @@ CREATE TABLE course_reviews (
 );
 
 CREATE TABLE vocabularies (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   course_id BIGINT  NOT NULL,
   lesson_id BIGINT  NULL,
   word VARCHAR(120) NOT NULL,
@@ -202,7 +202,7 @@ CREATE TABLE vocabularies (
 );
 
 CREATE TABLE grammar_topics (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   course_id BIGINT  NOT NULL,
   lesson_id BIGINT  NULL,
   title VARCHAR(200) NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE grammar_topics (
 );
 
 CREATE TABLE exercises (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   course_id BIGINT  NOT NULL,
   lesson_id BIGINT  NULL,
   title VARCHAR(200) NOT NULL,
@@ -237,7 +237,7 @@ CREATE TABLE exercises (
 );
 
 CREATE TABLE questions (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   exercise_id BIGINT  NULL,
   question_type VARCHAR(50) NOT NULL,
   question_text TEXT NOT NULL,
@@ -253,7 +253,7 @@ CREATE TABLE questions (
 );
 
 CREATE TABLE answer_options (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   question_id BIGINT  NOT NULL,
   option_text TEXT NOT NULL,
   is_correct BOOLEAN NOT NULL DEFAULT FALSE,
@@ -265,7 +265,7 @@ CREATE TABLE answer_options (
 );
 
 CREATE TABLE tests (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   course_id BIGINT  NOT NULL,
   title VARCHAR(200) NOT NULL,
   description VARCHAR(500) NULL,
@@ -280,7 +280,7 @@ CREATE TABLE tests (
 );
 
 CREATE TABLE test_questions (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   test_id BIGINT  NOT NULL,
   question_id BIGINT  NOT NULL,
   position INT NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE test_questions (
 );
 
 CREATE TABLE test_attempts (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   test_id BIGINT  NULL,
   exercise_id BIGINT  NULL,
@@ -311,7 +311,7 @@ CREATE TABLE test_attempts (
 );
 
 CREATE TABLE user_answers (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   attempt_id BIGINT  NOT NULL,
   question_id BIGINT  NOT NULL,
   selected_option_id BIGINT  NULL,
@@ -329,7 +329,7 @@ CREATE TABLE user_answers (
 );
 
 CREATE TABLE learning_progress (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   course_id BIGINT  NOT NULL,
   lesson_id BIGINT  NOT NULL,
@@ -351,7 +351,7 @@ CREATE TABLE learning_progress (
 );
 
 CREATE TABLE vocabulary_progress (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   vocabulary_id BIGINT  NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'NEW',
@@ -376,7 +376,7 @@ CREATE TABLE vocabulary_progress (
 );
 
 CREATE TABLE study_schedules (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   course_id BIGINT  NULL,
   title VARCHAR(200) NOT NULL,
@@ -390,7 +390,7 @@ CREATE TABLE study_schedules (
 );
 
 CREATE TABLE ai_conversations (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   title VARCHAR(200) NULL,
   conversation_type VARCHAR(50) NOT NULL DEFAULT 'CHATBOT',
@@ -401,7 +401,7 @@ CREATE TABLE ai_conversations (
 );
 
 CREATE TABLE ai_messages (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   conversation_id BIGINT  NOT NULL,
   sender VARCHAR(50) NOT NULL,
   message TEXT NOT NULL,
@@ -411,7 +411,7 @@ CREATE TABLE ai_messages (
 );
 
 CREATE TABLE writing_submissions (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   title VARCHAR(200) NULL,
   original_text TEXT NOT NULL,
@@ -431,7 +431,7 @@ CREATE TABLE writing_submissions (
 );
 
 CREATE TABLE ai_usage_logs (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   feature VARCHAR(80) NOT NULL,
   provider VARCHAR(80) NULL,
@@ -444,7 +444,7 @@ CREATE TABLE ai_usage_logs (
 );
 
 CREATE TABLE carts (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   coupon_id BIGINT  NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
@@ -455,7 +455,7 @@ CREATE TABLE carts (
 );
 
 CREATE TABLE cart_items (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   cart_id BIGINT  NOT NULL,
   course_id BIGINT  NOT NULL,
   added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -465,7 +465,7 @@ CREATE TABLE cart_items (
 );
 
 CREATE TABLE coupons (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(80) NOT NULL,
   name VARCHAR(150) NOT NULL,
   discount_type VARCHAR(50) NOT NULL,
@@ -488,7 +488,7 @@ ALTER TABLE carts
   ADD CONSTRAINT fk_carts_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id);
 
 CREATE TABLE orders (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   coupon_id BIGINT  NULL,
   order_code VARCHAR(80) NOT NULL,
@@ -508,7 +508,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE order_items (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   order_id BIGINT  NOT NULL,
   course_id BIGINT  NOT NULL,
   course_title_snapshot VARCHAR(200) NOT NULL,
@@ -524,7 +524,7 @@ CREATE TABLE order_items (
 );
 
 CREATE TABLE payments (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   order_id BIGINT  NOT NULL,
   provider VARCHAR(50) NOT NULL DEFAULT 'MOCK',
   payment_code VARCHAR(100) NOT NULL,
@@ -540,7 +540,7 @@ CREATE TABLE payments (
 );
 
 CREATE TABLE payment_transactions (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   payment_id BIGINT  NOT NULL,
   transaction_code VARCHAR(120) NOT NULL,
   gateway_transaction_code VARCHAR(120) NULL,
@@ -554,7 +554,7 @@ CREATE TABLE payment_transactions (
 );
 
 CREATE TABLE payment_webhook_logs (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   payment_id BIGINT  NULL,
   provider VARCHAR(50) NOT NULL,
   webhook_code VARCHAR(150) NOT NULL,
@@ -569,7 +569,7 @@ CREATE TABLE payment_webhook_logs (
 );
 
 CREATE TABLE course_ownerships (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   course_id BIGINT  NOT NULL,
   order_item_id BIGINT  NULL,
@@ -586,7 +586,7 @@ CREATE TABLE course_ownerships (
 );
 
 CREATE TABLE coupon_usages (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   coupon_id BIGINT  NOT NULL,
   user_id BIGINT  NOT NULL,
   order_id BIGINT  NOT NULL,
@@ -599,7 +599,7 @@ CREATE TABLE coupon_usages (
 );
 
 CREATE TABLE invoices (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   order_id BIGINT  NOT NULL,
   invoice_code VARCHAR(100) NOT NULL,
   issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -613,7 +613,7 @@ CREATE TABLE invoices (
 );
 
 CREATE TABLE refund_requests (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   order_id BIGINT  NOT NULL,
   user_id BIGINT  NOT NULL,
   reason VARCHAR(500) NOT NULL,
@@ -629,7 +629,7 @@ CREATE TABLE refund_requests (
 );
 
 CREATE TABLE notifications (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT  NOT NULL,
   type VARCHAR(50) NOT NULL DEFAULT 'SYSTEM',
   title VARCHAR(200) NOT NULL,
@@ -641,7 +641,7 @@ CREATE TABLE notifications (
 );
 
 CREATE TABLE audit_logs (
-  id BIGSERIAL PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   actor_user_id BIGINT  NULL,
   action VARCHAR(120) NOT NULL,
   target_type VARCHAR(120) NULL,

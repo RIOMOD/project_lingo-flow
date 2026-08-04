@@ -339,9 +339,7 @@ public class FallbackAiProvider implements AiProvider {
             grammarScore = new BigDecimal("5.50");
             feedback = "Bài viết quá ngắn (chỉ có " + wordCount + " từ). Để đạt yêu cầu đề bài, bạn cần phát triển ý và viết ít nhất 100 - 150 từ với cấu trúc bài rõ ràng.";
             suggestion = "Ví dụ mở rộng: 'I am really passionate about learning English because it allows me to access global knowledge and connect with people worldwide.'";
-            if (text.toLowerCase().contains("i really like learning english")) {
-                corrected = "I am really passionate about learning English because it helps me expand my horizons.";
-            }
+            corrected = "I am really passionate about learning because it helps me expand my horizons and connect with people worldwide.";
         } else if (wordCount < 30) {
             taskScore = new BigDecimal("4.50");
             coherenceScore = new BigDecimal("5.00");
@@ -349,6 +347,9 @@ public class FallbackAiProvider implements AiProvider {
             grammarScore = new BigDecimal("6.50");
             feedback = "Đoạn văn tương đối ngắn (" + wordCount + " từ), chưa giải thích chi tiết các lý do theo yêu cầu đề bài. Nên bổ sung thêm các ví dụ minh họa cụ thể.";
             suggestion = "Nên bổ sung từ nối như 'Furthermore', 'For example' để liên kết các ý chặt chẽ hơn.";
+            corrected = text.substring(0, 1).toUpperCase() + text.substring(1);
+            if (!corrected.endsWith(".") && !corrected.endsWith("!") && !corrected.endsWith("?")) corrected += ".";
+            corrected += " Furthermore, this approach allows me to absorb information more effectively.";
         } else if (wordCount < 70) {
             taskScore = new BigDecimal("6.50");
             coherenceScore = new BigDecimal("6.50");

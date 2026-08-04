@@ -1,6 +1,6 @@
 -- Migration: V24 Create Personalized Review Tables
 CREATE TABLE personalized_review_sessions (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     source_attempt_id BIGINT,
     total_questions INT NOT NULL DEFAULT 0,
@@ -16,7 +16,7 @@ CREATE TABLE personalized_review_sessions (
 );
 
 CREATE TABLE personalized_review_questions (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     session_id BIGINT NOT NULL,
     question_id BIGINT NOT NULL,
     topic VARCHAR(100),
