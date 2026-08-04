@@ -1,7 +1,9 @@
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./tokenStorage";
 
-let rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://projectlingoflow-production.up.railway.app/api";
-if (!rawBaseUrl || rawBaseUrl.includes("onrender.com") || rawBaseUrl.includes("lingoflow.up.railway.app") || rawBaseUrl.startsWith("http://")) {
+let rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
+if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+  rawBaseUrl = "http://localhost:8080/api";
+} else if (!rawBaseUrl || rawBaseUrl.includes("onrender.com") || rawBaseUrl.includes("lingoflow.up.railway.app") || rawBaseUrl.startsWith("http://")) {
   rawBaseUrl = "https://projectlingoflow-production.up.railway.app/api";
 }
 if (rawBaseUrl.startsWith("http") && !rawBaseUrl.endsWith("/api") && !rawBaseUrl.endsWith("/api/")) {
