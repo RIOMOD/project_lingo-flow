@@ -1,6 +1,6 @@
-# Lingo Flow
+# LingoFlow - AI English Learning Platform
 
-## Run locally on Windows
+> Professional Enterprise Production Deployment
 
 Requirements:
 
