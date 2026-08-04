@@ -158,8 +158,7 @@ export default function CourseDetailPage() {
     try {
       const data = await enrollFree(course.id);
       setAccess(data);
-      toast.success("Đăng ký thành công! Bạn đã có thể bắt đầu học ngay.");
-      navigate(`/student/learn/${course.id}`);
+      toast.success("Đã đăng ký khóa học miễn phí thành công!");
     } catch (err) {
       toast.error(err.message || "Đăng ký thất bại.");
     } finally {

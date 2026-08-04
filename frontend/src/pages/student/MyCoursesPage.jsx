@@ -58,7 +58,7 @@ function hasSale(course) {
 export default function MyCoursesPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
 
   const [activeTab, setActiveTab] = useState(tabParam === "catalog" ? "catalog" : "my"); // "my" | "catalog"
@@ -147,9 +147,8 @@ export default function MyCoursesPage() {
       await enrollFree(courseId);
       toast.success("Đã đăng ký khóa học miễn phí thành công!");
       await loadData();
-      setActiveTab("my");
     } catch (err) {
-      toast.error(err.message || "Không thể đăng ký khóa học này");
+      toast.error(err?.message || "Không thể đăng ký khóa học.");
     } finally {
       setActionCourseId(null);
     }
@@ -210,14 +209,20 @@ export default function MyCoursesPage() {
             <button
               type="button"
               className={`page-action ${activeTab === "my" ? "page-action-primary" : "page-action-secondary"}`}
-              onClick={() => setActiveTab("my")}
+              onClick={() => {
+                setActiveTab("my");
+                setSearchParams({});
+              }}
             >
               📚 Khóa học của tôi ({courses.length})
             </button>
             <button
               type="button"
               className={`page-action ${activeTab === "catalog" ? "page-action-primary" : "page-action-secondary"}`}
-              onClick={() => setActiveTab("catalog")}
+              onClick={() => {
+                setActiveTab("catalog");
+                setSearchParams({ tab: "catalog" });
+              }}
             >
               🛒 Khám phá khóa học mới ({availableCatalog.length})
             </button>

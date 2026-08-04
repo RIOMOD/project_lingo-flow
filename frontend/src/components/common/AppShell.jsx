@@ -32,12 +32,17 @@ function initials(name = "Học viên") {
   return name.split(/\s+/).filter(Boolean).slice(-2).map((part) => part[0]).join("").toUpperCase();
 }
 
-function getPageHeaderMeta(pathname, roleKey) {
+function getPageHeaderMeta(pathname, roleKey, search = "") {
   const path = (pathname || "").replace(/\/$/, "");
+  const searchParams = new URLSearchParams(search);
+  const tab = searchParams.get("tab");
 
   // Student Routes
   if (path === "/student") return { title: "Tổng quan học tập", breadcrumb: "HỌC TẬP" };
-  if (path === "/student/courses") return { title: "Khóa học của tôi", breadcrumb: "HỌC TẬP" };
+  if (path === "/student/courses") {
+    if (tab === "catalog") return { title: "Khám phá khóa học", breadcrumb: "HỌC TẬP" };
+    return { title: "Khóa học của tôi", breadcrumb: "HỌC TẬP" };
+  }
   if (path.startsWith("/student/courses/")) return { title: "Chi tiết khóa học", breadcrumb: "HỌC TẬP" };
   if (path === "/student/path" || path === "/student/progress") return { title: "Lộ trình & Tiến độ học tập", breadcrumb: "TIẾN ĐỘ & THI ĐUA" };
   if (path === "/student/exercises") return { title: "Bài tập theo kỹ năng", breadcrumb: "HỌC TẬP" };
@@ -186,7 +191,7 @@ export default function AppShell({ roleKey = "student" }) {
   }, [isLearningRoute]);
 
   const accountName = user?.fullName || user?.name || "Học viên";
-  const headerMeta = useMemo(() => getPageHeaderMeta(location.pathname, roleKey), [location.pathname, roleKey]);
+  const headerMeta = useMemo(() => getPageHeaderMeta(location.pathname, roleKey, location.search), [location.pathname, roleKey, location.search]);
   const pageTitle = headerMeta.title;
   const breadcrumb = headerMeta.breadcrumb;
 
