@@ -99,7 +99,22 @@ export default function NotificationDropdown({ onClose }) {
       }
     }
     fetchRealNotifications();
-    return () => { isMounted = false; };
+
+    function handleRealtimeNotification(e) {
+      if (e.detail && isMounted) {
+        setNotifications((prev) => {
+          const exists = prev.some((n) => n.id === e.detail.id || n.message === e.detail.message);
+          if (exists) return prev;
+          return [e.detail, ...prev];
+        });
+      }
+    }
+    window.addEventListener("add_notification", handleRealtimeNotification);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("add_notification", handleRealtimeNotification);
+    };
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

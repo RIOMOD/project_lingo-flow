@@ -12,14 +12,35 @@ export function ToastProvider({ children }) {
   const showToast = useCallback((message, type = "success") => {
     if (!message) return;
     setToasts((items) => {
-      // 1. Deduplicate identical messages to prevent toast spam
       const exists = items.some((item) => item.message === message && item.type === type);
       if (exists) return items;
 
       const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      window.setTimeout(() => removeToast(id), 3000);
+      window.setTimeout(() => removeToast(id), 4000);
 
-      // 2. Keep maximum 2 toasts visible at a time
+      // Automatically dispatch new notification item to NotificationDropdown list
+      if (type === "success" || type === "info") {
+        const title = message.includes("khóa học") ? "Đăng ký khóa học thành công 🎉" 
+                    : message.includes("Thanh toán") || message.includes("đơn hàng") ? "Thanh toán đơn hàng thành công 💳"
+                    : message.includes("tài khoản") ? "Đăng ký tài khoản thành công 🎓"
+                    : "Thông báo từ hệ thống 🔔";
+        
+        const notifItem = {
+          id: `notif-realtime-${Date.now()}`,
+          type: message.includes("Thanh toán") ? "payment" : "course",
+          title,
+          message,
+          time: "Vừa xong",
+          read: false,
+          link: message.includes("tài khoản") ? "/student" : "/student/courses",
+          icon: message.includes("Thanh toán") ? "💳" : message.includes("tài khoản") ? "🎓" : "📚",
+          color: "#0d9488",
+          bg: "#ccfbf1"
+        };
+
+        window.dispatchEvent(new CustomEvent("add_notification", { detail: notifItem }));
+      }
+
       const next = [...items, { id, message, type }];
       return next.slice(-2);
     });
