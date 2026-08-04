@@ -12,11 +12,10 @@ import java.util.Map;
 
 @Tag(name = "Health")
 @RestController
-@RequestMapping("/api")
 public class HealthController {
 
     @Operation(summary = "Check backend health")
-    @GetMapping("/health")
+    @GetMapping({"/", "/health", "/api/health"})
     public ApiResponse<Map<String, Object>> health() {
         Map<String, Object> data = Map.of(
                 "status", "UP",
