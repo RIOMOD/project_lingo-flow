@@ -7,6 +7,7 @@ frontend/dist/
 
 # Backend & Runtime
 backend/target/
+!backend/app.jar
 backend/.env
 *.pid
 *.jar.original

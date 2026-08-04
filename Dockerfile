@@ -1,16 +1,3 @@
-# Stage 1: Build application with Maven
-FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
-WORKDIR /app
-
-# Copy pom.xml and download dependencies
-COPY backend/pom.xml ./
-RUN mvn dependency:go-offline -B
-
-# Copy source code and package application
-COPY backend/src ./src
-RUN mvn clean package -DskipTests
-
-# Stage 2: Runtime environment
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
@@ -18,8 +5,8 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-# Copy executable jar from builder stage
-COPY --from=builder /app/target/*.jar app.jar
+# Copy pre-built executable jar
+COPY backend/app.jar app.jar
 
 EXPOSE 8080
 
