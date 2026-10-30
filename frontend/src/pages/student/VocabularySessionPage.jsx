@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { recordVocabularyProgress } from "../../services/progressService";
 import { getVocabularies, getReviewVocabularies, updateVocabularyProgress } from "../../services/learningService";
+import { notify } from "../../services/notificationService";
 import { speakText } from "../../utils/sound";
 import "../../styles/VocabularySession.css";
 
@@ -498,6 +499,12 @@ export default function VocabularySessionPage() {
       // Record overall progress statistics
       recordVocabularyProgress(uniqueVocabsLearned).catch(err => 
         console.warn("Failed to record global vocab progress:", err)
+      );
+
+      // Push to notification dropdown
+      notify.vocab(
+        `✨ Phên ôn từ vựng hoàn tất! Bạn đã ghi nhớ ${uniqueVocabsLearned} từ mới trong phiên này.`,
+        "/student/vocabulary"
       );
     }
   };

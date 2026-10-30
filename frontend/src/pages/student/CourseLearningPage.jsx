@@ -4,6 +4,7 @@ import LessonMedia from "../../components/common/LessonMedia";
 import { LoadingState } from "../../components/common/UiState";
 import { useToast } from "../../context/ToastContext";
 import { getCourseChapters, getLesson } from "../../services/courseService";
+import { notify } from "../../services/notificationService";
 import { completeLessonProgress, startLessonProgress, trackLessonProgress } from "../../services/progressService";
 import "../../styles/LearningRoom.css";
 
@@ -376,15 +377,32 @@ export default function CourseLearningPage() {
       const index = flat.findIndex((item) => item.id === activeLessonId);
       const next = flat[index + 1] ?? null;
 
+      const courseComplete = !next;
+
       setCompletion({
         next: next,
-        courseComplete: !next,
+        courseComplete,
         progressPercent: progress.progressPercent,
       });
+
+      // Push to notification dropdown
+      if (courseComplete) {
+        notify.achievement(
+          `🎓 Bạn đã hoàn thành toàn bộ khóa học! Tiến độ: ${progress.progressPercent || 100}%`,
+          `/student/courses`
+        );
+        toast.success("🎉 Tuyệt vời! Bạn đã hoàn thành toàn bộ khóa học!");
+      } else {
+        notify.progress(
+          `Hoàn thành bài học: ${activeLesson?.title || "Bài học"} — Tiến độ: ${progress.progressPercent || 0}%`,
+          `/student/learn/${courseId}`
+        );
+        toast.success("✅ Đã hoàn thành bài học!");
+      }
     } catch (err) {
       const msg = err.message || "Chưa thể hoàn thành bài học";
       setError(msg);
-      // Display inline error nicely instead of toast spam
+      notify.error(msg);
     } finally {
       setCompleting(false);
     }

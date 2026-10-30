@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { getPaymentStatus } from "../../services/commerceService";
+import { notify } from "../../services/notificationService";
 
 export default function PaymentStatusPage() {
   const { status: paramStatus } = useParams();
@@ -10,13 +11,27 @@ export default function PaymentStatusPage() {
   const displayStatus = queryStatus || paramStatus || "SUCCESS";
 
   const [payment, setPayment] = useState(null);
+  const notifiedRef = useRef(false);
 
   useEffect(() => {
     if (!orderCode) return;
     getPaymentStatus(orderCode)
-      .then(setPayment)
+      .then((data) => {
+        setPayment(data);
+        if (!notifiedRef.current) {
+          notifiedRef.current = true;
+          notify.payment(
+            `Đơn hàng ${orderCode} đã được thanh toán thành công. Khóa học đã kích hoạt vào tài khoản!`,
+            `/student/orders/${orderCode}`
+          );
+        }
+      })
       .catch(() => {
         setPayment({ status: "SUCCESS", paymentCode: "PAY_DEMO" });
+        if (!notifiedRef.current) {
+          notifiedRef.current = true;
+          notify.payment("Thanh toán đơn hàng thành công. Khóa học đã được kích hoạt!");
+        }
       });
   }, [orderCode]);
 

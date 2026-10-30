@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { requestWritingFeedback } from "../../services/aiService";
+import { notify } from "../../services/notificationService";
 import "../../styles/WritingCorrectionPage.css";
 
 const SAMPLES = [
@@ -63,8 +64,15 @@ export default function WritingCorrectionPage() {
     try {
       const response = await requestWritingFeedback(form);
       setFeedback(response);
+      const overallScore = response?.overallScore || response?.scores?.overall || "";
+      notify.writing(
+        `AI đã chấm bài viết của bạn — Điểm tổng: ${overallScore ? overallScore + "/10" : "hoàn tất"} ✍️`,
+        "/student/writing"
+      );
     } catch (err) {
-      setError(err.message || "Không thể chấm bài viết vào lúc này.");
+      const msg = err.message || "Không thể chấm bài viết vào lúc này.";
+      setError(msg);
+      notify.error(msg);
     } finally {
       setLoading(false);
     }
